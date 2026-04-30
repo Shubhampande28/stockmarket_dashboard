@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Heatmap</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <main class="app-shell">
+        <header class="dashboard-header">
+            <div>
+                <p class="eyebrow">Live market overview</p>
+                <h1>Stock Market Heatmap</h1>
+            </div>
+            <div class="market-status" id="marketStatus">
+                <span class="status-dot"></span>
+                <span>Connecting</span>
+            </div>
+        </header>
+
+        <section class="summary-grid" aria-label="Market summary">
+            <article class="summary-card">
+                <span class="summary-label">Stocks tracked</span>
+                <strong id="stockCount">--</strong>
+            </article>
+            <article class="summary-card positive">
+                <span class="summary-label">Advancers</span>
+                <strong id="gainerCount">--</strong>
+            </article>
+            <article class="summary-card negative">
+                <span class="summary-label">Decliners</span>
+                <strong id="loserCount">--</strong>
+            </article>
+            <article class="summary-card">
+                <span class="summary-label">Avg change</span>
+                <strong id="avgChange">--</strong>
+            </article>
+        </section>
+
+        <section class="toolbar" aria-label="Heatmap controls">
+            <div class="tabs" role="tablist" aria-label="Market views">
+                <button class="tab-button active" type="button" data-view="all">All</button>
+                <button class="tab-button" type="button" data-view="gainers">Gainers</button>
+                <button class="tab-button" type="button" data-view="losers">Losers</button>
+                <button class="tab-button" type="button" data-view="it">Nifty IT</button>
+                <button class="tab-button" type="button" data-view="bank">Banking</button>
+                <button class="tab-button" type="button" data-view="others">Others</button>
+            </div>
+
+            <label class="search-wrap" for="stockSearch">
+                <span>Search</span>
+                <input id="stockSearch" type="search" placeholder="INFY, HDFC..." autocomplete="off">
+            </label>
+        </section>
+
+        <section class="heatmap-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2 id="viewTitle">All stocks</h2>
+                    <p id="viewMeta">Waiting for market data</p>
+                </div>
+                <button class="refresh-button" id="refreshButton" type="button">Refresh</button>
+            </div>
+
+            <div id="message" class="message loading">Loading market data...</div>
+            <div id="heatmap" aria-live="polite"></div>
+        </section>
+    </main>
+
+    <script src="./script.js"></script>
+</body>
+</html>

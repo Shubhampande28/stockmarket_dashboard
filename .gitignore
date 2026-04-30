@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+.venv/
+backend/venv/
+
+# Secrets and local auth
+.env
+.env.*
+backend/token.json
+
+# Local/generated market data caches
+backend/*_cache.json
+backend/data/
+
+# Editor and OS files
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
