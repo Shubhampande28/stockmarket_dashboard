@@ -117,6 +117,36 @@ function getColor(change) {
     return `linear-gradient(135deg, rgba(127, 29, 29, ${alpha}), rgba(239, 68, 68, ${alpha}))`;
 }
 
+function getMovementStyle(change, index) {
+    const value = Number(change) || 0;
+    const intensity = Math.min(Math.abs(value) / 5, 1);
+    const pulseScale = 0.985 - intensity * 0.095;
+    const pulseDuration = 2.9 - intensity * 1.45;
+    const pulseGlow = 0.18 + intensity * 0.5;
+    const moveHeight = 6 + intensity * 28;
+    const pulseDelay = -(index % 8) * 0.18;
+
+    return {
+        pulseScale: Math.max(pulseScale, 0.89).toFixed(3),
+        pulseDuration: `${Math.max(pulseDuration, 1.25).toFixed(2)}s`,
+        pulseGlow: pulseGlow.toFixed(2),
+        moveHeight: `${moveHeight.toFixed(0)}px`,
+        pulseDelay: `${pulseDelay.toFixed(2)}s`
+    };
+}
+
+function getMovementClass(change) {
+    if (change > 0) {
+        return "positive";
+    }
+
+    if (change < 0) {
+        return "negative";
+    }
+
+    return "neutral";
+}
+
 function getFilteredStocks() {
     const stocks = [...(fullData[currentView] || [])];
     const sortedStocks = stocks.sort((a, b) => Math.abs(b.change || 0) - Math.abs(a.change || 0));
@@ -146,8 +176,15 @@ function renderGrid() {
 
     stocks.forEach((stock, index) => {
         const tile = document.createElement("article");
-        tile.className = "tile";
+        const movement = getMovementStyle(stock.change, index);
+
+        tile.className = `tile ${getMovementClass(stock.change)}`;
         tile.style.background = getColor(stock.change);
+        tile.style.setProperty("--pulse-scale", movement.pulseScale);
+        tile.style.setProperty("--pulse-duration", movement.pulseDuration);
+        tile.style.setProperty("--pulse-glow", movement.pulseGlow);
+        tile.style.setProperty("--move-height", movement.moveHeight);
+        tile.style.setProperty("--pulse-delay", movement.pulseDelay);
         tile.title = `${stock.symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
         tile.innerHTML = `
