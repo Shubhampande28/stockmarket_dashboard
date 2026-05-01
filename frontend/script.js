@@ -229,13 +229,13 @@ function getMosaicStyle(stock, intensity) {
     if (window.innerWidth <= 900) {
         return {
             spanX: intensity > 0.8 ? 6 : intensity > 0.45 ? 4 : 3,
-            spanY: intensity > 0.8 ? 3 : 2,
+            spanY: intensity > 0.8 ? 4 : 3,
             textBoost: `${(intensity * 3).toFixed(1)}px`
         };
     }
 
     const spanX = intensity > 0.85 ? 6 : intensity > 0.65 ? 5 : intensity > 0.38 ? 4 : 3;
-    const spanY = intensity > 0.85 ? 4 : intensity > 0.65 ? 4 : intensity > 0.38 ? 3 : 2;
+    const spanY = intensity > 0.85 ? 4 : intensity > 0.65 ? 4 : 3;
     const textBoost = intensity * 5;
 
     return {
