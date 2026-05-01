@@ -865,6 +865,7 @@ h1 {
     margin-top: 0;
     padding: 14px 20px 0;
     border-top: 1px solid var(--border);
+    overflow: visible;
 }
 
 .news-heading {
@@ -993,10 +994,12 @@ h1 {
 
 .statement-table-wrap {
     overflow-x: auto;
-    overflow-y: visible;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border);
     border-radius: 8px;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
 }
 
 .statement-table {
