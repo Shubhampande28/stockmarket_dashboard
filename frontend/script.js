@@ -32,6 +32,12 @@ const statementLabels = {
     cashFlow: "Cash Flow"
 };
 
+const statementDescriptions = {
+    profitLoss: "Track revenue, margins and profit trends across annual periods.",
+    balanceSheet: "Review assets, liabilities and capital structure over time.",
+    cashFlow: "Follow operating, investing and financing cash movement year by year."
+};
+
 const heatmap = document.getElementById("heatmap");
 const message = document.getElementById("message");
 const marketStatus = document.getElementById("marketStatus");
@@ -61,6 +67,8 @@ const infoPanel = document.getElementById("infoPanel");
 const infoMeta = document.getElementById("infoMeta");
 const stockInfo = document.getElementById("stockInfo");
 const financialPanel = document.getElementById("financialPanel");
+const financialTitle = document.getElementById("financialTitle");
+const financialMeta = document.getElementById("financialMeta");
 const statementMessage = document.getElementById("statementMessage");
 const statementContent = document.getElementById("statementContent");
 
@@ -814,6 +822,11 @@ function renderActiveStatement() {
         showStatementMessage(`${statementLabels[activeStatementType]} data is not available.`, "error");
         statementContent.innerHTML = "";
         return;
+    }
+
+    if (financialTitle && financialMeta) {
+        financialTitle.textContent = statementLabels[activeStatementType] || "Financial statement";
+        financialMeta.textContent = statementDescriptions[activeStatementType] || "Review annual statement trends across years.";
     }
 
     statementMessage.className = "statement-message";
