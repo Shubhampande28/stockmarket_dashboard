@@ -705,6 +705,19 @@ def build_valuation_payload(summary, symbol):
         }
     }
 
+def safe_valuation_payload(session, symbol):
+    try:
+        quote_summary = get_yahoo_quote_summary(session, symbol)
+        return build_valuation_payload(quote_summary, symbol)
+    except requests.RequestException:
+        return {
+            "source": {
+                "provider": "Yahoo Finance quote summary",
+                "label": "Valuation and market statistics",
+                "url": f"https://finance.yahoo.com/quote/{symbol}"
+            }
+        }
+
 def get_nse_annual_report_source(symbol):
     session = requests.Session()
     session.headers.update(NSE_HEADERS)
@@ -1248,9 +1261,12 @@ def get_financials(symbol):
             if apify_payload:
                 report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
                 apify_payload["source"]["annualReport"] = report_source
-                session, crumb = get_yahoo_session()
-                quote_summary = get_yahoo_quote_summary(session, clean_symbol)
-                apify_payload["valuation"] = build_valuation_payload(quote_summary, clean_symbol)
+                session = requests.Session()
+                session.headers.update({
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                                  "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                })
+                apify_payload["valuation"] = safe_valuation_payload(session, clean_symbol)
                 return jsonify(apify_payload)
         except requests.RequestException:
             apify_payload = None
@@ -1260,9 +1276,12 @@ def get_financials(symbol):
             if screener_payload:
                 report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
                 screener_payload["source"]["annualReport"] = report_source
-                session, crumb = get_yahoo_session()
-                quote_summary = get_yahoo_quote_summary(session, clean_symbol)
-                screener_payload["valuation"] = build_valuation_payload(quote_summary, clean_symbol)
+                session = requests.Session()
+                session.headers.update({
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                                  "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                })
+                screener_payload["valuation"] = safe_valuation_payload(session, clean_symbol)
                 return jsonify(screener_payload)
         except requests.RequestException:
             screener_payload = None
@@ -1274,7 +1293,6 @@ def get_financials(symbol):
             report_source = None
 
         session, crumb = get_yahoo_session()
-        quote_summary = get_yahoo_quote_summary(session, clean_symbol)
         timeseries_result = get_yahoo_timeseries(session, crumb, clean_symbol)
         statements = normalize_timeseries_rows(timeseries_result)
 
@@ -1292,7 +1310,7 @@ def get_financials(symbol):
                 "annualReport": report_source
             },
             "sourceNote": "Numbers are fetched from structured annual fundamentals. The NSE annual report link is provided as the official company filing reference.",
-            "valuation": build_valuation_payload(quote_summary, clean_symbol),
+            "valuation": safe_valuation_payload(session, clean_symbol),
             "statements": statements
         })
     except requests.RequestException:
