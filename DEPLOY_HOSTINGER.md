@@ -30,6 +30,8 @@ ADMIN_USERNAME=shubham
 ADMIN_PASSWORD=use_a_fresh_strong_password
 FLASK_SECRET_KEY=use_a_long_random_secret
 OPENAI_API_KEY=optional_for_news_summaries
+APIFY_TOKEN=optional_for_screener_financials
+APIFY_SCREENER_ACTOR_ID=optional_actor_id_or_username/actor-name
 PORT=5000
 ```
 
@@ -110,3 +112,20 @@ https://your-domain.com/admin
 ```
 
 Login as admin, click **Login with Upstox**, complete OTP/TOTP on Upstox, and the backend will save the new token.
+
+## 8. Optional Apify Screener financials
+
+If you want P&L, balance sheet, and cash flow from an Apify Screener actor instead of the Yahoo fallback, add these to `.env`:
+
+```bash
+APIFY_TOKEN=your_apify_api_token
+APIFY_SCREENER_ACTOR_ID=username/actor-name
+```
+
+Then restart:
+
+```bash
+sudo systemctl restart stock-dashboard
+```
+
+The backend calls the actor first, caches normalized annual statements for 30 days, and falls back to Yahoo/NSE if Apify is not configured or returns no usable statement rows.

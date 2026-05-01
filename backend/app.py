@@ -24,12 +24,15 @@ CORS(app)
 
 NEWS_CACHE_PATH = BASE_DIR / "news_cache.json"
 AI_CACHE_PATH = BASE_DIR / "ai_cache.json"
+FINANCIALS_CACHE_PATH = BASE_DIR / "financials_cache.json"
 NEWS_CACHE_TTL = 60 * 60 * 24 * 30
 AI_CACHE_TTL = 60 * 60 * 24 * 365
+FINANCIALS_CACHE_TTL = 60 * 60 * 24 * 30
 NEWS_LIMIT = 8
 AUTH_STATE_PATH = BASE_DIR / "auth_state.json"
 UPSTOX_AUTH_URL = "https://api.upstox.com/v2/login/authorization/dialog"
 UPSTOX_TOKEN_URL = "https://api.upstox.com/v2/login/authorization/token"
+APIFY_RUN_TIMEOUT = 90
 
 # =========================
 # SERVE FRONTEND
@@ -66,6 +69,12 @@ def get_upstox_config():
         "client_id": os.environ.get("UPSTOX_CLIENT_ID", "").strip(),
         "client_secret": os.environ.get("UPSTOX_CLIENT_SECRET", "").strip(),
         "redirect_uri": os.environ.get("UPSTOX_REDIRECT_URI", "").strip()
+    }
+
+def get_apify_config():
+    return {
+        "token": os.environ.get("APIFY_TOKEN", "").strip(),
+        "actor_id": os.environ.get("APIFY_SCREENER_ACTOR_ID", "").strip()
     }
 
 def configured_redirect_uri():
@@ -692,6 +701,225 @@ def get_nse_annual_report_source(symbol):
         )
     }
 
+def cache_get(cache_path, key, ttl):
+    cache = load_json_cache(cache_path)
+    cached = cache.get(key)
+    if not isinstance(cached, dict):
+        return None
+    if time.time() - cached.get("cachedAt", 0) > ttl:
+        return None
+    return cached.get("payload")
+
+def cache_set(cache_path, key, payload):
+    cache = load_json_cache(cache_path)
+    cache[key] = {"cachedAt": time.time(), "payload": payload}
+    save_json_cache(cache_path, cache)
+
+def get_case_value(payload, names):
+    if not isinstance(payload, dict):
+        return None
+
+    lowered = {str(key).lower().replace("_", "").replace(" ", ""): key for key in payload.keys()}
+    for name in names:
+        normalized = name.lower().replace("_", "").replace(" ", "")
+        key = lowered.get(normalized)
+        if key is not None:
+            return payload.get(key)
+
+    return None
+
+def normalize_period_label(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    year_match = re.search(r"(20\d{2}|19\d{2})", text)
+    if year_match:
+        return year_match.group(1)
+    return text
+
+def normalize_statement_value(value):
+    if isinstance(value, dict):
+        for key in ("value", "raw", "amount", "reportedValue"):
+            if key in value:
+                return normalize_statement_value(value.get(key))
+        return None
+    if value in ("", "-", "--", None):
+        return None
+    if isinstance(value, str):
+        cleaned = value.replace(",", "").replace("Cr.", "").replace("Cr", "").replace("%", "").strip()
+        if cleaned.startswith("(") and cleaned.endswith(")"):
+            cleaned = f"-{cleaned[1:-1]}"
+        try:
+            return float(cleaned)
+        except ValueError:
+            return value
+    return value
+
+def normalize_rows_from_dict(statement):
+    periods = statement.get("periods") or statement.get("years") or statement.get("columns") or []
+    rows = statement.get("rows") or statement.get("data") or statement.get("items") or []
+
+    if rows and isinstance(rows, list):
+        normalized_periods = [normalize_period_label(period) for period in periods]
+        normalized_rows = []
+        for index, row in enumerate(rows):
+            if isinstance(row, dict):
+                label = row.get("label") or row.get("name") or row.get("metric") or row.get("particular") or row.get("particulars")
+                values = row.get("values")
+                if values is None:
+                    values = [
+                        row.get(period)
+                        for period in periods
+                        if period in row
+                    ]
+                if label and isinstance(values, list):
+                    normalized_rows.append({
+                        "key": re.sub(r"\W+", "", str(label)) or f"row{index}",
+                        "label": str(label),
+                        "values": [normalize_statement_value(value) for value in values]
+                    })
+        return {"periods": [period for period in normalized_periods if period], "rows": normalized_rows}
+
+    period_keys = [key for key in statement.keys() if normalize_period_label(key)]
+    metric_keys = [key for key in statement.keys() if key not in period_keys]
+    if period_keys and metric_keys:
+        return {
+            "periods": [normalize_period_label(period) for period in period_keys],
+            "rows": [
+                {
+                    "key": re.sub(r"\W+", "", str(metric)),
+                    "label": str(metric),
+                    "values": [normalize_statement_value(statement.get(period, {}).get(metric)) for period in period_keys]
+                }
+                for metric in metric_keys
+                if isinstance(statement.get(period_keys[0]), dict)
+            ]
+        }
+
+    return {"periods": [], "rows": []}
+
+def normalize_rows_from_list(statement):
+    if not statement:
+        return {"periods": [], "rows": []}
+
+    if all(isinstance(item, dict) for item in statement):
+        period_keys = []
+        for item in statement:
+            period = normalize_period_label(item.get("year") or item.get("period") or item.get("date"))
+            if period:
+                period_keys.append(period)
+
+        if period_keys:
+            metric_names = []
+            ignored = {"year", "period", "date"}
+            for item in statement:
+                for key in item.keys():
+                    if str(key).lower() not in ignored and key not in metric_names:
+                        metric_names.append(key)
+
+            return {
+                "periods": period_keys,
+                "rows": [
+                    {
+                        "key": re.sub(r"\W+", "", str(metric)),
+                        "label": readable_financial_label(str(metric)),
+                        "values": [normalize_statement_value(item.get(metric)) for item in statement]
+                    }
+                    for metric in metric_names
+                ]
+            }
+
+    return {"periods": [], "rows": []}
+
+def normalize_apify_statement(statement):
+    if isinstance(statement, dict):
+        normalized = normalize_rows_from_dict(statement)
+    elif isinstance(statement, list):
+        normalized = normalize_rows_from_list(statement)
+    else:
+        normalized = {"periods": [], "rows": []}
+
+    row_length = len(normalized["periods"])
+    if row_length:
+        normalized["rows"] = [
+            row for row in normalized["rows"]
+            if any(value is not None for value in row.get("values", [])[:row_length])
+        ]
+    return normalized
+
+def normalize_apify_financials(item, symbol):
+    if not isinstance(item, dict):
+        return None
+
+    statements = {
+        "profitLoss": normalize_apify_statement(get_case_value(item, ["profitLoss", "profit_loss", "pnl", "incomeStatement", "income_statement"])),
+        "balanceSheet": normalize_apify_statement(get_case_value(item, ["balanceSheet", "balance_sheet", "balancesheet"])),
+        "cashFlow": normalize_apify_statement(get_case_value(item, ["cashFlow", "cash_flow", "cashflow"]))
+    }
+
+    if not any(statement["rows"] for statement in statements.values()):
+        return None
+
+    source_url = (
+        item.get("url")
+        or item.get("sourceUrl")
+        or f"https://www.screener.in/company/{symbol.replace('.NS', '')}/consolidated/"
+    )
+    return {
+        "symbol": symbol,
+        "name": item.get("name") or item.get("companyName") or STOCK_NAMES.get(symbol.replace(".NS", ""), symbol),
+        "currency": "INR",
+        "source": {
+            "provider": "Apify Screener actor",
+            "label": "Screener financial statements",
+            "url": source_url
+        },
+        "sourceNote": "Numbers are fetched through the configured Apify Screener actor and cached for annual-statement use. Verify with company filings before making decisions.",
+        "statements": statements
+    }
+
+def fetch_apify_financials(symbol):
+    config = get_apify_config()
+    if not config["token"] or not config["actor_id"]:
+        return None
+
+    cached = cache_get(FINANCIALS_CACHE_PATH, f"apify:{symbol}", FINANCIALS_CACHE_TTL)
+    if cached:
+        return cached
+
+    base_symbol = symbol.replace(".NS", "")
+    screener_url = f"https://www.screener.in/company/{base_symbol}/consolidated/"
+    actor_id = config["actor_id"].replace("/", "~")
+    url = f"https://api.apify.com/v2/acts/{actor_id}/run-sync-get-dataset-items"
+    payload = {
+        "symbol": base_symbol,
+        "symbols": [base_symbol],
+        "url": screener_url,
+        "urls": [screener_url],
+        "startUrls": [{"url": screener_url}]
+    }
+    params = {
+        "token": config["token"],
+        "timeout": APIFY_RUN_TIMEOUT,
+        "memory": 1024
+    }
+
+    res = requests.post(url, params=params, json=payload, timeout=APIFY_RUN_TIMEOUT + 15)
+    res.raise_for_status()
+    items = res.json()
+    if isinstance(items, dict):
+        items = [items]
+
+    for item in items or []:
+        normalized = normalize_apify_financials(item, symbol)
+        if normalized:
+            cache_set(FINANCIALS_CACHE_PATH, f"apify:{symbol}", normalized)
+            return normalized
+
+    return None
+
 def normalize_news_item(item):
     title = item.findtext("title", default="").strip()
     link = item.findtext("link", default="").strip()
@@ -882,6 +1110,15 @@ def get_financials(symbol):
         clean_symbol = f"{clean_symbol}.NS"
 
     try:
+        try:
+            apify_payload = fetch_apify_financials(clean_symbol)
+            if apify_payload:
+                report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
+                apify_payload["source"]["annualReport"] = report_source
+                return jsonify(apify_payload)
+        except requests.RequestException:
+            apify_payload = None
+
         report_source = None
         try:
             report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
