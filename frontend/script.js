@@ -44,6 +44,7 @@ const viewMeta = document.getElementById("viewMeta");
 const searchInput = document.getElementById("stockSearch");
 const refreshButton = document.getElementById("refreshButton");
 const statementModal = document.getElementById("statementModal");
+const modalPanel = document.querySelector(".modal-panel");
 const statementTitle = document.getElementById("statementTitle");
 const statementMeta = document.getElementById("statementMeta");
 const statementSource = document.getElementById("statementSource");
@@ -645,6 +646,57 @@ function renderActiveStatement() {
     `;
 }
 
+function enableStatementTableTouchPan() {
+    let dragState = null;
+    const dragThreshold = 6;
+
+    statementContent.addEventListener("pointerdown", event => {
+        const tableWrap = event.target.closest(".statement-table-wrap");
+        if (!tableWrap || event.pointerType === "mouse") {
+            return;
+        }
+
+        dragState = {
+            tableWrap,
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            scrollLeft: tableWrap.scrollLeft,
+            scrollTop: modalPanel.scrollTop,
+            active: false
+        };
+
+        tableWrap.setPointerCapture(event.pointerId);
+    });
+
+    statementContent.addEventListener("pointermove", event => {
+        if (!dragState || event.pointerId !== dragState.pointerId) {
+            return;
+        }
+
+        const dx = event.clientX - dragState.startX;
+        const dy = event.clientY - dragState.startY;
+
+        if (!dragState.active && Math.hypot(dx, dy) < dragThreshold) {
+            return;
+        }
+
+        dragState.active = true;
+        dragState.tableWrap.scrollLeft = dragState.scrollLeft - dx;
+        modalPanel.scrollTop = dragState.scrollTop - dy;
+        event.preventDefault();
+    });
+
+    const clearDragState = event => {
+        if (dragState && event.pointerId === dragState.pointerId) {
+            dragState = null;
+        }
+    };
+
+    statementContent.addEventListener("pointerup", clearDragState);
+    statementContent.addEventListener("pointercancel", clearDragState);
+}
+
 function renderStatementSource(source) {
     if (!source) {
         statementSource.textContent = "";
@@ -911,6 +963,8 @@ document.querySelectorAll(".statement-tab").forEach(button => {
         }
     });
 });
+
+enableStatementTableTouchPan();
 
 window.addEventListener("keydown", event => {
     if (event.key === "Escape" && !statementModal.hidden) {

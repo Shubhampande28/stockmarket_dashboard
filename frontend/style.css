@@ -998,11 +998,16 @@ h1 {
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     border: 1px solid var(--border);
     border-radius: 8px;
     overscroll-behavior-x: contain;
     overscroll-behavior-y: auto;
-    touch-action: pan-x;
+    touch-action: none;
+}
+
+.statement-table-wrap::-webkit-scrollbar {
+    display: none;
 }
 
 .statement-table {
