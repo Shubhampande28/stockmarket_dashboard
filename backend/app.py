@@ -28,6 +28,7 @@ FINANCIALS_CACHE_PATH = BASE_DIR / "financials_cache.json"
 NEWS_CACHE_TTL = 60 * 60 * 24 * 30
 AI_CACHE_TTL = 60 * 60 * 24 * 365
 FINANCIALS_CACHE_TTL = 60 * 60 * 24 * 30
+FINANCIALS_CACHE_VERSION = "nse-inr-v2"
 NEWS_LIMIT = 8
 AUTH_STATE_PATH = BASE_DIR / "auth_state.json"
 UPSTOX_AUTH_URL = "https://api.upstox.com/v2/login/authorization/dialog"
@@ -718,6 +719,70 @@ def safe_valuation_payload(session, symbol):
             }
         }
 
+def get_nse_session():
+    session = requests.Session()
+    session.headers.update(NSE_HEADERS)
+    session.get("https://www.nseindia.com", timeout=10)
+    return session
+
+def get_nse_quote_summary(symbol):
+    base_symbol = symbol.replace(".NS", "")
+    session = get_nse_session()
+    res = session.get(
+        "https://www.nseindia.com/api/quote-equity",
+        params={"symbol": base_symbol},
+        timeout=12
+    )
+    res.raise_for_status()
+    return res.json()
+
+def find_first_number(payload, keys):
+    if isinstance(payload, dict):
+        for key, value in payload.items():
+            normalized_key = str(key).lower().replace("_", "").replace(" ", "")
+            if normalized_key in keys:
+                parsed = normalize_statement_value(value)
+                if isinstance(parsed, (int, float)):
+                    return parsed
+            found = find_first_number(value, keys)
+            if found is not None:
+                return found
+    elif isinstance(payload, list):
+        for item in payload:
+            found = find_first_number(item, keys)
+            if found is not None:
+                return found
+    return None
+
+def build_nse_valuation_payload(summary, symbol):
+    return {
+        "marketCap": find_first_number(summary, {"marketcap", "ffmc", "mcap", "marketcapitalisation"}),
+        "peTrailing": find_first_number(summary, {"symbolpe", "pdsymbolpe", "pe", "peratio"}),
+        "peForward": None,
+        "epsTrailing": find_first_number(summary, {"eps", "trailingepe", "trailingepeps", "trailingePS".lower()}),
+        "bookValue": None,
+        "priceToBook": find_first_number(summary, {"pb", "pbratio", "pricebookvalue"}),
+        "dividendYield": find_first_number(summary, {"dividendyield", "dy"}),
+        "fiftyTwoWeekLow": find_first_number(summary, {"weeklow", "low52", "fiftytwoweeklow"}),
+        "fiftyTwoWeekHigh": find_first_number(summary, {"weekhigh", "high52", "fiftytwoweekhigh"}),
+        "source": {
+            "provider": "NSE quote equity",
+            "label": "NSE market and valuation statistics",
+            "url": f"https://www.nseindia.com/get-quotes/equity?symbol={symbol.replace('.NS', '')}"
+        }
+    }
+
+def safe_nse_valuation_payload(symbol):
+    try:
+        return build_nse_valuation_payload(get_nse_quote_summary(symbol), symbol)
+    except requests.RequestException:
+        session = requests.Session()
+        session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        })
+        return safe_valuation_payload(session, symbol)
+
 def get_nse_annual_report_source(symbol):
     session = requests.Session()
     session.headers.update(NSE_HEADERS)
@@ -920,13 +985,13 @@ def normalize_apify_financials(item, symbol):
     return {
         "symbol": symbol,
         "name": item.get("name") or item.get("companyName") or STOCK_NAMES.get(symbol.replace(".NS", ""), symbol),
-        "currency": "INR",
+        "currency": "INR Cr",
         "source": {
             "provider": "Apify Screener actor",
             "label": "Screener financial statements",
             "url": source_url
         },
-        "sourceNote": "Numbers are fetched through the configured Apify Screener actor and cached for annual-statement use. Verify with company filings before making decisions.",
+        "sourceNote": "Numbers are fetched as INR crore figures through the configured Apify Screener actor. NSE annual report is linked as the official filing reference where available. Verify figures with NSE/company filings before making decisions.",
         "statements": statements
     }
 
@@ -935,7 +1000,7 @@ def fetch_apify_financials(symbol):
     if not config["token"] or not config["actor_id"]:
         return None
 
-    cached = cache_get(FINANCIALS_CACHE_PATH, f"apify:{symbol}", FINANCIALS_CACHE_TTL)
+    cached = cache_get(FINANCIALS_CACHE_PATH, f"{FINANCIALS_CACHE_VERSION}:apify:{symbol}", FINANCIALS_CACHE_TTL)
     if cached:
         return cached
 
@@ -965,7 +1030,7 @@ def fetch_apify_financials(symbol):
     for item in items or []:
         normalized = normalize_apify_financials(item, symbol)
         if normalized:
-            cache_set(FINANCIALS_CACHE_PATH, f"apify:{symbol}", normalized)
+            cache_set(FINANCIALS_CACHE_PATH, f"{FINANCIALS_CACHE_VERSION}:apify:{symbol}", normalized)
             return normalized
 
     return None
@@ -1016,7 +1081,7 @@ def parse_screener_table(section):
     return {"periods": periods, "rows": rows}
 
 def fetch_screener_financials(symbol):
-    cached = cache_get(FINANCIALS_CACHE_PATH, f"screener:{symbol}", FINANCIALS_CACHE_TTL)
+    cached = cache_get(FINANCIALS_CACHE_PATH, f"{FINANCIALS_CACHE_VERSION}:screener:{symbol}", FINANCIALS_CACHE_TTL)
     if cached:
         return cached
 
@@ -1058,10 +1123,10 @@ def fetch_screener_financials(symbol):
                     "label": "Profit & Loss, Balance Sheet and Cash Flow",
                     "url": url
                 },
-                "sourceNote": "P&L, Balance Sheet and Cash Flow are fetched from Screener.in public company pages and cached for 30 days. Verify figures with official filings before making decisions.",
+                "sourceNote": "P&L, Balance Sheet and Cash Flow are fetched as INR crore figures from Screener.in company pages, with NSE annual report linked as the official filing reference where available. Verify figures with NSE/company filings before making decisions.",
                 "statements": statements
             }
-            cache_set(FINANCIALS_CACHE_PATH, f"screener:{symbol}", payload)
+            cache_set(FINANCIALS_CACHE_PATH, f"{FINANCIALS_CACHE_VERSION}:screener:{symbol}", payload)
             return payload
 
     return None
@@ -1257,34 +1322,24 @@ def get_financials(symbol):
 
     try:
         try:
-            apify_payload = fetch_apify_financials(clean_symbol)
-            if apify_payload:
-                report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
-                apify_payload["source"]["annualReport"] = report_source
-                session = requests.Session()
-                session.headers.update({
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                                  "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-                })
-                apify_payload["valuation"] = safe_valuation_payload(session, clean_symbol)
-                return jsonify(apify_payload)
-        except requests.RequestException:
-            apify_payload = None
-
-        try:
             screener_payload = fetch_screener_financials(clean_symbol)
             if screener_payload:
                 report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
                 screener_payload["source"]["annualReport"] = report_source
-                session = requests.Session()
-                session.headers.update({
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                                  "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-                })
-                screener_payload["valuation"] = safe_valuation_payload(session, clean_symbol)
+                screener_payload["valuation"] = safe_nse_valuation_payload(clean_symbol)
                 return jsonify(screener_payload)
         except requests.RequestException:
             screener_payload = None
+
+        try:
+            apify_payload = fetch_apify_financials(clean_symbol)
+            if apify_payload:
+                report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
+                apify_payload["source"]["annualReport"] = report_source
+                apify_payload["valuation"] = safe_nse_valuation_payload(clean_symbol)
+                return jsonify(apify_payload)
+        except requests.RequestException:
+            apify_payload = None
 
         report_source = None
         try:
@@ -1309,8 +1364,8 @@ def get_financials(symbol):
                 "url": "https://finance.yahoo.com/",
                 "annualReport": report_source
             },
-            "sourceNote": "Numbers are fetched from structured annual fundamentals. The NSE annual report link is provided as the official company filing reference.",
-            "valuation": safe_valuation_payload(session, clean_symbol),
+            "sourceNote": "Numbers are fetched from structured annual fundamentals as an INR fallback. NSE annual report link is provided as the official filing reference where available.",
+            "valuation": safe_nse_valuation_payload(clean_symbol),
             "statements": statements
         })
     except requests.RequestException:
