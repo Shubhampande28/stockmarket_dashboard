@@ -654,7 +654,9 @@ h1 {
     flex-direction: column;
     width: min(1040px, 100%);
     max-height: min(780px, calc(100svh - 40px));
-    overflow: hidden;
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border);
     border-radius: 8px;
     background: #ffffff;
@@ -664,7 +666,7 @@ h1 {
 .modal-panel > .tab-panel.active,
 .modal-panel > .financial-panel.active {
     min-height: 0;
-    overflow: auto;
+    overflow: visible;
 }
 
 .modal-header {
@@ -960,7 +962,7 @@ h1 {
 
 .financial-panel {
     min-height: 0;
-    overflow: auto;
+    overflow: visible;
 }
 
 .statement-message.visible {
@@ -974,7 +976,7 @@ h1 {
 
 .statement-content {
     min-height: 0;
-    overflow: auto;
+    overflow: visible;
     padding: 20px;
 }
 
@@ -990,7 +992,9 @@ h1 {
 }
 
 .statement-table-wrap {
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border);
     border-radius: 8px;
 }
@@ -1370,6 +1374,8 @@ h1 {
         width: 100%;
         min-height: 100svh;
         max-height: 100svh;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
         border: 0;
         border-radius: 0;
     }
@@ -1422,7 +1428,7 @@ h1 {
     .financial-panel.active,
     .tab-panel.active {
         min-height: 0;
-        overflow: auto;
+        overflow: visible;
     }
 
     .snapshot-metrics {
