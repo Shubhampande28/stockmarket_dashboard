@@ -24,6 +24,7 @@ body {
         linear-gradient(90deg, rgba(14, 165, 233, 0.06), transparent 34rem),
         var(--bg);
     color: var(--text);
+    overflow-x: hidden;
 }
 
 body.modal-open {
@@ -1108,21 +1109,26 @@ h1 {
 
     #heatmap {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        grid-auto-rows: 86px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-rows: 112px;
         grid-auto-flow: dense;
-        gap: 0;
+        gap: 8px;
+        width: 100%;
+        max-width: 100%;
         min-height: 520px;
-        padding: 0;
+        padding: 10px;
         overflow: auto;
         overflow-x: hidden;
     }
 
     .tile {
+        grid-column: auto !important;
+        grid-row: auto !important;
         min-width: 0;
-        min-height: 0;
-        margin: 5px;
-        padding: 10px;
+        width: 100%;
+        min-height: 112px;
+        margin: 0;
+        padding: 9px;
         animation-duration: 5.2s;
     }
 
@@ -1133,30 +1139,32 @@ h1 {
 
     .tile-top,
     .price-wrap {
-        gap: 6px;
+        gap: 5px;
     }
 
     .price-wrap {
-        align-items: flex-end;
+        align-items: flex-start;
+        flex-direction: column;
         margin: auto 0 0;
     }
 
     .symbol {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .stock-name {
-        font-size: 11px;
+        font-size: 10px;
         -webkit-line-clamp: 1;
     }
 
     .price {
-        font-size: 17px;
+        font-size: 15px;
     }
 
     .change {
+        align-items: flex-start;
         padding: 4px 6px;
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .change small {
@@ -1222,16 +1230,16 @@ h1 {
 
     #heatmap {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        grid-auto-rows: 82px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-rows: 106px;
         grid-auto-flow: dense;
         min-height: 0;
-        padding: 0;
+        padding: 8px;
     }
 
     .tile {
-        min-height: 0;
-        padding: 9px;
+        min-height: 106px;
+        padding: 8px;
     }
 
     .price {
@@ -1319,20 +1327,20 @@ h1 {
 
     #heatmap {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        grid-auto-rows: 76px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-rows: 100px;
         grid-auto-flow: dense;
         min-height: 0;
     }
 
     .tile {
-        min-height: 0;
-        margin: 4px;
+        min-height: 100px;
+        margin: 0;
         padding: 8px;
     }
 
     .tile-top {
-        display: flex;
+        display: block;
     }
 
     .price-wrap {
@@ -1346,7 +1354,7 @@ h1 {
     }
 
     .price {
-        font-size: 16px;
+        font-size: 14px;
     }
 
     .change {
@@ -1362,6 +1370,11 @@ h1 {
 }
 
 @media (max-width: 340px) {
+    #heatmap {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: 104px;
+    }
+
     .symbol {
         font-size: 13px;
     }
