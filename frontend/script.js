@@ -442,10 +442,16 @@ function renderPhoneGrid(stocks, intensityMap) {
                     <strong>${escapeHtml(stock.name || stock.symbol.replace(".NS", ""))}</strong>
                     <small>${escapeHtml(stock.symbol.replace(".NS", ""))}</small>
                 </div>
-                <span>${formatChange(stock.change)}</span>
+                <span class="mobile-change-badge">
+                    <strong>${formatChange(stock.change)}</strong>
+                    <small>${formatNetChange(stock.netChange)}</small>
+                </span>
             </div>
             <div class="mobile-tile-body">
-                <strong>${formatPrice(stock.price)}</strong>
+                <div class="mobile-tile-price">
+                    <span>LTP</span>
+                    <strong>${formatPrice(stock.price)}</strong>
+                </div>
             </div>
         `;
 

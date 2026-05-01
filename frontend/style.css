@@ -528,16 +528,26 @@ h1 {
     min-height: 0;
     width: 100%;
     height: 100%;
-    padding: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.24);
+    padding: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: 8px;
     overflow: hidden;
     color: #ffffff;
     cursor: pointer;
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        inset 0 -22px 34px rgba(15, 23, 42, 0.16),
-        0 8px 18px rgba(15, 23, 42, 0.12);
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        inset 0 -26px 40px rgba(15, 23, 42, 0.2),
+        0 10px 22px rgba(15, 23, 42, 0.16);
+}
+
+#heatmap.phone-heatmap .mobile-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: rgba(255, 255, 255, 0.52);
+    opacity: 0.78;
+    pointer-events: none;
 }
 
 #heatmap.phone-heatmap .mobile-tile.featured {
@@ -550,9 +560,10 @@ h1 {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at 16% 14%, rgba(255, 255, 255, 0.22), transparent 34%),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 48%),
-        linear-gradient(180deg, transparent 42%, rgba(15, 23, 42, 0.24));
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.26), transparent 32%),
+        radial-gradient(circle at 92% 100%, rgba(15, 23, 42, 0.22), transparent 42%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.13), transparent 46%),
+        linear-gradient(180deg, transparent 38%, rgba(15, 23, 42, 0.28));
     pointer-events: none;
 }
 
@@ -580,7 +591,7 @@ h1 {
     display: -webkit-box;
     overflow: hidden;
     color: #ffffff;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 950;
     line-height: 1.08;
     text-wrap: balance;
@@ -591,8 +602,13 @@ h1 {
 }
 
 #heatmap.phone-heatmap .mobile-tile-identity small {
+    width: fit-content;
+    max-width: 100%;
     overflow: hidden;
-    color: rgba(255, 255, 255, 0.76);
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.18);
+    color: rgba(255, 255, 255, 0.82);
     font-size: 9px;
     font-weight: 850;
     line-height: 1;
@@ -600,15 +616,36 @@ h1 {
     white-space: nowrap;
 }
 
-#heatmap.phone-heatmap .mobile-tile-head span {
+#heatmap.phone-heatmap .mobile-change-badge {
     flex: 0 0 auto;
-    padding: 4px 6px;
+    display: grid;
+    justify-items: end;
+    min-width: 48px;
+    padding: 5px 6px;
     border-radius: 6px;
-    background: rgba(15, 23, 42, 0.32);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    font-size: 10px;
-    font-weight: 900;
+    background: rgba(15, 23, 42, 0.34);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 5px 12px rgba(15, 23, 42, 0.12);
     line-height: 1;
+}
+
+#heatmap.phone-heatmap .mobile-change-badge strong {
+    color: #ffffff;
+    font-size: 10.5px;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+#heatmap.phone-heatmap .mobile-change-badge small {
+    max-width: 58px;
+    margin-top: 3px;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 8px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #heatmap.phone-heatmap .mobile-tile-body {
@@ -617,10 +654,24 @@ h1 {
     gap: 5px;
 }
 
-#heatmap.phone-heatmap .mobile-tile-body strong {
+#heatmap.phone-heatmap .mobile-tile-price {
+    display: grid;
+    gap: 4px;
+    max-width: 100%;
+}
+
+#heatmap.phone-heatmap .mobile-tile-price span {
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 8.5px;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+#heatmap.phone-heatmap .mobile-tile-price strong {
     overflow: hidden;
     max-width: 100%;
-    font-size: 18px;
+    font-size: clamp(17px, 5.6vw, 21px);
     font-weight: 950;
     line-height: 1;
     text-overflow: ellipsis;
@@ -629,12 +680,30 @@ h1 {
 }
 
 #heatmap.phone-heatmap .mobile-tile.featured .mobile-tile-identity strong {
-    font-size: 21px;
+    font-size: clamp(20px, 6.5vw, 28px);
     line-height: 1.02;
 }
 
-#heatmap.phone-heatmap .mobile-tile.featured .mobile-tile-body strong {
-    font-size: 34px;
+#heatmap.phone-heatmap .mobile-tile.featured .mobile-change-badge {
+    min-width: 66px;
+    padding: 7px 8px;
+}
+
+#heatmap.phone-heatmap .mobile-tile.featured .mobile-change-badge strong {
+    font-size: 14px;
+}
+
+#heatmap.phone-heatmap .mobile-tile.featured .mobile-change-badge small {
+    max-width: 78px;
+    font-size: 9px;
+}
+
+#heatmap.phone-heatmap .mobile-tile.featured .mobile-tile-price span {
+    font-size: 10px;
+}
+
+#heatmap.phone-heatmap .mobile-tile.featured .mobile-tile-price strong {
+    font-size: clamp(32px, 10vw, 46px);
 }
 
 @media (max-width: 340px) {
