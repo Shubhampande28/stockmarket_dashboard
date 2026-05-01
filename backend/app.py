@@ -668,6 +668,43 @@ def get_yahoo_timeseries(session, crumb, symbol):
     res.raise_for_status()
     return res.json().get("timeseries", {}).get("result", []) or []
 
+def get_yahoo_quote_summary(session, symbol):
+    modules = "price,summaryDetail,defaultKeyStatistics,financialData"
+    url = f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}"
+    res = session.get(url, params={"modules": modules}, timeout=12)
+    res.raise_for_status()
+    result = res.json().get("quoteSummary", {}).get("result", []) or []
+    return result[0] if result else {}
+
+def compact_yahoo_value(value):
+    raw = yahoo_raw_value(value)
+    if raw in ("", None):
+        return None
+    return raw
+
+def build_valuation_payload(summary, symbol):
+    price = summary.get("price", {}) or {}
+    detail = summary.get("summaryDetail", {}) or {}
+    stats = summary.get("defaultKeyStatistics", {}) or {}
+    financial = summary.get("financialData", {}) or {}
+
+    return {
+        "marketCap": compact_yahoo_value(price.get("marketCap") or detail.get("marketCap")),
+        "peTrailing": compact_yahoo_value(stats.get("trailingPE") or detail.get("trailingPE")),
+        "peForward": compact_yahoo_value(stats.get("forwardPE") or financial.get("forwardPE")),
+        "epsTrailing": compact_yahoo_value(stats.get("trailingEps")),
+        "bookValue": compact_yahoo_value(stats.get("bookValue")),
+        "priceToBook": compact_yahoo_value(stats.get("priceToBook")),
+        "dividendYield": compact_yahoo_value(detail.get("dividendYield")),
+        "fiftyTwoWeekLow": compact_yahoo_value(detail.get("fiftyTwoWeekLow")),
+        "fiftyTwoWeekHigh": compact_yahoo_value(detail.get("fiftyTwoWeekHigh")),
+        "source": {
+            "provider": "Yahoo Finance quote summary",
+            "label": "Valuation and market statistics",
+            "url": f"https://finance.yahoo.com/quote/{symbol}"
+        }
+    }
+
 def get_nse_annual_report_source(symbol):
     session = requests.Session()
     session.headers.update(NSE_HEADERS)
@@ -1115,6 +1152,9 @@ def get_financials(symbol):
             if apify_payload:
                 report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
                 apify_payload["source"]["annualReport"] = report_source
+                session, crumb = get_yahoo_session()
+                quote_summary = get_yahoo_quote_summary(session, clean_symbol)
+                apify_payload["valuation"] = build_valuation_payload(quote_summary, clean_symbol)
                 return jsonify(apify_payload)
         except requests.RequestException:
             apify_payload = None
@@ -1126,6 +1166,7 @@ def get_financials(symbol):
             report_source = None
 
         session, crumb = get_yahoo_session()
+        quote_summary = get_yahoo_quote_summary(session, clean_symbol)
         timeseries_result = get_yahoo_timeseries(session, crumb, clean_symbol)
         statements = normalize_timeseries_rows(timeseries_result)
 
@@ -1143,6 +1184,7 @@ def get_financials(symbol):
                 "annualReport": report_source
             },
             "sourceNote": "Numbers are fetched from structured annual fundamentals. The NSE annual report link is provided as the official company filing reference.",
+            "valuation": build_valuation_payload(quote_summary, clean_symbol),
             "statements": statements
         })
     except requests.RequestException:

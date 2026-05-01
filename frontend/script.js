@@ -427,6 +427,40 @@ function renderStockSnapshot(stock) {
     `;
 }
 
+function renderStockSnapshotWithFinancials(stock, data) {
+    const valuation = data.valuation || {};
+    const range = valuation.fiftyTwoWeekLow && valuation.fiftyTwoWeekHigh
+        ? `${formatCompactPrice(valuation.fiftyTwoWeekLow)} - ${formatCompactPrice(valuation.fiftyTwoWeekHigh)}`
+        : "--";
+    const source = valuation.source;
+    const sourceHtml = source?.url
+        ? `<a href="${escapeAttribute(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.provider || "Market source")}</a>`
+        : escapeHtml(source?.provider || "Upstox live quote");
+
+    stockSnapshot.innerHTML = `
+        <div class="snapshot-main">
+            <span class="snapshot-symbol">${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
+            <strong>${formatPrice(stock.price)}</strong>
+            <span class="snapshot-change ${stock.change >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</span>
+        </div>
+        <div class="snapshot-metrics">
+            <span>Open <strong>${formatCompactPrice(stock.open)}</strong></span>
+            <span>High <strong>${formatCompactPrice(stock.high)}</strong></span>
+            <span>Low <strong>${formatCompactPrice(stock.low)}</strong></span>
+            <span>Close <strong>${formatCompactPrice(stock.close)}</strong></span>
+            <span>Market cap <strong>${formatMarketCap(valuation.marketCap)}</strong></span>
+            <span>Trailing P/E <strong>${formatRatio(valuation.peTrailing)}</strong></span>
+            <span>Forward P/E <strong>${formatRatio(valuation.peForward)}</strong></span>
+            <span>52W range <strong>${range}</strong></span>
+        </div>
+        <div class="snapshot-source">
+            <span>Quote source</span>
+            <strong>Live price: Upstox market quote</strong>
+            <strong>Valuation: ${sourceHtml}</strong>
+        </div>
+    `;
+}
+
 async function loadFinancialStatements(stock) {
     try {
         const res = await fetch(`${API_BASE}/financials/${encodeURIComponent(stock.symbol)}`);
@@ -439,6 +473,7 @@ async function loadFinancialStatements(stock) {
         activeFinancials = data;
         statementTitle.textContent = `${data.symbol.replace(".NS", "")} - ${data.name}`;
         statementMeta.textContent = `${data.currency || "INR"} annual figures`;
+        renderStockSnapshotWithFinancials(stock, data);
         renderStatementSource(data.source);
         statementSourceNote.textContent = data.sourceNote || "";
         renderActiveStatement();
@@ -662,6 +697,42 @@ function formatFinancialValue(value) {
 
     return number.toLocaleString("en-IN", {
         maximumFractionDigits: 2
+    });
+}
+
+function formatRatio(value) {
+    if (value === null || value === undefined || value === "") {
+        return "--";
+    }
+
+    const number = Number(value);
+    if (Number.isNaN(number)) {
+        return escapeHtml(String(value));
+    }
+
+    return number.toLocaleString("en-IN", {
+        maximumFractionDigits: 2
+    });
+}
+
+function formatMarketCap(value) {
+    if (value === null || value === undefined || value === "") {
+        return "--";
+    }
+
+    const number = Number(value);
+    if (Number.isNaN(number)) {
+        return escapeHtml(String(value));
+    }
+
+    if (Math.abs(number) >= 10000000) {
+        return `${(number / 10000000).toLocaleString("en-IN", {
+            maximumFractionDigits: 2
+        })} Cr`;
+    }
+
+    return number.toLocaleString("en-IN", {
+        maximumFractionDigits: 0
     });
 }
 

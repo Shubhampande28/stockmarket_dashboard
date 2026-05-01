@@ -625,13 +625,14 @@ h1 {
 
 .stock-snapshot {
     display: grid;
-    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.3fr);
     gap: 12px;
     padding: 14px 20px 0;
 }
 
 .snapshot-main,
-.snapshot-metrics {
+.snapshot-metrics,
+.snapshot-source {
     min-width: 0;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -681,6 +682,36 @@ h1 {
     overflow: hidden;
 }
 
+.snapshot-source {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: 5px;
+    padding: 12px 14px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.snapshot-source span {
+    font-size: 11px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.snapshot-source strong {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.snapshot-source a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.snapshot-source a:hover {
+    text-decoration: underline;
+}
+
 .snapshot-metrics span {
     display: grid;
     gap: 4px;
@@ -693,6 +724,8 @@ h1 {
 .snapshot-metrics strong {
     color: #0f172a;
     font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .news-panel {
