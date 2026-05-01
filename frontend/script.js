@@ -709,24 +709,57 @@ function renderStockInfo(stock, data = activeFinancials) {
     const valuation = data?.valuation || {};
     const info = data?.info || {};
     const rows = [
-        ["Market Cap", info.marketCap || formatMarketCap(valuation.marketCap)],
-        ["Current Price", info.currentPrice || formatCurrencyValue(stock.price)],
-        ["High / Low", info.highLow || formatHighLow(valuation.fiftyTwoWeekHigh || stock.high, valuation.fiftyTwoWeekLow || stock.low)],
-        ["Stock P/E", info.stockPe || formatRatio(valuation.peTrailing)],
-        ["Book Value", info.bookValue || formatCurrencyValue(valuation.bookValue)],
-        ["Dividend Yield", info.dividendYield || formatPercentValue(valuation.dividendYield)],
-        ["ROCE", info.roce || formatPercentValue(valuation.roce)],
-        ["ROE", info.roe || formatPercentValue(valuation.roe)],
-        ["Face Value", info.faceValue || formatCurrencyValue(valuation.faceValue)]
+        ["Market Cap", parseInfoDisplay(info.marketCap || formatMarketCap(valuation.marketCap), "₹", "Cr")],
+        ["Current Price", parseInfoDisplay(info.currentPrice || formatCurrencyValue(stock.price), "₹", "")],
+        ["High / Low", parseInfoDisplay(info.highLow || formatHighLow(valuation.fiftyTwoWeekHigh || stock.high, valuation.fiftyTwoWeekLow || stock.low), "₹", "")],
+        ["Stock P/E", parseInfoDisplay(info.stockPe || formatRatio(valuation.peTrailing), "", "x")],
+        ["Book Value", parseInfoDisplay(info.bookValue || formatCurrencyValue(valuation.bookValue), "₹", "")],
+        ["Dividend Yield", parseInfoDisplay(info.dividendYield || formatPercentValue(valuation.dividendYield), "", "%")],
+        ["ROCE", parseInfoDisplay(info.roce || formatPercentValue(valuation.roce), "", "%")],
+        ["ROE", parseInfoDisplay(info.roe || formatPercentValue(valuation.roe), "", "%")],
+        ["Face Value", parseInfoDisplay(info.faceValue || formatCurrencyValue(valuation.faceValue), "₹", "")]
     ];
 
     infoMeta.textContent = `${stock.symbol.replace(".NS", "")} market and valuation snapshot`;
-    stockInfo.innerHTML = rows.map(([label, value]) => `
+    stockInfo.innerHTML = rows.map(([label, display]) => `
         <div class="stock-info-row">
             <span>${escapeHtml(label)}</span>
-            <strong>${escapeHtml(value || "--")}</strong>
+            <strong>
+                ${display.prefix ? `<small>${escapeHtml(display.prefix)}</small>` : ""}
+                <span>${escapeHtml(display.value)}</span>
+                ${display.unit ? `<small>${escapeHtml(display.unit)}</small>` : ""}
+            </strong>
         </div>
     `).join("");
+}
+
+function parseInfoDisplay(rawValue, fallbackPrefix = "", fallbackUnit = "") {
+    const text = String(rawValue || "--")
+        .replace(/₹/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    if (!text || text === "--") {
+        return { prefix: "", value: "--", unit: "" };
+    }
+
+    let value = text
+        .replace(/\bCr\.?\b/gi, "")
+        .replace(/%/g, "")
+        .trim();
+    let unit = fallbackUnit;
+
+    if (/cr\.?/i.test(text)) {
+        unit = "Cr";
+    } else if (/%/.test(text)) {
+        unit = "%";
+    }
+
+    if (unit === "%" || unit === "x") {
+        return { prefix: "", value, unit };
+    }
+
+    return { prefix: fallbackPrefix, value, unit };
 }
 
 function toFiniteNumber(value) {
