@@ -1110,7 +1110,7 @@ h1 {
     #heatmap {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        grid-auto-rows: 112px;
+        grid-auto-rows: calc((100vw - 36px) / 3);
         grid-auto-flow: dense;
         gap: 8px;
         width: 100%;
@@ -1122,13 +1122,12 @@ h1 {
     }
 
     .tile {
-        grid-column: auto !important;
-        grid-row: auto !important;
         min-width: 0;
         width: 100%;
-        min-height: 112px;
+        min-height: 0;
         margin: 0;
         padding: 9px;
+        aspect-ratio: 1 / 1;
         animation-duration: 5.2s;
     }
 
@@ -1145,7 +1144,7 @@ h1 {
     .price-wrap {
         align-items: flex-start;
         flex-direction: column;
-        margin: auto 0 0;
+        margin: 6px 0 0;
     }
 
     .symbol {
@@ -1231,14 +1230,14 @@ h1 {
     #heatmap {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        grid-auto-rows: 106px;
+        grid-auto-rows: calc((100vw - 32px) / 3);
         grid-auto-flow: dense;
         min-height: 0;
         padding: 8px;
     }
 
     .tile {
-        min-height: 106px;
+        min-height: 0;
         padding: 8px;
     }
 
@@ -1328,13 +1327,13 @@ h1 {
     #heatmap {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        grid-auto-rows: 100px;
+        grid-auto-rows: calc((100vw - 32px) / 3);
         grid-auto-flow: dense;
         min-height: 0;
     }
 
     .tile {
-        min-height: 100px;
+        min-height: 0;
         margin: 0;
         padding: 8px;
     }
@@ -1372,7 +1371,7 @@ h1 {
 @media (max-width: 340px) {
     #heatmap {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-auto-rows: 104px;
+        grid-auto-rows: calc((100vw - 28px) / 2);
     }
 
     .symbol {
