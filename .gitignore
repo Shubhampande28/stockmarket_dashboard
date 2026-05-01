@@ -16,11 +16,15 @@ backend/venv/
 # Secrets and local auth
 .env
 .env.*
+!.env.example
 backend/token.json
+backend/auth_state.json
 
 # Local/generated market data caches
 backend/*_cache.json
+backend/cache/
 backend/data/
+backend/nifty500.json
 
 # Editor and OS files
 .vscode/

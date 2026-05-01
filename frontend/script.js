@@ -1,15 +1,35 @@
 const viewLabels = {
+    movers: "Top 10 gainers and losers",
     all: "All stocks",
     gainers: "Top gainers",
     losers: "Top losers",
-    it: "Nifty IT",
+    it: "IT",
     bank: "Banking",
+    finance: "Finance",
+    auto: "Auto",
+    pharma: "Pharma",
+    fmcg: "FMCG",
+    metal: "Metal",
+    energy: "Energy",
+    cement: "Cement",
+    consumer: "Consumer",
+    infra: "Infrastructure",
     others: "Others"
 };
 
-let currentView = "all";
+let currentView = "movers";
 let fullData = {};
 let searchTerm = "";
+let resizeTimer;
+let activeStatementType = "news";
+let activeFinancials = null;
+const API_BASE = "";
+
+const statementLabels = {
+    profitLoss: "P&L",
+    balanceSheet: "Balance Sheet",
+    cashFlow: "Cash Flow"
+};
 
 const heatmap = document.getElementById("heatmap");
 const message = document.getElementById("message");
@@ -22,12 +42,24 @@ const viewTitle = document.getElementById("viewTitle");
 const viewMeta = document.getElementById("viewMeta");
 const searchInput = document.getElementById("stockSearch");
 const refreshButton = document.getElementById("refreshButton");
+const statementModal = document.getElementById("statementModal");
+const statementTitle = document.getElementById("statementTitle");
+const statementMeta = document.getElementById("statementMeta");
+const statementSource = document.getElementById("statementSource");
+const statementSourceNote = document.getElementById("statementSourceNote");
+const stockSnapshot = document.getElementById("stockSnapshot");
+const newsPanel = document.getElementById("newsPanel");
+const newsMeta = document.getElementById("newsMeta");
+const newsList = document.getElementById("newsList");
+const financialPanel = document.getElementById("financialPanel");
+const statementMessage = document.getElementById("statementMessage");
+const statementContent = document.getElementById("statementContent");
 
 async function loadHeatmap() {
     setLoading(true);
 
     try {
-        const res = await fetch("http://127.0.0.1:5000/stocks");
+        const res = await fetch(`${API_BASE}/stocks`);
 
         if (!res.ok) {
             throw new Error("Unable to reach market service.");
@@ -36,7 +68,7 @@ async function loadHeatmap() {
         const data = await res.json();
 
         if (data.error === "TOKEN_EXPIRED") {
-            throw new Error("Market token expired. Please update the token and refresh.");
+            throw new Error("Market token expired. Admin must refresh the Upstox token.");
         }
 
         fullData = normalizePayload(data);
@@ -84,6 +116,10 @@ function hideMessage() {
 }
 
 function updateSummary() {
+    if (!stockCount || !gainerCount || !loserCount || !avgChange) {
+        return;
+    }
+
     const stocks = fullData.all || [];
     const gainers = stocks.filter(stock => stock.change > 0);
     const losers = stocks.filter(stock => stock.change < 0);
@@ -105,33 +141,65 @@ function loadView(type) {
     renderGrid();
 }
 
-function getColor(change) {
+function getTileColorBase(change, intensity = 0.3) {
     const value = Number(change) || 0;
-    const intensity = Math.min(Math.abs(value) / 5, 1);
-    const alpha = 0.38 + intensity * 0.52;
+    const strength = Math.min(Math.max(Math.abs(value) / 4, intensity * 0.72), 1);
 
-    if (value >= 0) {
-        return `linear-gradient(135deg, rgba(22, 101, 52, ${alpha}), rgba(34, 197, 94, ${alpha}))`;
+    if (value > 0) {
+        const lightness = 37 - strength * 11;
+        return `linear-gradient(135deg, hsl(151 64% ${lightness}%), hsl(151 72% ${lightness - 4}%))`;
     }
 
-    return `linear-gradient(135deg, rgba(127, 29, 29, ${alpha}), rgba(239, 68, 68, ${alpha}))`;
+    if (value < 0) {
+        const lightness = 46 - strength * 12;
+        return `linear-gradient(135deg, hsl(355 72% ${lightness}%), hsl(355 78% ${lightness - 5}%))`;
+    }
+
+    return "linear-gradient(135deg, #64748b, #475569)";
+
+    const val = Math.min(Math.abs(change), 5); // cap at 5%
+
+    if (change > 0) {
+        // 🟢 green shades
+        if (val > 3) return "#065f46";   // dark green
+        if (val > 2) return "#047857";
+        if (val > 1) return "#059669";
+        if (val > 0.5) return "#10b981";
+        return "#6ee7b7";               // light green
+    } else if (change < 0) {
+        // 🔴 red shades
+        if (val > 3) return "#7f1d1d";   // dark red
+        if (val > 2) return "#991b1b";
+        if (val > 1) return "#b91c1c";
+        if (val > 0.5) return "#dc2626";
+        return "#f87171";               // light red
+    } else {
+        return "#1f2937"; // neutral
+    }
 }
 
-function getMovementStyle(change, index) {
-    const value = Number(change) || 0;
-    const intensity = Math.min(Math.abs(value) / 5, 1);
-    const pulseScale = 0.985 - intensity * 0.095;
-    const pulseDuration = 2.9 - intensity * 1.45;
-    const pulseGlow = 0.18 + intensity * 0.5;
-    const moveHeight = 6 + intensity * 28;
-    const pulseDelay = -(index % 8) * 0.18;
+function getMovementStyleBase(intensity, index) {
+    const pulseDuration = 5.8 - intensity * 1.4;
+    const pulseGlow = 0.12 + intensity * 0.28;
+    const pulseDelay = -(index % 10) * 0.22;
 
     return {
-        pulseScale: Math.max(pulseScale, 0.89).toFixed(3),
-        pulseDuration: `${Math.max(pulseDuration, 1.25).toFixed(2)}s`,
+        bloomScale: (1.01 + intensity * 0.025).toFixed(3),
+        pulseDuration: `${Math.max(pulseDuration, 3.8).toFixed(2)}s`,
         pulseGlow: pulseGlow.toFixed(2),
-        moveHeight: `${moveHeight.toFixed(0)}px`,
         pulseDelay: `${pulseDelay.toFixed(2)}s`
+    };
+}
+
+function getMosaicStyle(stock, intensity) {
+    const spanX = intensity > 0.85 ? 6 : intensity > 0.65 ? 5 : intensity > 0.38 ? 4 : 3;
+    const spanY = intensity > 0.85 ? 4 : intensity > 0.65 ? 4 : intensity > 0.38 ? 3 : 2;
+    const textBoost = intensity * 5;
+
+    return {
+        spanX,
+        spanY,
+        textBoost: `${textBoost.toFixed(1)}px`
     };
 }
 
@@ -147,19 +215,63 @@ function getMovementClass(change) {
     return "neutral";
 }
 
+function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
 function getFilteredStocks() {
     const stocks = [...(fullData[currentView] || [])];
-    const sortedStocks = stocks.sort((a, b) => Math.abs(b.change || 0) - Math.abs(a.change || 0));
+    let sortedStocks = sortStocksForView(stocks);
 
-    if (!searchTerm) {
-        return sortedStocks;
+    if (searchTerm) {
+        sortedStocks = sortedStocks.filter(stock => {
+            const symbol = stock.symbol.toLowerCase();
+            const name = (stock.name || "").toLowerCase();
+            return symbol.includes(searchTerm) || name.includes(searchTerm);
+        });
     }
 
-    return sortedStocks.filter(stock => stock.symbol.toLowerCase().includes(searchTerm));
+    // 👇 Yahan shuffle kar do (display ke just pehle)
+    return shuffleArray(sortedStocks.slice(0, 100));
+}
+
+function sortStocksForView(stocks) {
+    if (currentView === "gainers") {
+        return stocks.sort((a, b) => Number(b.change || 0) - Number(a.change || 0));
+    }
+
+    if (currentView === "losers") {
+        return stocks.sort((a, b) => Number(a.change || 0) - Number(b.change || 0));
+    }
+
+    if (currentView === "movers") {
+        return [...getRankedGainers(stocks), ...getRankedLosers(stocks)];
+    }
+
+    return [...getRankedGainers(stocks), ...getRankedLosers(stocks)];
+}
+
+function getRankedGainers(stocks) {
+    return stocks
+        .filter(stock => Number(stock.change || 0) >= 0)
+        .sort((a, b) => Number(b.change || 0) - Number(a.change || 0));
+}
+
+function getRankedLosers(stocks) {
+    return stocks
+        .filter(stock => Number(stock.change || 0) < 0)
+        .sort((a, b) => Number(a.change || 0) - Number(b.change || 0));
 }
 
 function renderGrid() {
     const stocks = getFilteredStocks();
+    const intensityMap = getRankIntensityMap(stocks);
+    const layout = getGridLayout();
 
     heatmap.innerHTML = "";
     viewTitle.textContent = viewLabels[currentView];
@@ -175,40 +287,396 @@ function renderGrid() {
     hideMessage();
 
     stocks.forEach((stock, index) => {
+        const intensity = intensityMap.get(getStockKey(stock, index)) || 0.25;
         const tile = document.createElement("article");
-        const movement = getMovementStyle(stock.change, index);
+        const movement = getMovementStyle(intensity, index);
+        const mosaic = getMosaicStyle(stock, intensity);
+        const growthSpace = getGrowthSpace(mosaic, movement.bloomScale, layout);
 
         tile.className = `tile ${getMovementClass(stock.change)}`;
-        tile.style.background = getColor(stock.change);
-        tile.style.setProperty("--pulse-scale", movement.pulseScale);
+        tile.tabIndex = 0;
+        tile.role = "button";
+        tile.dataset.symbol = stock.symbol;
+        tile.setAttribute("aria-label", `Open financial statements for ${stock.name || stock.symbol}`);
+        tile.style.background = getColor(stock.change, intensity);
+        tile.style.setProperty("--span-x", mosaic.spanX);
+        tile.style.setProperty("--span-y", mosaic.spanY);
+        tile.style.setProperty("--text-boost", mosaic.textBoost);
+        tile.style.setProperty("--bloom-scale", movement.bloomScale);
+        tile.style.setProperty("--growth-space", growthSpace);
         tile.style.setProperty("--pulse-duration", movement.pulseDuration);
         tile.style.setProperty("--pulse-glow", movement.pulseGlow);
-        tile.style.setProperty("--move-height", movement.moveHeight);
         tile.style.setProperty("--pulse-delay", movement.pulseDelay);
         tile.title = `${stock.symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
         tile.innerHTML = `
-            <div class="symbol">${stock.symbol}</div>
-            <div class="price">${formatPrice(stock.price)}</div>
-            <div class="change">${stock.change >= 0 ? "UP" : "DOWN"} ${formatChange(stock.change)}</div>
-            <div class="tile-rank">#${index + 1}</div>
+            <div class="tile-top">
+                <div class="identity">
+                    <div class="symbol">${escapeHtml(stock.symbol.replace(".NS", ""))}</div>
+                    <div class="stock-name">${escapeHtml(stock.name || stock.symbol.replace(".NS", ""))}</div>
+                </div>
+                <div class="tile-rank">#${index + 1}</div>
+            </div>
+            <div class="price-wrap">
+                <div>
+                    <span class="label">Last traded</span>
+                    <div class="price">${formatPrice(stock.price)}</div>
+                </div>
+                <div class="change ${stock.change >= 0 ? "gain" : "loss"}">
+                    <span>${formatChange(stock.change)}</span>
+                    <small>${formatNetChange(stock.netChange)}</small>
+                </div>
+            </div>
+            <div class="stock-details">
+                <div class="metric">
+                    <span class="label">Open</span>
+                    <strong>${formatCompactPrice(stock.open)}</strong>
+                </div>
+                <div class="metric">
+                    <span class="label">Close</span>
+                    <strong>${formatCompactPrice(stock.close)}</strong>
+                </div>
+                <div class="metric">
+                    <span class="label">High</span>
+                    <strong>${formatCompactPrice(stock.high)}</strong>
+                </div>
+                <div class="metric">
+                    <span class="label">Low</span>
+                    <strong>${formatCompactPrice(stock.low)}</strong>
+                </div>
+            </div>
         `;
 
         heatmap.appendChild(tile);
     });
 }
 
+async function openFinancialStatements(stock) {
+    activeStatementType = "news";
+    activeFinancials = null;
+    statementTitle.textContent = `${stock.symbol.replace(".NS", "")} - ${stock.name || stock.symbol}`;
+    statementMeta.textContent = "Annual figures";
+    statementSource.textContent = "";
+    statementSourceNote.textContent = "";
+    renderStockSnapshot(stock);
+    renderNewsLoading();
+    setStatementTabs();
+    showStatementMessage("Loading statements...");
+    statementContent.innerHTML = "";
+    statementModal.hidden = false;
+    document.body.classList.add("modal-open");
+
+    loadFinancialStatements(stock);
+    loadStockNews(stock);
+}
+
+function renderStockSnapshot(stock) {
+    stockSnapshot.innerHTML = `
+        <div class="snapshot-main">
+            <span class="snapshot-symbol">${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
+            <strong>${formatPrice(stock.price)}</strong>
+            <span class="snapshot-change ${stock.change >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</span>
+        </div>
+        <div class="snapshot-metrics">
+            <span>Open <strong>${formatCompactPrice(stock.open)}</strong></span>
+            <span>High <strong>${formatCompactPrice(stock.high)}</strong></span>
+            <span>Low <strong>${formatCompactPrice(stock.low)}</strong></span>
+            <span>Close <strong>${formatCompactPrice(stock.close)}</strong></span>
+        </div>
+    `;
+}
+
+async function loadFinancialStatements(stock) {
+    try {
+        const res = await fetch(`${API_BASE}/financials/${encodeURIComponent(stock.symbol)}`);
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+            throw new Error(data.error || "Unable to load financial statements.");
+        }
+
+        activeFinancials = data;
+        statementTitle.textContent = `${data.symbol.replace(".NS", "")} - ${data.name}`;
+        statementMeta.textContent = `${data.currency || "INR"} annual figures`;
+        renderStatementSource(data.source);
+        statementSourceNote.textContent = data.sourceNote || "";
+        renderActiveStatement();
+    } catch (error) {
+        showStatementMessage(error.message || "Unable to load financial statements.", "error");
+    }
+}
+
+async function loadStockNews(stock) {
+    try {
+        const res = await fetch(`${API_BASE}/news/${encodeURIComponent(stock.symbol)}`);
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+            throw new Error(data.error || "Unable to load stock news.");
+        }
+
+        renderNews(data.items || []);
+    } catch (error) {
+        newsMeta.textContent = error.message || "Unable to load stock news.";
+        newsList.innerHTML = "";
+    }
+}
+
+function renderNewsLoading() {
+    newsMeta.textContent = "Loading news links and summaries";
+    newsList.innerHTML = `
+        <article class="news-card neutral">
+            <div class="news-summary">Fetching latest headlines...</div>
+        </article>
+    `;
+}
+
+function renderNews(items) {
+    newsMeta.textContent = items.length
+        ? `${items.length} links with cached summaries`
+        : "No recent news found";
+
+    newsList.innerHTML = items.map(item => `
+        <article class="news-card ${escapeHtml(item.sentiment || "neutral")}">
+            <div class="news-card-top">
+                <span>${escapeHtml(item.publisher || "News")}</span>
+                <strong>${escapeHtml(item.sentiment || "neutral")}</strong>
+            </div>
+            <a href="${escapeAttribute(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>
+            <p class="news-summary">${escapeHtml(item.summary || item.title)}</p>
+        </article>
+    `).join("");
+}
+
+function closeFinancialStatements() {
+    statementModal.hidden = true;
+    document.body.classList.remove("modal-open");
+}
+
+function setStatementTabs() {
+    document.querySelectorAll(".statement-tab").forEach(button => {
+        button.classList.toggle("active", button.dataset.statement === activeStatementType);
+    });
+    newsPanel.classList.toggle("active", activeStatementType === "news");
+    financialPanel.classList.toggle("active", activeStatementType !== "news");
+}
+
+function renderActiveStatement() {
+    setStatementTabs();
+
+    if (activeStatementType === "news") {
+        statementMessage.className = "statement-message";
+        statementContent.innerHTML = "";
+        return;
+    }
+
+    const statement = activeFinancials?.statements?.[activeStatementType];
+
+    if (!statement || !statement.rows.length) {
+        showStatementMessage(`${statementLabels[activeStatementType]} data is not available.`, "error");
+        statementContent.innerHTML = "";
+        return;
+    }
+
+    statementMessage.className = "statement-message";
+    statementMessage.textContent = "";
+    statementContent.innerHTML = `
+        <div class="statement-table-wrap">
+            <table class="statement-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Metric</th>
+                        ${statement.periods.map(period => `<th scope="col">${escapeHtml(period)}</th>`).join("")}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${statement.rows.map(row => `
+                        <tr>
+                            <th scope="row">${escapeHtml(row.label)}</th>
+                            ${row.values.map(value => `<td>${formatFinancialValue(value)}</td>`).join("")}
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function renderStatementSource(source) {
+    if (!source) {
+        statementSource.textContent = "";
+        return;
+    }
+
+    const sourceParts = [source.provider, source.label].filter(Boolean);
+    const report = source.annualReport;
+    const label = sourceParts.join(" - ");
+    if (source.url) {
+        const reportLink = report?.url
+            ? ` · Filing: <a href="${escapeAttribute(report.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml([report.provider, report.year].filter(Boolean).join(" - ") || "NSE annual report")}</a>`
+            : "";
+        statementSource.innerHTML = `Source: <a href="${escapeAttribute(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>${reportLink}`;
+        return;
+    }
+
+    statementSource.textContent = `Source: ${label}`;
+}
+
+function showStatementMessage(text, type = "") {
+    statementMessage.textContent = text;
+    statementMessage.className = `statement-message visible ${type}`;
+}
+
+function getStockBySymbol(symbol) {
+    return Object.values(fullData)
+        .flat()
+        .find(stock => stock.symbol === symbol);
+}
+
+function getRankIntensityMap(stocks) {
+    const intensityMap = new Map();
+    addRankIntensities(intensityMap, getRankedGainers(stocks), stocks);
+    addRankIntensities(intensityMap, getRankedLosers(stocks), stocks);
+
+    return intensityMap;
+}
+
+function addRankIntensities(intensityMap, rankedStocks, visibleStocks) {
+    const lastIndex = Math.max(rankedStocks.length - 1, 1);
+
+    rankedStocks.forEach((stock, rank) => {
+        const visibleIndex = visibleStocks.indexOf(stock);
+        const rankPosition = rank / lastIndex;
+        const intensity = 1 - rankPosition * 0.72;
+        intensityMap.set(getStockKey(stock, visibleIndex), Math.max(intensity, 0.28));
+    });
+}
+
+function getStockKey(stock, index) {
+    return `${stock.symbol}-${index}`;
+}
+
+function getGridLayout() {
+    const styles = window.getComputedStyle(heatmap);
+    const columns = styles.gridTemplateColumns.split(" ").filter(Boolean).length || 16;
+    const rowHeight = Number.parseFloat(styles.gridAutoRows) || 92;
+    const columnWidth = heatmap.clientWidth / columns;
+
+    return { columnWidth, rowHeight };
+}
+
+function getGrowthSpaceBase(mosaic, bloomScale, layout) {
+    return "0px";
+
+    const scale = Number(bloomScale) || 1;
+    const width = mosaic.spanX * layout.columnWidth;
+    const height = mosaic.spanY * layout.rowHeight;
+    const largestSide = Math.max(width, height);
+    const reserve = ((scale - 1) * largestSide) / (2 * scale);
+
+    return `${Math.ceil(reserve + 6)}px`;
+}
+
 function formatPrice(value) {
-    return `Rs. ${Number(value || 0).toLocaleString("en-IN", {
-        minimumFractionDigits: 2,
+    return Number(value || 0).toLocaleString("en-IN", {
+        minimumFractionDigits: 0,
         maximumFractionDigits: 2
-    })}`;
+    });
+}
+
+function formatCompactPrice(value) {
+    return Number(value || 0).toLocaleString("en-IN", {
+        maximumFractionDigits: 2
+    });
+}
+
+function formatNetChange(value) {
+    const number = Number(value || 0);
+    const sign = number > 0 ? "+" : "";
+    return `${sign}${number.toFixed(2)}`;
 }
 
 function formatChange(value) {
     const number = Number(value || 0);
     const sign = number > 0 ? "+" : "";
     return `${sign}${number.toFixed(2)}%`;
+}
+
+function formatFinancialValue(value) {
+    if (value === null || value === undefined || value === "") {
+        return "--";
+    }
+
+    const number = Number(value);
+    if (Number.isNaN(number)) {
+        return escapeHtml(String(value));
+    }
+
+    const absNumber = Math.abs(number);
+    if (absNumber >= 10000000) {
+        return `${(number / 10000000).toLocaleString("en-IN", {
+            maximumFractionDigits: 2
+        })} Cr`;
+    }
+
+    return number.toLocaleString("en-IN", {
+        maximumFractionDigits: 2
+    });
+}
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    }[char]));
+}
+
+function escapeAttribute(value) {
+    return escapeHtml(value).replace(/`/g, "&#096;");
+}
+
+function getColor(change, intensity = 0.3) {
+    const value = Number(change) || 0;
+    const strength = Math.min(Math.max(Math.abs(value) / 4, intensity * 0.72), 1);
+
+    if (value > 0) {
+        const lightness = 37 - strength * 11;
+        return `linear-gradient(135deg, hsl(151 64% ${lightness}%), hsl(151 72% ${lightness - 4}%))`;
+    }
+
+    if (value < 0) {
+        const lightness = 46 - strength * 12;
+        return `linear-gradient(135deg, hsl(355 72% ${lightness}%), hsl(355 78% ${lightness - 5}%))`;
+    }
+
+    return "linear-gradient(135deg, #64748b, #475569)";
+}
+
+function getMovementStyle(intensity, index) {
+    const bloomScale = 1.04 + intensity * 0.2;
+    const pulseDuration = 4.6 - intensity * 1.2;
+    const pulseGlow = 0.18 + intensity * 0.58;
+    const pulseDelay = -(index % 8) * 0.18;
+
+    return {
+        bloomScale: bloomScale.toFixed(3),
+        pulseDuration: `${Math.max(pulseDuration, 2.4).toFixed(2)}s`,
+        pulseGlow: pulseGlow.toFixed(2),
+        pulseDelay: `${pulseDelay.toFixed(2)}s`
+    };
+}
+
+function getGrowthSpace(mosaic, bloomScale, layout) {
+    const scale = Number(bloomScale) || 1;
+    const width = mosaic.spanX * layout.columnWidth;
+    const height = mosaic.spanY * layout.rowHeight;
+    const largestSide = Math.max(width, height);
+    const reserve = ((scale - 1) * largestSide) / (2 * scale);
+
+    return `${Math.ceil(reserve + 6)}px`;
 }
 
 document.querySelectorAll(".tab-button").forEach(button => {
@@ -221,5 +689,64 @@ searchInput.addEventListener("input", event => {
 });
 
 refreshButton.addEventListener("click", loadHeatmap);
+heatmap.addEventListener("click", event => {
+    const tile = event.target.closest(".tile");
+    if (!tile) {
+        return;
+    }
 
-window.addEventListener("load", loadHeatmap);
+    const stock = getStockBySymbol(tile.dataset.symbol);
+    if (stock) {
+        openFinancialStatements(stock);
+    }
+});
+
+heatmap.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== " ") {
+        return;
+    }
+
+    const tile = event.target.closest(".tile");
+    if (!tile) {
+        return;
+    }
+
+    event.preventDefault();
+    const stock = getStockBySymbol(tile.dataset.symbol);
+    if (stock) {
+        openFinancialStatements(stock);
+    }
+});
+
+document.querySelectorAll("[data-close-statements]").forEach(element => {
+    element.addEventListener("click", closeFinancialStatements);
+});
+
+document.querySelectorAll(".statement-tab").forEach(button => {
+    button.addEventListener("click", () => {
+        activeStatementType = button.dataset.statement;
+        if (activeFinancials) {
+            renderActiveStatement();
+        } else {
+            setStatementTabs();
+        }
+    });
+});
+
+window.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !statementModal.hidden) {
+        closeFinancialStatements();
+    }
+});
+window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        if (Object.keys(fullData).length) {
+            renderGrid();
+        }
+    }, 120);
+});
+
+window.addEventListener("load", () => {
+    loadHeatmap();
+});

@@ -8,65 +8,92 @@
 </head>
 <body>
     <main class="app-shell">
-        <header class="dashboard-header">
-            <div>
+        <aside class="side-rail" aria-label="Market navigation">
+            <div class="brand-block">
                 <p class="eyebrow">Live market overview</p>
-                <h1>Stock Market Heatmap</h1>
+                <h1>Stock Heatmap</h1>
             </div>
+
             <div class="market-status" id="marketStatus">
                 <span class="status-dot"></span>
                 <span>Connecting</span>
-            </div>
-        </header>
-
-        <section class="summary-grid" aria-label="Market summary">
-            <article class="summary-card">
-                <span class="summary-label">Stocks tracked</span>
-                <strong id="stockCount">--</strong>
-            </article>
-            <article class="summary-card positive">
-                <span class="summary-label">Advancers</span>
-                <strong id="gainerCount">--</strong>
-            </article>
-            <article class="summary-card negative">
-                <span class="summary-label">Decliners</span>
-                <strong id="loserCount">--</strong>
-            </article>
-            <article class="summary-card">
-                <span class="summary-label">Avg change</span>
-                <strong id="avgChange">--</strong>
-            </article>
-        </section>
-
-        <section class="toolbar" aria-label="Heatmap controls">
-            <div class="tabs" role="tablist" aria-label="Market views">
-                <button class="tab-button active" type="button" data-view="all">All</button>
-                <button class="tab-button" type="button" data-view="gainers">Gainers</button>
-                <button class="tab-button" type="button" data-view="losers">Losers</button>
-                <button class="tab-button" type="button" data-view="it">Nifty IT</button>
-                <button class="tab-button" type="button" data-view="bank">Banking</button>
-                <button class="tab-button" type="button" data-view="others">Others</button>
             </div>
 
             <label class="search-wrap" for="stockSearch">
                 <span>Search</span>
                 <input id="stockSearch" type="search" placeholder="INFY, HDFC..." autocomplete="off">
             </label>
-        </section>
+
+            <div class="tabs" role="tablist" aria-label="Market views">
+                <button class="tab-button active" type="button" data-view="movers">Top Movers</button>
+                <button class="tab-button" type="button" data-view="all">All Stocks</button>
+                <button class="tab-button" type="button" data-view="gainers">Gainers</button>
+                <button class="tab-button" type="button" data-view="losers">Losers</button>
+                <button class="tab-button" type="button" data-view="it">IT</button>
+                <button class="tab-button" type="button" data-view="bank">Banking</button>
+                <button class="tab-button" type="button" data-view="finance">Finance</button>
+                <button class="tab-button" type="button" data-view="auto">Auto</button>
+                <button class="tab-button" type="button" data-view="pharma">Pharma</button>
+                <button class="tab-button" type="button" data-view="fmcg">FMCG</button>
+                <button class="tab-button" type="button" data-view="metal">Metal</button>
+                <button class="tab-button" type="button" data-view="energy">Energy</button>
+                <button class="tab-button" type="button" data-view="cement">Cement</button>
+                <button class="tab-button" type="button" data-view="consumer">Consumer</button>
+                <button class="tab-button" type="button" data-view="infra">Infra</button>
+                <button class="tab-button" type="button" data-view="others">Others</button>
+            </div>
+        </aside>
 
         <section class="heatmap-panel">
-            <div class="panel-heading">
+            <header class="panel-heading">
                 <div>
-                    <h2 id="viewTitle">All stocks</h2>
+                    <h2 id="viewTitle">Top 10 gainers and losers</h2>
                     <p id="viewMeta">Waiting for market data</p>
                 </div>
                 <button class="refresh-button" id="refreshButton" type="button">Refresh</button>
-            </div>
+            </header>
 
             <div id="message" class="message loading">Loading market data...</div>
             <div id="heatmap" aria-live="polite"></div>
         </section>
     </main>
+
+    <div class="statement-modal" id="statementModal" hidden>
+        <div class="modal-backdrop" data-close-statements></div>
+        <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="statementTitle">
+            <header class="modal-header">
+                <div>
+                    <p class="eyebrow">Financial statements</p>
+                    <h2 id="statementTitle">Stock details</h2>
+                    <p id="statementMeta">Annual figures</p>
+                    <p id="statementSource" class="statement-source"></p>
+                    <p id="statementSourceNote" class="statement-source-note"></p>
+                </div>
+                <button class="icon-button" type="button" aria-label="Close statements" data-close-statements>&times;</button>
+            </header>
+
+            <div class="statement-tabs" role="tablist" aria-label="Statement type">
+                <button class="statement-tab active" type="button" data-statement="news">News</button>
+                <button class="statement-tab" type="button" data-statement="profitLoss">P&amp;L</button>
+                <button class="statement-tab" type="button" data-statement="balanceSheet">Balance Sheet</button>
+                <button class="statement-tab" type="button" data-statement="cashFlow">Cash Flow</button>
+            </div>
+
+            <div id="stockSnapshot" class="stock-snapshot"></div>
+            <section id="newsPanel" class="news-panel tab-panel active" aria-labelledby="newsTitle">
+                <div class="news-heading">
+                    <h3 id="newsTitle">Latest news</h3>
+                    <p id="newsMeta">Loading news links and summaries</p>
+                </div>
+                <div id="newsList" class="news-list"></div>
+            </section>
+            <section id="financialPanel" class="financial-panel tab-panel">
+                <div id="statementMessage" class="statement-message">Loading statements...</div>
+                <div id="statementContent" class="statement-content"></div>
+                <p class="statement-disclaimer">Disclaimer: This dashboard is for information only and is not investment advice. Verify figures with exchange filings, company annual reports, and your financial advisor before making decisions.</p>
+            </section>
+        </section>
+    </div>
 
     <script src="./script.js"></script>
 </body>

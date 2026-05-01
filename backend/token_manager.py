@@ -1,8 +1,10 @@
 import json
+import os
 import time
 import requests
+from pathlib import Path
 
-TOKEN_FILE = "token.json"
+TOKEN_FILE = Path(__file__).resolve().parent / "token.json"
 
 def save_token(data):
     data["created_at"] = time.time()
@@ -10,6 +12,10 @@ def save_token(data):
         json.dump(data, f)
 
 def load_token():
+    env_token = os.environ.get("UPSTOX_ACCESS_TOKEN")
+    if env_token:
+        return {"access_token": env_token, "source": "env"}
+
     try:
         with open(TOKEN_FILE, "r") as f:
             return json.load(f)
