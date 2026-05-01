@@ -4,9 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Market Heatmap</title>
-    <link rel="stylesheet" href="./style.css?v=20260502-pro-ui">
+    <link rel="stylesheet" href="./style.css?v=20260502-lux-fintech">
 </head>
 <body>
+    <header class="top-nav" aria-label="Application navigation">
+        <div class="top-brand">
+            <span class="brand-mark">SH</span>
+            <div>
+                <strong>Stock Intelligence</strong>
+                <span>NSE screener and analytics</span>
+            </div>
+        </div>
+
+        <label class="search-wrap command-search" for="stockSearch">
+            <span>Ask AI</span>
+            <input id="stockSearch" type="search" placeholder="Search INFY, HDFC, momentum stocks..." autocomplete="off">
+        </label>
+
+        <div class="top-nav-actions">
+            <div class="market-status" id="marketStatus">
+                <span class="status-dot"></span>
+                <span>Connecting</span>
+            </div>
+            <button class="icon-button settings-button" type="button" aria-label="Settings">Set</button>
+            <button class="profile-button" type="button" aria-label="Profile">SP</button>
+        </div>
+    </header>
+
     <main class="app-shell">
         <aside class="side-rail" aria-label="Market navigation">
             <div class="brand-block">
@@ -17,20 +41,18 @@
                 </div>
             </div>
 
-            <div class="market-status" id="marketStatus">
-                <span class="status-dot"></span>
-                <span>Connecting</span>
-            </div>
+            <nav class="sidebar-nav" aria-label="Workspace">
+                <a class="active" href="#">Dashboard</a>
+                <a href="#">Screener</a>
+                <a href="#">Watchlist</a>
+                <a href="#">Portfolio</a>
+                <a href="#">Alerts</a>
+            </nav>
 
             <div class="last-updated-card">
                 <span>Last fetched</span>
                 <strong id="lastFetched">Not fetched yet</strong>
             </div>
-
-            <label class="search-wrap" for="stockSearch">
-                <span>Search</span>
-                <input id="stockSearch" type="search" placeholder="INFY, HDFC..." autocomplete="off">
-            </label>
 
             <div class="market-summary" aria-label="Market summary">
                 <div>
@@ -87,8 +109,15 @@
 
             <div id="message" class="message loading">Loading market data...</div>
             <div id="heatmap" aria-live="polite"></div>
-        </section>
+            </section>
     </main>
+
+    <nav class="bottom-nav" aria-label="Mobile navigation">
+        <a class="active" href="#">Dashboard</a>
+        <a href="#">Screener</a>
+        <a href="#">Watchlist</a>
+        <a href="#">Alerts</a>
+    </nav>
 
     <div class="statement-modal" id="statementModal" hidden>
         <div class="modal-backdrop" data-close-statements></div>
@@ -143,6 +172,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260502-pro-ui"></script>
+    <script src="./script.js?v=20260502-lux-fintech"></script>
 </body>
 </html>
