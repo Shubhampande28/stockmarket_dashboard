@@ -23,6 +23,7 @@ let searchTerm = "";
 let resizeTimer;
 let activeStatementType = "news";
 let activeFinancials = null;
+let activeStock = null;
 const API_BASE = "";
 
 const statementLabels = {
@@ -53,6 +54,9 @@ const stockSnapshot = document.getElementById("stockSnapshot");
 const newsPanel = document.getElementById("newsPanel");
 const newsMeta = document.getElementById("newsMeta");
 const newsList = document.getElementById("newsList");
+const chartPanel = document.getElementById("chartPanel");
+const chartMeta = document.getElementById("chartMeta");
+const priceChart = document.getElementById("priceChart");
 const financialPanel = document.getElementById("financialPanel");
 const statementMessage = document.getElementById("statementMessage");
 const statementContent = document.getElementById("statementContent");
@@ -462,6 +466,7 @@ function renderPhoneGrid(stocks, intensityMap) {
 async function openFinancialStatements(stock) {
     activeStatementType = "news";
     activeFinancials = null;
+    activeStock = stock;
     statementTitle.textContent = `${stock.symbol.replace(".NS", "")} - ${stock.name || stock.symbol}`;
     statementMeta.textContent = "Annual figures";
     statementSource.textContent = "";
@@ -473,6 +478,7 @@ async function openFinancialStatements(stock) {
     statementContent.innerHTML = "";
     statementModal.hidden = false;
     document.body.classList.add("modal-open");
+    renderPriceChart(stock);
 
     loadFinancialStatements(stock);
     loadStockNews(stock);
@@ -600,6 +606,95 @@ function renderNews(items) {
     `).join("");
 }
 
+function renderPriceChart(stock) {
+    if (!priceChart || !chartMeta) {
+        return;
+    }
+
+    if (!stock) {
+        chartMeta.textContent = "Select a stock to view the price chart";
+        priceChart.innerHTML = `<div class="chart-empty">No price data available.</div>`;
+        return;
+    }
+
+    const points = [
+        { label: "Open", value: toFiniteNumber(stock.open) },
+        { label: "High", value: toFiniteNumber(stock.high) },
+        { label: "Low", value: toFiniteNumber(stock.low) },
+        { label: "Close", value: toFiniteNumber(stock.close) },
+        { label: "LTP", value: toFiniteNumber(stock.price) }
+    ].filter(point => point.value !== null);
+
+    if (points.length < 2) {
+        chartMeta.textContent = "Price chart unavailable";
+        priceChart.innerHTML = `<div class="chart-empty">Open, high, low, close data is not available.</div>`;
+        return;
+    }
+
+    const values = points.map(point => point.value);
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const padding = Math.max((maxValue - minValue) * 0.16, Math.abs(maxValue) * 0.004, 1);
+    const chartMin = minValue - padding;
+    const chartMax = maxValue + padding;
+    const valueRange = chartMax - chartMin || 1;
+    const isGain = Number(stock.change || 0) >= 0;
+    const polyline = points.map((point, index) => {
+        const x = 42 + index * (416 / Math.max(points.length - 1, 1));
+        const y = 26 + ((chartMax - point.value) / valueRange) * 176;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+
+    const areaLine = `42,220 ${polyline} 458,220`;
+    const markerHtml = points.map((point, index) => {
+        const x = 42 + index * (416 / Math.max(points.length - 1, 1));
+        const y = 26 + ((chartMax - point.value) / valueRange) * 176;
+        return `
+            <g class="chart-marker">
+                <line x1="${x.toFixed(1)}" y1="210" x2="${x.toFixed(1)}" y2="218"></line>
+                <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5"></circle>
+            </g>
+        `;
+    }).join("");
+    const pointCards = points.map(point => `
+        <span>
+            ${escapeHtml(point.label)}
+            <strong>${formatCompactPrice(point.value)}</strong>
+        </span>
+    `).join("");
+
+    chartMeta.textContent = `${stock.symbol.replace(".NS", "")} intraday OHLC snapshot`;
+    priceChart.innerHTML = `
+        <div class="chart-visual ${isGain ? "gain" : "loss"}">
+            <svg viewBox="0 0 500 240" role="img" aria-label="Price chart for ${escapeAttribute(stock.name || stock.symbol)}">
+                <defs>
+                    <linearGradient id="priceAreaGradient" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="currentColor" stop-opacity="0.24"></stop>
+                        <stop offset="100%" stop-color="currentColor" stop-opacity="0"></stop>
+                    </linearGradient>
+                </defs>
+                <g class="chart-grid">
+                    <line x1="42" y1="34" x2="458" y2="34"></line>
+                    <line x1="42" y1="94" x2="458" y2="94"></line>
+                    <line x1="42" y1="154" x2="458" y2="154"></line>
+                    <line x1="42" y1="214" x2="458" y2="214"></line>
+                </g>
+                <text x="42" y="22" class="chart-scale">${formatCompactPrice(chartMax)}</text>
+                <text x="42" y="232" class="chart-scale">${formatCompactPrice(chartMin)}</text>
+                <polygon class="chart-area" points="${areaLine}"></polygon>
+                <polyline class="chart-line" points="${polyline}"></polyline>
+                ${markerHtml}
+            </svg>
+        </div>
+        <div class="chart-points">${pointCards}</div>
+    `;
+}
+
+function toFiniteNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+}
+
 function closeFinancialStatements() {
     statementModal.hidden = true;
     document.body.classList.remove("modal-open");
@@ -610,7 +705,8 @@ function setStatementTabs() {
         button.classList.toggle("active", button.dataset.statement === activeStatementType);
     });
     newsPanel.classList.toggle("active", activeStatementType === "news");
-    financialPanel.classList.toggle("active", activeStatementType !== "news");
+    chartPanel.classList.toggle("active", activeStatementType === "chart");
+    financialPanel.classList.toggle("active", activeStatementType !== "news" && activeStatementType !== "chart");
 }
 
 function renderActiveStatement() {
@@ -619,6 +715,13 @@ function renderActiveStatement() {
     if (activeStatementType === "news") {
         statementMessage.className = "statement-message";
         statementContent.innerHTML = "";
+        return;
+    }
+
+    if (activeStatementType === "chart") {
+        statementMessage.className = "statement-message";
+        statementContent.innerHTML = "";
+        renderPriceChart(activeStock);
         return;
     }
 
