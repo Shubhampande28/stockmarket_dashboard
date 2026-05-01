@@ -975,12 +975,14 @@ h1 {
     font-size: 12px;
 }
 
-.chart-panel {
+.chart-panel,
+.info-panel {
     padding: 14px 20px 0;
     border-top: 1px solid var(--border);
 }
 
-.chart-heading {
+.chart-heading,
+.info-heading {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -988,15 +990,64 @@ h1 {
     margin-bottom: 12px;
 }
 
-.chart-heading h3 {
+.chart-heading h3,
+.info-heading h3 {
     margin: 0;
     color: #0f172a;
     font-size: 16px;
 }
 
-.chart-heading p {
+.chart-heading p,
+.info-heading p {
     color: var(--muted);
     font-size: 12px;
+}
+
+.stock-info-list {
+    display: grid;
+    max-width: 760px;
+    margin: 0 auto 20px;
+    overflow: hidden;
+    border: 1px solid #d7e0ec;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.stock-info-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(150px, auto);
+    gap: 16px;
+    align-items: center;
+    min-height: 58px;
+    padding: 14px 22px;
+    border-bottom: 1px solid #dfe7f1;
+}
+
+.stock-info-row:last-child {
+    border-bottom: 0;
+}
+
+.stock-info-row span {
+    color: #64748b;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.stock-info-row strong {
+    min-width: 0;
+    color: #1f2937;
+    font-size: 20px;
+    font-weight: 850;
+    line-height: 1.15;
+    text-align: right;
+}
+
+.info-empty {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #f8fafc;
+    color: var(--muted);
 }
 
 .price-chart {
@@ -1669,13 +1720,28 @@ h1 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .chart-heading {
+    .chart-heading,
+    .info-heading {
         align-items: flex-start;
         flex-direction: column;
     }
 
     .chart-points {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stock-info-row {
+        grid-template-columns: minmax(0, 1fr) minmax(105px, auto);
+        min-height: 52px;
+        padding: 12px 14px;
+    }
+
+    .stock-info-row span {
+        font-size: 15px;
+    }
+
+    .stock-info-row strong {
+        font-size: 16px;
     }
 
     .statement-table {

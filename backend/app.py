@@ -28,7 +28,7 @@ FINANCIALS_CACHE_PATH = BASE_DIR / "financials_cache.json"
 NEWS_CACHE_TTL = 60 * 60 * 24 * 30
 AI_CACHE_TTL = 60 * 60 * 24 * 365
 FINANCIALS_CACHE_TTL = 60 * 60 * 24 * 30
-FINANCIALS_CACHE_VERSION = "nse-inr-v4"
+FINANCIALS_CACHE_VERSION = "nse-inr-v5-info"
 NEWS_LIMIT = 8
 AUTH_STATE_PATH = BASE_DIR / "auth_state.json"
 UPSTOX_AUTH_URL = "https://api.upstox.com/v2/login/authorization/dialog"
@@ -732,6 +732,9 @@ def build_valuation_payload(summary, symbol):
         "bookValue": compact_yahoo_value(stats.get("bookValue")),
         "priceToBook": compact_yahoo_value(stats.get("priceToBook")),
         "dividendYield": compact_yahoo_value(detail.get("dividendYield")),
+        "roe": compact_yahoo_value(financial.get("returnOnEquity")),
+        "roce": None,
+        "faceValue": None,
         "fiftyTwoWeekLow": compact_yahoo_value(detail.get("fiftyTwoWeekLow")),
         "fiftyTwoWeekHigh": compact_yahoo_value(detail.get("fiftyTwoWeekHigh")),
         "source": {
@@ -799,6 +802,9 @@ def build_nse_valuation_payload(summary, symbol):
         "bookValue": None,
         "priceToBook": find_first_number(summary, {"pb", "pbratio", "pricebookvalue"}),
         "dividendYield": find_first_number(summary, {"dividendyield", "dy"}),
+        "roe": None,
+        "roce": None,
+        "faceValue": find_first_number(summary, {"facevalue", "fv"}),
         "fiftyTwoWeekLow": find_first_number(summary, {"weeklow", "low52", "fiftytwoweeklow"}),
         "fiftyTwoWeekHigh": find_first_number(summary, {"weekhigh", "high52", "fiftytwoweekhigh"}),
         "source": {
@@ -821,6 +827,9 @@ def safe_nse_valuation_payload(symbol):
             "bookValue": None,
             "priceToBook": None,
             "dividendYield": None,
+            "roe": None,
+            "roce": None,
+            "faceValue": None,
             "fiftyTwoWeekLow": None,
             "fiftyTwoWeekHigh": None,
             "source": {
@@ -1127,6 +1136,36 @@ def parse_screener_table(section):
 
     return {"periods": periods, "rows": rows}
 
+def normalize_info_label(label):
+    return re.sub(r"[^a-z0-9]+", "", str(label or "").lower())
+
+def parse_screener_top_ratios(soup):
+    ratios = {}
+    key_map = {
+        "marketcap": "marketCap",
+        "currentprice": "currentPrice",
+        "highlow": "highLow",
+        "stockpe": "stockPe",
+        "bookvalue": "bookValue",
+        "dividendyield": "dividendYield",
+        "roce": "roce",
+        "roe": "roe",
+        "facevalue": "faceValue"
+    }
+
+    for item in soup.select("#top-ratios li"):
+        spans = item.find_all("span")
+        if len(spans) < 2:
+            continue
+
+        label = spans[0].get_text(" ", strip=True)
+        value = spans[-1].get_text(" ", strip=True)
+        key = key_map.get(normalize_info_label(label))
+        if key and value:
+            ratios[key] = re.sub(r"\s+", " ", value).strip()
+
+    return ratios
+
 def fetch_screener_financials(symbol):
     cached = cache_get(FINANCIALS_CACHE_PATH, f"{FINANCIALS_CACHE_VERSION}:screener:{symbol}", FINANCIALS_CACHE_TTL)
     if cached:
@@ -1161,6 +1200,7 @@ def fetch_screener_financials(symbol):
 
         if any(statement["rows"] for statement in statements.values()):
             name_tag = soup.select_one("h1")
+            info = parse_screener_top_ratios(soup)
             payload = {
                 "symbol": symbol,
                 "name": name_tag.get_text(" ", strip=True) if name_tag else STOCK_NAMES.get(base_symbol, symbol),
@@ -1171,6 +1211,7 @@ def fetch_screener_financials(symbol):
                     "url": url
                 },
                 "sourceNote": "P&L, Balance Sheet and Cash Flow are fetched as INR crore figures from Screener.in company pages, with NSE annual report linked as the official filing reference where available. Verify figures with NSE/company filings before making decisions.",
+                "info": info,
                 "statements": statements
             }
             cache_set(FINANCIALS_CACHE_PATH, f"{FINANCIALS_CACHE_VERSION}:screener:{symbol}", payload)

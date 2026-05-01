@@ -57,6 +57,9 @@ const newsList = document.getElementById("newsList");
 const chartPanel = document.getElementById("chartPanel");
 const chartMeta = document.getElementById("chartMeta");
 const priceChart = document.getElementById("priceChart");
+const infoPanel = document.getElementById("infoPanel");
+const infoMeta = document.getElementById("infoMeta");
+const stockInfo = document.getElementById("stockInfo");
 const financialPanel = document.getElementById("financialPanel");
 const statementMessage = document.getElementById("statementMessage");
 const statementContent = document.getElementById("statementContent");
@@ -479,6 +482,7 @@ async function openFinancialStatements(stock) {
     statementModal.hidden = false;
     document.body.classList.add("modal-open");
     renderPriceChart(stock);
+    renderStockInfo(stock);
 
     loadFinancialStatements(stock);
     loadStockNews(stock);
@@ -556,6 +560,7 @@ async function loadFinancialStatements(stock) {
         statementTitle.textContent = `${data.symbol.replace(".NS", "")} - ${data.name}`;
         statementMeta.textContent = `${data.currency || "INR"} annual figures`;
         renderStockSnapshotWithFinancials(stock, data);
+        renderStockInfo(stock, data);
         renderStatementSource(data.source);
         statementSourceNote.textContent = data.sourceNote || "";
         renderActiveStatement();
@@ -690,6 +695,40 @@ function renderPriceChart(stock) {
     `;
 }
 
+function renderStockInfo(stock, data = activeFinancials) {
+    if (!stockInfo || !infoMeta) {
+        return;
+    }
+
+    if (!stock) {
+        infoMeta.textContent = "Select a stock to view company info";
+        stockInfo.innerHTML = `<div class="info-empty">No stock info available.</div>`;
+        return;
+    }
+
+    const valuation = data?.valuation || {};
+    const info = data?.info || {};
+    const rows = [
+        ["Market Cap", info.marketCap || formatMarketCap(valuation.marketCap)],
+        ["Current Price", info.currentPrice || formatCurrencyValue(stock.price)],
+        ["High / Low", info.highLow || formatHighLow(valuation.fiftyTwoWeekHigh || stock.high, valuation.fiftyTwoWeekLow || stock.low)],
+        ["Stock P/E", info.stockPe || formatRatio(valuation.peTrailing)],
+        ["Book Value", info.bookValue || formatCurrencyValue(valuation.bookValue)],
+        ["Dividend Yield", info.dividendYield || formatPercentValue(valuation.dividendYield)],
+        ["ROCE", info.roce || formatPercentValue(valuation.roce)],
+        ["ROE", info.roe || formatPercentValue(valuation.roe)],
+        ["Face Value", info.faceValue || formatCurrencyValue(valuation.faceValue)]
+    ];
+
+    infoMeta.textContent = `${stock.symbol.replace(".NS", "")} market and valuation snapshot`;
+    stockInfo.innerHTML = rows.map(([label, value]) => `
+        <div class="stock-info-row">
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(value || "--")}</strong>
+        </div>
+    `).join("");
+}
+
 function toFiniteNumber(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number : null;
@@ -705,8 +744,12 @@ function setStatementTabs() {
         button.classList.toggle("active", button.dataset.statement === activeStatementType);
     });
     newsPanel.classList.toggle("active", activeStatementType === "news");
+    infoPanel.classList.toggle("active", activeStatementType === "info");
     chartPanel.classList.toggle("active", activeStatementType === "chart");
-    financialPanel.classList.toggle("active", activeStatementType !== "news" && activeStatementType !== "chart");
+    financialPanel.classList.toggle(
+        "active",
+        activeStatementType !== "news" && activeStatementType !== "info" && activeStatementType !== "chart"
+    );
 }
 
 function renderActiveStatement() {
@@ -722,6 +765,13 @@ function renderActiveStatement() {
         statementMessage.className = "statement-message";
         statementContent.innerHTML = "";
         renderPriceChart(activeStock);
+        return;
+    }
+
+    if (activeStatementType === "info") {
+        statementMessage.className = "statement-message";
+        statementContent.innerHTML = "";
+        renderStockInfo(activeStock);
         return;
     }
 
@@ -966,6 +1016,46 @@ function formatMarketCap(value) {
     });
 }
 
+function formatCurrencyValue(value) {
+    if (value === null || value === undefined || value === "") {
+        return "--";
+    }
+
+    const number = Number(value);
+    if (Number.isNaN(number)) {
+        return String(value);
+    }
+
+    return `₹ ${number.toLocaleString("en-IN", {
+        maximumFractionDigits: 2
+    })}`;
+}
+
+function formatHighLow(high, low) {
+    const highText = formatCurrencyValue(high);
+    const lowText = formatCurrencyValue(low);
+    if (highText === "--" && lowText === "--") {
+        return "--";
+    }
+    return `${highText} / ${lowText}`;
+}
+
+function formatPercentValue(value) {
+    if (value === null || value === undefined || value === "") {
+        return "--";
+    }
+
+    const number = Number(value);
+    if (Number.isNaN(number)) {
+        return String(value);
+    }
+
+    const percent = Math.abs(number) <= 1 ? number * 100 : number;
+    return `${percent.toLocaleString("en-IN", {
+        maximumFractionDigits: 2
+    })} %`;
+}
+
 function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, char => ({
         "&": "&amp;",
@@ -1067,7 +1157,7 @@ document.querySelectorAll("[data-close-statements]").forEach(element => {
 document.querySelectorAll(".statement-tab").forEach(button => {
     button.addEventListener("click", () => {
         activeStatementType = button.dataset.statement;
-        if (activeFinancials) {
+        if (activeFinancials || activeStatementType === "info" || activeStatementType === "chart") {
             renderActiveStatement();
         } else {
             setStatementTabs();

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Market Heatmap</title>
-    <link rel="stylesheet" href="./style.css?v=20260501-price-chart">
+    <link rel="stylesheet" href="./style.css?v=20260502-info-tab">
 </head>
 <body>
     <main class="app-shell">
@@ -81,6 +81,7 @@
 
             <div class="statement-tabs" role="tablist" aria-label="Statement type">
                 <button class="statement-tab active" type="button" data-statement="news">News</button>
+                <button class="statement-tab" type="button" data-statement="info">Info</button>
                 <button class="statement-tab" type="button" data-statement="chart">Chart</button>
                 <button class="statement-tab" type="button" data-statement="profitLoss">P&amp;L</button>
                 <button class="statement-tab" type="button" data-statement="balanceSheet">Balance Sheet</button>
@@ -102,6 +103,13 @@
                 </div>
                 <div id="priceChart" class="price-chart"></div>
             </section>
+            <section id="infoPanel" class="info-panel tab-panel" aria-labelledby="infoTitle">
+                <div class="info-heading">
+                    <h3 id="infoTitle">Stock info</h3>
+                    <p id="infoMeta">Market and valuation snapshot</p>
+                </div>
+                <div id="stockInfo" class="stock-info-list"></div>
+            </section>
             <section id="financialPanel" class="financial-panel tab-panel">
                 <div id="statementMessage" class="statement-message">Loading statements...</div>
                 <div id="statementContent" class="statement-content"></div>
@@ -110,6 +118,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260501-price-chart"></script>
+    <script src="./script.js?v=20260502-info-tab"></script>
 </body>
 </html>
