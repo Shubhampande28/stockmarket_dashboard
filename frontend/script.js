@@ -17,6 +17,37 @@ const viewLabels = {
     others: "Others"
 };
 
+const viewDescriptions = {
+    movers: {
+        title: "Spot the strongest moves and sharpest downside pressure instantly.",
+        text: "Balanced gainers and losers help you scan where attention, risk, and momentum are clustering."
+    },
+    all: {
+        title: "Browse the full stock universe with live price context.",
+        text: "Use search and sector views to narrow the market without losing the big picture."
+    },
+    gainers: {
+        title: "Focus on stocks with positive price action.",
+        text: "Green intensity highlights leadership candidates and possible momentum breakouts."
+    },
+    losers: {
+        title: "Review stocks under pressure before risk compounds.",
+        text: "Red intensity helps surface weak names, reversals, and potential caution zones."
+    },
+    it: { title: "Track technology names with clean sector focus.", text: "Compare movers inside the IT basket without broader market noise." },
+    bank: { title: "Scan banking momentum and weakness in one view.", text: "Quickly compare financial leaders, laggards, and risk pockets." },
+    finance: { title: "Review broader financial services performance.", text: "Use the heatmap to find strength and pressure across finance names." },
+    auto: { title: "Monitor auto stocks with sector-specific clarity.", text: "See which manufacturers and suppliers are leading or fading." },
+    pharma: { title: "Analyze pharma and healthcare-linked movers.", text: "Identify defensive strength, weakness, and sharp sector rotation." },
+    fmcg: { title: "Track consumer staples with low-noise scanning.", text: "Spot steady compounders, rotations, and sudden price dislocations." },
+    metal: { title: "Watch cyclical metal names move with macro sensitivity.", text: "Compare high-beta strength and downside risk across the basket." },
+    energy: { title: "Follow energy stocks through price and policy shifts.", text: "Surface leadership, volatility, and sector-specific pressure quickly." },
+    cement: { title: "Review cement names tied to infra and demand cycles.", text: "Scan sector momentum across price and valuation context." },
+    consumer: { title: "Compare consumer discretionary and demand-led names.", text: "Find leaders and laggards in a consumption-focused basket." },
+    infra: { title: "Track infrastructure-linked stocks with momentum context.", text: "Use price intensity to spot project-cycle winners and weak spots." },
+    others: { title: "Explore the remaining universe for overlooked moves.", text: "Find unusual action outside the primary sector groups." }
+};
+
 let currentView = "movers";
 let fullData = {};
 let searchTerm = "";
@@ -32,6 +63,12 @@ const statementLabels = {
     cashFlow: "Cash Flow"
 };
 
+const statementDescriptions = {
+    profitLoss: "Track sales, margins, and profit momentum across annual periods.",
+    balanceSheet: "Review assets, liabilities, equity, and capital structure trends.",
+    cashFlow: "Understand operating cash generation, investments, financing, and net cash movement."
+};
+
 const heatmap = document.getElementById("heatmap");
 const message = document.getElementById("message");
 const marketStatus = document.getElementById("marketStatus");
@@ -42,6 +79,8 @@ const loserCount = document.getElementById("loserCount");
 const avgChange = document.getElementById("avgChange");
 const viewTitle = document.getElementById("viewTitle");
 const viewMeta = document.getElementById("viewMeta");
+const pageBriefTitle = document.getElementById("pageBriefTitle");
+const pageBriefText = document.getElementById("pageBriefText");
 const searchInput = document.getElementById("stockSearch");
 const refreshButton = document.getElementById("refreshButton");
 const statementModal = document.getElementById("statementModal");
@@ -61,6 +100,8 @@ const infoPanel = document.getElementById("infoPanel");
 const infoMeta = document.getElementById("infoMeta");
 const stockInfo = document.getElementById("stockInfo");
 const financialPanel = document.getElementById("financialPanel");
+const financialTitle = document.getElementById("financialTitle");
+const financialMeta = document.getElementById("financialMeta");
 const statementMessage = document.getElementById("statementMessage");
 const statementContent = document.getElementById("statementContent");
 
@@ -328,6 +369,7 @@ function renderGrid() {
     heatmap.classList.toggle("desktop-heatmap", !isPhoneLayout);
     viewTitle.textContent = viewLabels[currentView];
     viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown`;
+    updatePageBrief();
 
     if (!stocks.length) {
         if (Object.keys(fullData).length) {
@@ -420,6 +462,16 @@ function renderGrid() {
 
         heatmap.appendChild(tile);
     });
+}
+
+function updatePageBrief() {
+    const description = viewDescriptions[currentView] || viewDescriptions.movers;
+    if (pageBriefTitle) {
+        pageBriefTitle.textContent = description.title;
+    }
+    if (pageBriefText) {
+        pageBriefText.textContent = description.text;
+    }
 }
 
 function isPhoneViewport() {
@@ -814,6 +866,11 @@ function renderActiveStatement() {
         showStatementMessage(`${statementLabels[activeStatementType]} data is not available.`, "error");
         statementContent.innerHTML = "";
         return;
+    }
+
+    if (financialTitle && financialMeta) {
+        financialTitle.textContent = statementLabels[activeStatementType];
+        financialMeta.textContent = statementDescriptions[activeStatementType] || "Review annual statement trends across years.";
     }
 
     statementMessage.className = "statement-message";

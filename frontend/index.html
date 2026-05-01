@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Market Heatmap</title>
-    <link rel="stylesheet" href="./style.css?v=20260502-dark-fixes">
+    <link rel="stylesheet" href="./style.css?v=20260502-premium-context">
 </head>
 <body>
     <header class="top-nav" aria-label="Application navigation">
@@ -73,23 +73,29 @@
                 </div>
             </div>
 
-            <div class="tabs" role="tablist" aria-label="Market views">
-                <button class="tab-button active" type="button" data-view="movers">Top Movers</button>
-                <button class="tab-button" type="button" data-view="all">All Stocks</button>
-                <button class="tab-button" type="button" data-view="gainers">Gainers</button>
-                <button class="tab-button" type="button" data-view="losers">Losers</button>
-                <button class="tab-button" type="button" data-view="it">IT</button>
-                <button class="tab-button" type="button" data-view="bank">Banking</button>
-                <button class="tab-button" type="button" data-view="finance">Finance</button>
-                <button class="tab-button" type="button" data-view="auto">Auto</button>
-                <button class="tab-button" type="button" data-view="pharma">Pharma</button>
-                <button class="tab-button" type="button" data-view="fmcg">FMCG</button>
-                <button class="tab-button" type="button" data-view="metal">Metal</button>
-                <button class="tab-button" type="button" data-view="energy">Energy</button>
-                <button class="tab-button" type="button" data-view="cement">Cement</button>
-                <button class="tab-button" type="button" data-view="consumer">Consumer</button>
-                <button class="tab-button" type="button" data-view="infra">Infra</button>
-                <button class="tab-button" type="button" data-view="others">Others</button>
+            <div class="view-filter-panel">
+                <div class="panel-mini-heading">
+                    <span>Screener views</span>
+                    <p>Jump between curated market slices.</p>
+                </div>
+                <div class="tabs" role="tablist" aria-label="Market views">
+                    <button class="tab-button active" type="button" data-view="movers">Top Movers</button>
+                    <button class="tab-button" type="button" data-view="all">All Stocks</button>
+                    <button class="tab-button" type="button" data-view="gainers">Gainers</button>
+                    <button class="tab-button" type="button" data-view="losers">Losers</button>
+                    <button class="tab-button" type="button" data-view="it">IT</button>
+                    <button class="tab-button" type="button" data-view="bank">Banking</button>
+                    <button class="tab-button" type="button" data-view="finance">Finance</button>
+                    <button class="tab-button" type="button" data-view="auto">Auto</button>
+                    <button class="tab-button" type="button" data-view="pharma">Pharma</button>
+                    <button class="tab-button" type="button" data-view="fmcg">FMCG</button>
+                    <button class="tab-button" type="button" data-view="metal">Metal</button>
+                    <button class="tab-button" type="button" data-view="energy">Energy</button>
+                    <button class="tab-button" type="button" data-view="cement">Cement</button>
+                    <button class="tab-button" type="button" data-view="consumer">Consumer</button>
+                    <button class="tab-button" type="button" data-view="infra">Infra</button>
+                    <button class="tab-button" type="button" data-view="others">Others</button>
+                </div>
             </div>
 
             <p class="dashboard-disclaimer">For information only. Market data, news summaries, and financial figures may be delayed or inaccurate. This is not investment advice.</p>
@@ -108,6 +114,13 @@
             </header>
 
             <div id="message" class="message loading">Loading market data...</div>
+            <section class="page-brief" aria-label="Dashboard overview">
+                <div>
+                    <span>Dashboard</span>
+                    <strong id="pageBriefTitle">Scan momentum, sector leadership, and downside pressure at a glance.</strong>
+                </div>
+                <p id="pageBriefText">Click any stock tile to open news, valuation info, charts, and annual financial statements.</p>
+            </section>
             <div id="heatmap" aria-live="polite"></div>
             </section>
     </main>
@@ -165,6 +178,10 @@
                 <div id="stockInfo" class="stock-info-list"></div>
             </section>
             <section id="financialPanel" class="financial-panel tab-panel">
+                <div class="financial-heading">
+                    <h3 id="financialTitle">Financial statement</h3>
+                    <p id="financialMeta">Review annual statement trends across years.</p>
+                </div>
                 <div id="statementMessage" class="statement-message">Loading statements...</div>
                 <div id="statementContent" class="statement-content"></div>
                 <p class="statement-disclaimer">Disclaimer: This dashboard is for information only and is not investment advice. Verify figures with exchange filings, company annual reports, and your financial advisor before making decisions.</p>
@@ -172,6 +189,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260502-dark-fixes"></script>
+    <script src="./script.js?v=20260502-premium-context"></script>
 </body>
 </html>

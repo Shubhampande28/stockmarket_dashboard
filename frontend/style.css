@@ -265,6 +265,234 @@ body {
     }
 }
 
+/* Premium product context and layout polish. */
+.side-rail {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    min-height: 0 !important;
+    padding: 18px !important;
+}
+
+.sidebar-nav,
+.last-updated-card,
+.market-summary,
+.view-filter-panel,
+.dashboard-disclaimer {
+    flex: 0 0 auto;
+}
+
+.view-filter-panel {
+    display: flex;
+    flex: 1 1 auto !important;
+    flex-direction: column;
+    min-height: 0;
+    margin-top: 2px;
+    padding: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 14px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025)),
+        rgba(11, 15, 20, 0.42);
+}
+
+.panel-mini-heading {
+    flex: 0 0 auto;
+    margin-bottom: 10px;
+}
+
+.panel-mini-heading span {
+    display: block;
+    color: #eaf2ff;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.panel-mini-heading p {
+    margin-top: 4px;
+    color: #93a4ba;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.view-filter-panel .tabs {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 4px !important;
+}
+
+.dashboard-disclaimer {
+    margin-top: 0 !important;
+    padding: 12px !important;
+    color: #cbd7e8 !important;
+    line-height: 1.45 !important;
+}
+
+.page-brief {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin: 12px 14px 0;
+    padding: 14px 16px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 16px;
+    background:
+        linear-gradient(135deg, rgba(58, 134, 255, 0.14), rgba(0, 200, 150, 0.06)),
+        rgba(255, 255, 255, 0.045);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
+.page-brief span {
+    display: block;
+    color: #8ec5ff;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.page-brief strong {
+    display: block;
+    margin-top: 5px;
+    color: #f8fafc;
+    font-size: 15px;
+    line-height: 1.35;
+}
+
+.page-brief p {
+    max-width: 460px;
+    color: #a8b8cc;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.financial-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 20px 0;
+}
+
+.financial-heading h3 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: 17px;
+}
+
+.financial-heading p {
+    max-width: 480px;
+    color: #9fb0c6;
+    font-size: 12px;
+    line-height: 1.45;
+    text-align: right;
+}
+
+.news-heading,
+.chart-heading,
+.info-heading {
+    padding: 2px 0 0;
+}
+
+.news-heading h3,
+.chart-heading h3,
+.info-heading h3,
+.financial-heading h3 {
+    letter-spacing: 0;
+}
+
+.news-heading p,
+.chart-heading p,
+.info-heading p,
+.financial-heading p {
+    color: #9fb0c6 !important;
+}
+
+.tab-button,
+.statement-tab,
+.refresh-button,
+.bottom-nav a {
+    transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        background 180ms ease,
+        box-shadow 180ms ease,
+        color 180ms ease;
+}
+
+.tab-button:hover,
+.statement-tab:hover,
+.refresh-button:hover {
+    transform: translateY(-1px);
+}
+
+.news-card:hover,
+.stock-info-row:hover,
+.chart-points span:hover {
+    transform: translateY(-1px);
+    border-color: rgba(58, 134, 255, 0.34) !important;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+}
+
+.news-card,
+.stock-info-row,
+.chart-points span {
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+@media (max-width: 980px) {
+    .page-brief {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .page-brief p {
+        max-width: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .top-brand span {
+        display: none !important;
+    }
+
+    .profile-button {
+        width: 36px;
+        height: 36px;
+    }
+
+    .page-brief {
+        margin: 10px 10px 0;
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .page-brief strong {
+        font-size: 13px;
+    }
+
+    .page-brief p {
+        font-size: 11px;
+    }
+
+    .financial-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px 14px 0;
+    }
+
+    .financial-heading p {
+        text-align: left;
+    }
+}
+
 /* Hard visual fixes after cache-busted dark release. */
 body {
     padding-top: 112px;
