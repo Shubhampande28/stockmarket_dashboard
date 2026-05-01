@@ -528,13 +528,16 @@ h1 {
     min-height: 0;
     width: 100%;
     height: 100%;
-    padding: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 7px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 8px;
     overflow: hidden;
     color: #ffffff;
     cursor: pointer;
-    box-shadow: inset 0 -1px 0 rgba(15, 23, 42, 0.14);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -22px 34px rgba(15, 23, 42, 0.16),
+        0 8px 18px rgba(15, 23, 42, 0.12);
 }
 
 #heatmap.phone-heatmap .mobile-tile.featured {
@@ -546,8 +549,10 @@ h1 {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 52%),
-        linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.2));
+    background:
+        radial-gradient(circle at 16% 14%, rgba(255, 255, 255, 0.22), transparent 34%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 48%),
+        linear-gradient(180deg, transparent 42%, rgba(15, 23, 42, 0.24));
     pointer-events: none;
 }
 
@@ -562,22 +567,45 @@ h1 {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 5px;
+    gap: 7px;
 }
 
-#heatmap.phone-heatmap .mobile-tile-head strong {
+#heatmap.phone-heatmap .mobile-tile-identity {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+}
+
+#heatmap.phone-heatmap .mobile-tile-identity strong {
+    display: -webkit-box;
     overflow: hidden;
-    font-size: 11px;
-    line-height: 1.05;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 950;
+    line-height: 1.08;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.28);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+#heatmap.phone-heatmap .mobile-tile-identity small {
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.76);
+    font-size: 9px;
+    font-weight: 850;
+    line-height: 1;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 #heatmap.phone-heatmap .mobile-tile-head span {
     flex: 0 0 auto;
-    padding: 3px 5px;
-    border-radius: 5px;
-    background: rgba(15, 23, 42, 0.28);
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.32);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
     font-size: 10px;
     font-weight: 900;
     line-height: 1;
@@ -585,39 +613,28 @@ h1 {
 
 #heatmap.phone-heatmap .mobile-tile-body {
     display: grid;
-    gap: 4px;
-}
-
-#heatmap.phone-heatmap .mobile-tile-body span {
-    display: -webkit-box;
-    overflow: hidden;
-    color: rgba(255, 255, 255, 0.86);
-    font-size: 10px;
-    font-weight: 750;
-    line-height: 1.15;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    justify-items: start;
+    gap: 5px;
 }
 
 #heatmap.phone-heatmap .mobile-tile-body strong {
     overflow: hidden;
-    font-size: 15px;
+    max-width: 100%;
+    font-size: 18px;
     font-weight: 950;
     line-height: 1;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-shadow: 0 2px 3px rgba(15, 23, 42, 0.2);
 }
 
-#heatmap.phone-heatmap .mobile-tile.featured .mobile-tile-head strong {
-    font-size: 14px;
-}
-
-#heatmap.phone-heatmap .mobile-tile.featured .mobile-tile-body span {
-    font-size: 12px;
+#heatmap.phone-heatmap .mobile-tile.featured .mobile-tile-identity strong {
+    font-size: 21px;
+    line-height: 1.02;
 }
 
 #heatmap.phone-heatmap .mobile-tile.featured .mobile-tile-body strong {
-    font-size: 24px;
+    font-size: 34px;
 }
 
 @media (max-width: 340px) {
