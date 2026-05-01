@@ -4,14 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Market Heatmap</title>
-    <link rel="stylesheet" href="./style.css?v=20260502-info-table">
+    <link rel="stylesheet" href="./style.css?v=20260502-pro-ui">
 </head>
 <body>
     <main class="app-shell">
         <aside class="side-rail" aria-label="Market navigation">
             <div class="brand-block">
-                <p class="eyebrow">Live market overview</p>
-                <h1>Stock Heatmap</h1>
+                <div>
+                    <p class="eyebrow">Live market overview</p>
+                    <h1>Stock Heatmap</h1>
+                    <p class="brand-subtitle">Research NSE movers, sectors, news and financials in one focused workspace.</p>
+                </div>
             </div>
 
             <div class="market-status" id="marketStatus">
@@ -28,6 +31,25 @@
                 <span>Search</span>
                 <input id="stockSearch" type="search" placeholder="INFY, HDFC..." autocomplete="off">
             </label>
+
+            <div class="market-summary" aria-label="Market summary">
+                <div>
+                    <span>Stocks</span>
+                    <strong id="stockCount">--</strong>
+                </div>
+                <div>
+                    <span>Gainers</span>
+                    <strong id="gainerCount">--</strong>
+                </div>
+                <div>
+                    <span>Losers</span>
+                    <strong id="loserCount">--</strong>
+                </div>
+                <div>
+                    <span>Avg move</span>
+                    <strong id="avgChange">--</strong>
+                </div>
+            </div>
 
             <div class="tabs" role="tablist" aria-label="Market views">
                 <button class="tab-button active" type="button" data-view="movers">Top Movers</button>
@@ -57,7 +79,10 @@
                     <h2 id="viewTitle">Top 10 gainers and losers</h2>
                     <p id="viewMeta">Waiting for market data</p>
                 </div>
-                <button class="refresh-button" id="refreshButton" type="button">Refresh</button>
+                <div class="panel-actions">
+                    <span class="panel-pill">NSE universe</span>
+                    <button class="refresh-button" id="refreshButton" type="button">Refresh</button>
+                </div>
             </header>
 
             <div id="message" class="message loading">Loading market data...</div>
@@ -118,6 +143,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260502-info-table"></script>
+    <script src="./script.js?v=20260502-pro-ui"></script>
 </body>
 </html>

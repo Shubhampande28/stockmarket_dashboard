@@ -1,14 +1,18 @@
 :root {
-    --bg: #f4f7fb;
+    --bg: #eef3f8;
     --surface: #ffffff;
-    --surface-soft: #f8fafc;
-    --border: #e2e8f0;
-    --text: #0f172a;
-    --muted: #64748b;
-    --accent: #0284c7;
-    --positive: #22c55e;
-    --negative: #ef4444;
-    --shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+    --surface-soft: #f7f9fc;
+    --surface-muted: #eef4f8;
+    --border: #dbe4ee;
+    --border-strong: #c7d4e2;
+    --text: #111827;
+    --muted: #657486;
+    --accent: #1367ef;
+    --accent-soft: #eaf2ff;
+    --positive: #16a34a;
+    --negative: #dc2626;
+    --shadow: 0 18px 46px rgba(32, 45, 64, 0.1);
+    --shadow-soft: 0 10px 28px rgba(32, 45, 64, 0.07);
 }
 
 * {
@@ -21,7 +25,9 @@ body {
     margin: 0;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background:
-        linear-gradient(90deg, rgba(14, 165, 233, 0.06), transparent 34rem),
+        radial-gradient(circle at 16% 0%, rgba(19, 103, 239, 0.12), transparent 34rem),
+        radial-gradient(circle at 86% 8%, rgba(20, 184, 166, 0.1), transparent 30rem),
+        linear-gradient(180deg, #f8fbff 0%, #eef3f8 48%, #e8eef5 100%),
         var(--bg);
     color: var(--text);
     overflow-x: hidden;
@@ -38,13 +44,13 @@ input {
 
 .app-shell {
     display: grid;
-    grid-template-columns: 270px minmax(0, 1fr);
-    gap: 18px;
-    width: min(1680px, calc(100% - 28px));
-    height: calc(100vh - 28px);
-    height: calc(100svh - 28px);
+    grid-template-columns: 292px minmax(0, 1fr);
+    gap: 16px;
+    width: min(1760px, calc(100% - 32px));
+    height: calc(100vh - 32px);
+    height: calc(100svh - 32px);
     min-height: 720px;
-    margin: 14px auto;
+    margin: 16px auto;
 }
 
 .side-rail {
@@ -53,9 +59,10 @@ input {
     min-height: 0;
     padding: 18px;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.92);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.9);
     box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
 }
 
 .brand-block {
@@ -79,9 +86,17 @@ p {
 }
 
 h1 {
-    font-size: 30px;
-    line-height: 1;
+    font-size: 29px;
+    line-height: 1.04;
     letter-spacing: 0;
+}
+
+.brand-subtitle {
+    max-width: 235px;
+    margin-top: 9px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
 }
 
 .market-status {
@@ -92,8 +107,8 @@ h1 {
     margin: 16px 0 12px;
     padding: 8px 12px;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    background: #f8fafc;
+    border-radius: 10px;
+    background: var(--surface-soft);
     color: var(--muted);
     white-space: nowrap;
 }
@@ -119,7 +134,7 @@ h1 {
 .last-updated-card,
 .dashboard-disclaimer {
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     background: #ffffff;
 }
 
@@ -127,7 +142,8 @@ h1 {
     display: grid;
     gap: 4px;
     margin-bottom: 12px;
-    padding: 10px 12px;
+    padding: 11px 12px;
+    box-shadow: var(--shadow-soft);
 }
 
 .last-updated-card span {
@@ -151,10 +167,44 @@ h1 {
     line-height: 1.35;
 }
 
+.market-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.market-summary div {
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background:
+        linear-gradient(180deg, #ffffff, #f7fafc);
+    box-shadow: var(--shadow-soft);
+}
+
+.market-summary span {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.market-summary strong {
+    display: block;
+    margin-top: 5px;
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1;
+}
+
 .tabs {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 7px;
     min-height: 0;
     margin-top: 14px;
     overflow: auto;
@@ -166,11 +216,11 @@ h1 {
 .refresh-button {
     min-height: 40px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     background: #ffffff;
     color: var(--text);
     cursor: pointer;
-    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 .tab-button {
@@ -178,19 +228,24 @@ h1 {
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 750;
     text-align: left;
 }
 
 .tab-button:hover,
 .refresh-button:hover {
     transform: translateY(-1px);
-    border-color: rgba(56, 189, 248, 0.55);
+    border-color: rgba(19, 103, 239, 0.38);
+    box-shadow: var(--shadow-soft);
 }
 
 .tab-button.active {
-    border-color: rgba(2, 132, 199, 0.35);
-    background: #e0f2fe;
-    color: #075985;
+    border-color: rgba(19, 103, 239, 0.28);
+    background: var(--accent-soft);
+    color: #0f4bb8;
+    box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .search-wrap {
@@ -201,7 +256,7 @@ h1 {
     min-height: 44px;
     padding: 8px 11px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     background: #ffffff;
     color: var(--muted);
 }
@@ -225,7 +280,7 @@ h1 {
     min-height: 0;
     overflow: hidden;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 14px;
     background: var(--surface);
     box-shadow: var(--shadow);
 }
@@ -235,14 +290,16 @@ h1 {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    min-height: 72px;
-    padding: 14px 18px;
+    min-height: 78px;
+    padding: 16px 18px;
     border-bottom: 1px solid var(--border);
+    background:
+        linear-gradient(180deg, #ffffff, #f8fafc);
 }
 
 .panel-heading h2 {
     margin-bottom: 4px;
-    font-size: 20px;
+    font-size: 21px;
 }
 
 .panel-heading p {
@@ -252,8 +309,30 @@ h1 {
 
 .refresh-button {
     padding: 8px 14px;
+    border-color: #0f172a;
     background: #0f172a;
     color: #ffffff;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.panel-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 8px 11px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: #ffffff;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
 }
 
 .message {
@@ -280,7 +359,7 @@ h1 {
     grid-template-columns: repeat(16, minmax(0, 1fr));
     grid-auto-rows: 78px;
     grid-auto-flow: dense;
-    gap: 0;
+    gap: 2px;
     flex: 1;
     width: 100%;
     min-height: 0;
@@ -288,9 +367,9 @@ h1 {
     overscroll-behavior: contain;
     border-radius: 0;
     background:
-        linear-gradient(135deg, #f8fafc, #eef2f7),
+        linear-gradient(135deg, #f8fafc, #eef3f8),
         #f8fafc;
-    padding: 0;
+    padding: 8px;
 }
 
 .tile {
@@ -302,10 +381,10 @@ h1 {
     grid-row: span var(--span-y);
     min-width: 0;
     min-height: 0;
-    margin: var(--growth-space, 10px);
-    padding: 11px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 6px;
+    margin: var(--growth-space, 9px);
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
     text-align: center;
@@ -313,7 +392,10 @@ h1 {
     animation-delay: var(--pulse-delay, 0s);
     transform-origin: center;
     transition: box-shadow 160ms ease, filter 160ms ease, transform 160ms ease;
-    box-shadow: inset 0 -1px 0 rgba(15, 23, 42, 0.12);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -1px 0 rgba(15, 23, 42, 0.12),
+        0 10px 20px rgba(15, 23, 42, 0.1);
     --pulse-shadow: rgba(15, 23, 42, 0.1);
 }
 
@@ -322,8 +404,9 @@ h1 {
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 52%),
-        linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.16));
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.2), transparent 32%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.13), transparent 48%),
+        linear-gradient(180deg, transparent 42%, rgba(15, 23, 42, 0.18));
     pointer-events: none;
 }
 
@@ -332,7 +415,7 @@ h1 {
     filter: saturate(1.04) brightness(1.02);
     transform: translateY(-1px);
     animation-play-state: paused;
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.2);
     z-index: 20;
 }
 
@@ -403,7 +486,7 @@ h1 {
 }
 
 .label {
-    color: rgba(255, 255, 255, 0.76);
+    color: rgba(255, 255, 255, 0.74);
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.06em;
@@ -434,7 +517,7 @@ h1 {
     gap: 4px 10px;
     margin-top: auto;
     padding-top: 7px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.22);
     text-align: left;
 }
 
@@ -463,8 +546,8 @@ h1 {
     justify-content: center;
     width: fit-content;
     max-width: 100%;
-    padding: 6px 8px;
-    border-radius: 6px;
+    padding: 7px 9px;
+    border-radius: 8px;
     flex-direction: column;
     gap: 0;
     margin: 0;
@@ -475,11 +558,11 @@ h1 {
 }
 
 .change.gain {
-    background: rgba(20, 83, 45, 0.58);
+    background: rgba(20, 83, 45, 0.62);
 }
 
 .change.loss {
-    background: rgba(127, 29, 29, 0.58);
+    background: rgba(127, 29, 29, 0.62);
 }
 
 .change small {
@@ -491,7 +574,7 @@ h1 {
 .tile-rank {
     flex: 0 0 auto;
     padding: 4px 7px;
-    border-radius: 6px;
+    border-radius: 8px;
     background: rgba(15, 23, 42, 0.28);
     color: rgba(255, 255, 255, 0.82);
     font-size: 10px;
@@ -730,8 +813,8 @@ h1 {
 .modal-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(15, 23, 42, 0.38);
-    backdrop-filter: blur(8px);
+    background: rgba(15, 23, 42, 0.46);
+    backdrop-filter: blur(10px);
 }
 
 .modal-panel {
@@ -746,9 +829,9 @@ h1 {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 14px;
     background: #ffffff;
-    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.24);
+    box-shadow: 0 32px 90px rgba(15, 23, 42, 0.28);
 }
 
 .modal-panel > .tab-panel.active,
@@ -764,6 +847,8 @@ h1 {
     gap: 16px;
     padding: 20px;
     border-bottom: 1px solid var(--border);
+    background:
+        linear-gradient(180deg, #ffffff, #f8fafc);
 }
 
 .modal-header h2 {
@@ -803,7 +888,7 @@ h1 {
     width: 40px;
     height: 40px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     background: #f8fafc;
     color: var(--text);
     cursor: pointer;
@@ -817,6 +902,7 @@ h1 {
     gap: 8px;
     padding: 14px 20px;
     border-bottom: 1px solid var(--border);
+    background: #ffffff;
     overflow: visible;
 }
 
@@ -824,16 +910,18 @@ h1 {
     min-height: 38px;
     padding: 8px 12px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 999px;
     background: #ffffff;
     color: var(--text);
     cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
 }
 
 .statement-tab.active {
-    border-color: rgba(2, 132, 199, 0.35);
-    background: #e0f2fe;
-    color: #075985;
+    border-color: rgba(19, 103, 239, 0.28);
+    background: var(--accent-soft);
+    color: #0f4bb8;
 }
 
 .tab-panel {
@@ -856,7 +944,7 @@ h1 {
 .snapshot-source {
     min-width: 0;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     background: #f8fafc;
 }
 
@@ -865,6 +953,7 @@ h1 {
     align-items: center;
     gap: 12px;
     padding: 14px;
+    box-shadow: var(--shadow-soft);
 }
 
 .snapshot-symbol {
@@ -882,7 +971,7 @@ h1 {
 .snapshot-change {
     margin-left: auto;
     padding: 5px 8px;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #ffffff;
     font-size: 13px;
     font-weight: 800;
@@ -901,6 +990,7 @@ h1 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1px;
     overflow: hidden;
+    box-shadow: var(--shadow-soft);
 }
 
 .snapshot-source {
@@ -1198,8 +1288,9 @@ h1 {
     padding: 12px;
     border: 1px solid var(--border);
     border-left-width: 5px;
-    border-radius: 8px;
+    border-radius: 10px;
     background: #ffffff;
+    box-shadow: var(--shadow-soft);
 }
 
 .news-card.positive {
@@ -1297,7 +1388,8 @@ h1 {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-soft);
     overscroll-behavior-x: contain;
     overscroll-behavior-y: auto;
     touch-action: none;
@@ -1336,7 +1428,7 @@ h1 {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: #f8fafc;
+    background: #f3f7fb;
     color: #334155;
     font-size: 12px;
     letter-spacing: 0.04em;
@@ -1398,7 +1490,7 @@ h1 {
 
 @media (max-width: 1180px) {
     .app-shell {
-        grid-template-columns: 240px minmax(0, 1fr);
+        grid-template-columns: 258px minmax(0, 1fr);
         gap: 12px;
         width: min(100% - 20px, 1680px);
     }
@@ -1425,8 +1517,9 @@ h1 {
         position: sticky;
         top: 0;
         z-index: 30;
-        padding: 14px;
+        padding: 12px;
         max-height: none;
+        border-radius: 14px;
     }
 
     .brand-block {
@@ -1434,18 +1527,45 @@ h1 {
         align-items: center;
         justify-content: space-between;
         gap: 12px;
+        padding-bottom: 10px;
     }
 
     h1 {
         font-size: 24px;
     }
 
+    .brand-subtitle {
+        display: none;
+    }
+
     .market-status {
-        margin: 10px 0;
+        min-height: 34px;
+        margin: 10px 0 8px;
+        padding: 7px 10px;
+        font-size: 12px;
     }
 
     .last-updated-card {
         margin-bottom: 10px;
+        padding: 8px 10px;
+    }
+
+    .market-summary {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .market-summary div {
+        padding: 8px;
+    }
+
+    .market-summary span {
+        font-size: 9px;
+    }
+
+    .market-summary strong {
+        font-size: 14px;
     }
 
     .dashboard-disclaimer {
@@ -1462,7 +1582,15 @@ h1 {
 
     .tab-button {
         flex: 0 0 auto;
+        min-height: 36px;
+        padding: 8px 11px;
+        border-radius: 999px;
+        font-size: 12px;
         white-space: nowrap;
+    }
+
+    .tab-button.active {
+        box-shadow: none;
     }
 
     .heatmap-panel {
@@ -1473,10 +1601,16 @@ h1 {
     .panel-heading {
         align-items: stretch;
         flex-direction: column;
+        min-height: 0;
+        padding: 13px;
     }
 
     .refresh-button {
         width: fit-content;
+    }
+
+    .panel-actions {
+        justify-content: space-between;
     }
 
     .stock-snapshot {
@@ -1496,7 +1630,7 @@ h1 {
     .app-shell {
         width: 100%;
         margin: 0;
-        gap: 0;
+        gap: 8px;
     }
 
     .side-rail,
@@ -1508,7 +1642,8 @@ h1 {
 
     .side-rail {
         position: relative;
-        padding: 12px;
+        padding: 11px;
+        border-radius: 0 0 14px 14px;
     }
 
     .brand-block {
@@ -1537,7 +1672,16 @@ h1 {
     }
 
     .dashboard-disclaimer {
-        font-size: 10px;
+        display: none;
+    }
+
+    .search-wrap {
+        min-height: 40px;
+        font-size: 12px;
+    }
+
+    .market-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .panel-heading {
@@ -1550,7 +1694,7 @@ h1 {
     }
 
     .refresh-button {
-        width: 100%;
+        width: fit-content;
     }
 
     #heatmap {
@@ -1562,7 +1706,7 @@ h1 {
         width: 100%;
         max-width: 100%;
         min-height: 520px;
-        padding: 10px;
+        padding: 8px;
         overflow: auto;
         overflow-x: hidden;
     }
@@ -1584,7 +1728,7 @@ h1 {
         height: 100%;
         padding: 9px;
         border: 1px solid rgba(255, 255, 255, 0.18);
-        border-radius: 7px;
+        border-radius: 8px;
         overflow: hidden;
         color: #ffffff;
         cursor: pointer;
