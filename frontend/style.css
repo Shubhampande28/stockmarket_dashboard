@@ -654,7 +654,8 @@ h1 {
     flex-direction: column;
     width: min(1040px, 100%);
     max-height: min(780px, calc(100svh - 40px));
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border);
@@ -729,7 +730,7 @@ h1 {
     gap: 8px;
     padding: 14px 20px;
     border-bottom: 1px solid var(--border);
-    overflow-x: auto;
+    overflow: visible;
 }
 
 .statement-tab {
@@ -993,6 +994,7 @@ h1 {
 }
 
 .statement-table-wrap {
+    max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -1000,6 +1002,7 @@ h1 {
     border-radius: 8px;
     overscroll-behavior-x: contain;
     overscroll-behavior-y: auto;
+    touch-action: pan-x;
 }
 
 .statement-table {
@@ -1377,7 +1380,8 @@ h1 {
         width: 100%;
         min-height: 100svh;
         max-height: 100svh;
-        overflow: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         border: 0;
         border-radius: 0;
@@ -1412,7 +1416,7 @@ h1 {
         flex: 0 0 auto;
         padding: 10px 14px;
         gap: 8px;
-        overflow-x: auto;
+        overflow: visible;
     }
 
     .statement-tab {
@@ -1504,7 +1508,7 @@ h1 {
     }
 
     .statement-tabs {
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
     }
 
     .statement-tab {
