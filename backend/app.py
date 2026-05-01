@@ -1178,6 +1178,58 @@ def fetch_screener_financials(symbol):
 
     return None
 
+def debug_screener_financials(symbol):
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        return {"error": "beautifulsoup4 is not installed."}
+
+    clean_symbol = to_nse_symbol(symbol)
+    base_symbol = to_nse_base_symbol(clean_symbol)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    }
+    urls = [
+        f"https://www.screener.in/company/{base_symbol}/consolidated/",
+        f"https://www.screener.in/company/{base_symbol}/"
+    ]
+    attempts = []
+
+    for url in urls:
+        attempt = {"url": url}
+        try:
+            res = requests.get(url, headers=headers, timeout=15)
+            attempt["statusCode"] = res.status_code
+            attempt["contentType"] = res.headers.get("content-type")
+            attempt["contentLength"] = len(res.text or "")
+            attempt["redirectedUrl"] = res.url
+            soup = BeautifulSoup(res.text, "html.parser")
+            attempt["title"] = soup.title.get_text(" ", strip=True) if soup.title else None
+            sections = {}
+            for section_id in ("profit-loss", "balance-sheet", "cash-flow"):
+                section = soup.find(id=section_id)
+                parsed = parse_screener_table(section)
+                sections[section_id] = {
+                    "found": section is not None,
+                    "periods": parsed.get("periods", [])[:6],
+                    "rowCount": len(parsed.get("rows", [])),
+                    "sampleRows": [
+                        {"label": row.get("label"), "values": row.get("values", [])[:3]}
+                        for row in parsed.get("rows", [])[:3]
+                    ]
+                }
+            attempt["sections"] = sections
+        except requests.RequestException as exc:
+            attempt["error"] = str(exc)
+        attempts.append(attempt)
+
+    return {
+        "symbol": clean_symbol,
+        "baseSymbol": base_symbol,
+        "attempts": attempts
+    }
+
 def normalize_news_item(item):
     title = item.findtext("title", default="").strip()
     link = item.findtext("link", default="").strip()
@@ -1395,6 +1447,14 @@ def get_financials(symbol):
         }), 404
     except requests.RequestException:
         return jsonify({"error": "Unable to load financial statements right now."}), 502
+
+@app.route("/debug/screener/<symbol>")
+@admin_required
+def debug_screener(symbol):
+    clean_symbol = symbol.upper().strip()
+    if not re.fullmatch(r"[A-Z0-9&.-]{1,24}", clean_symbol):
+        return jsonify({"error": "Invalid stock symbol."}), 400
+    return jsonify(debug_screener_financials(clean_symbol))
 
 # =========================
 # TOKEN SAVE
