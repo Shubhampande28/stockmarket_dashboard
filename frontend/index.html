@@ -81,6 +81,7 @@
 
             <div class="statement-tabs" role="tablist" aria-label="Statement type">
                 <button class="statement-tab active" type="button" data-statement="news">News</button>
+                <button class="statement-tab" type="button" data-statement="chart">Chart</button>
                 <button class="statement-tab" type="button" data-statement="profitLoss">P&amp;L</button>
                 <button class="statement-tab" type="button" data-statement="balanceSheet">Balance Sheet</button>
                 <button class="statement-tab" type="button" data-statement="cashFlow">Cash Flow</button>
@@ -93,6 +94,13 @@
                     <p id="newsMeta">Loading news links and summaries</p>
                 </div>
                 <div id="newsList" class="news-list"></div>
+            </section>
+            <section id="chartPanel" class="chart-panel tab-panel" aria-labelledby="chartTitle">
+                <div class="chart-heading">
+                    <h3 id="chartTitle">Price chart</h3>
+                    <p id="chartMeta">Open, high, low, close snapshot</p>
+                </div>
+                <div id="priceChart" class="price-chart"></div>
             </section>
             <section id="financialPanel" class="financial-panel tab-panel">
                 <div id="statementMessage" class="statement-message">Loading statements...</div>
