@@ -28,7 +28,7 @@ FINANCIALS_CACHE_PATH = BASE_DIR / "financials_cache.json"
 NEWS_CACHE_TTL = 60 * 60 * 24 * 30
 AI_CACHE_TTL = 60 * 60 * 24 * 365
 FINANCIALS_CACHE_TTL = 60 * 60 * 24 * 30
-FINANCIALS_CACHE_VERSION = "nse-inr-v3"
+FINANCIALS_CACHE_VERSION = "nse-inr-v4"
 NEWS_LIMIT = 8
 AUTH_STATE_PATH = BASE_DIR / "auth_state.json"
 UPSTOX_AUTH_URL = "https://api.upstox.com/v2/login/authorization/dialog"
@@ -686,6 +686,32 @@ def get_yahoo_quote_summary(session, symbol):
     result = res.json().get("quoteSummary", {}).get("result", []) or []
     return result[0] if result else {}
 
+def is_yahoo_india_inr_summary(summary):
+    price = summary.get("price", {}) or {}
+    currencies = {
+        str(yahoo_raw_value(price.get("currency")) or "").upper(),
+        str(yahoo_raw_value(price.get("financialCurrency")) or "").upper()
+    }
+    exchange = str(yahoo_raw_value(price.get("exchangeName")) or "").upper()
+    quote_source = str(yahoo_raw_value(price.get("quoteSourceName")) or "").upper()
+    symbol = str(yahoo_raw_value(price.get("symbol")) or "").upper()
+
+    return (
+        "INR" in currencies
+        and symbol.endswith(".NS")
+        and (
+            exchange in {"NSI", "NSE"}
+            or "NSE" in exchange
+            or "NATIONAL STOCK EXCHANGE" in quote_source
+        )
+    )
+
+def validated_yahoo_quote_summary(session, symbol):
+    summary = get_yahoo_quote_summary(session, symbol)
+    if not is_yahoo_india_inr_summary(summary):
+        raise ValueError("Yahoo response was not NSE/INR data.")
+    return summary
+
 def compact_yahoo_value(value):
     raw = yahoo_raw_value(value)
     if raw in ("", None):
@@ -717,9 +743,9 @@ def build_valuation_payload(summary, symbol):
 
 def safe_valuation_payload(session, symbol):
     try:
-        quote_summary = get_yahoo_quote_summary(session, symbol)
+        quote_summary = validated_yahoo_quote_summary(session, symbol)
         return build_valuation_payload(quote_summary, symbol)
-    except requests.RequestException:
+    except (requests.RequestException, ValueError):
         return {
             "source": {
                 "provider": "Yahoo Finance quote summary",
