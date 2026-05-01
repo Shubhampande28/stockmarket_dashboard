@@ -503,6 +503,189 @@ body {
     }
 }
 
+/* Market view selector and screener drawer. */
+body.filter-open {
+    overflow: hidden;
+}
+
+.view-select-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 6px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #dbe7f7;
+}
+
+.view-select-wrap span {
+    color: #8ec5ff;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.view-select-wrap select {
+    min-width: 150px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #f8fafc;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.view-select-wrap option {
+    background: #121821;
+    color: #f8fafc;
+}
+
+.filter-button {
+    min-height: 38px;
+    padding: 8px 13px;
+    border: 1px solid rgba(58, 134, 255, 0.4);
+    border-radius: 12px;
+    background: rgba(58, 134, 255, 0.16);
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.filter-drawer[hidden] {
+    display: none;
+}
+
+.filter-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+}
+
+.filter-drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 10%, rgba(58, 134, 255, 0.18), transparent 30rem),
+        rgba(3, 7, 12, 0.72);
+    backdrop-filter: blur(10px);
+}
+
+.filter-drawer-panel {
+    position: absolute;
+    inset: 18px 18px 18px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: min(420px, calc(100vw - 36px));
+    padding: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 20px;
+    background:
+        linear-gradient(180deg, rgba(24, 32, 44, 0.98), rgba(10, 15, 22, 0.98));
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+}
+
+.filter-drawer-panel header {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.filter-drawer-panel h2 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: 22px;
+}
+
+.filter-drawer-panel p {
+    margin-top: 6px;
+    color: #9fb0c6;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.drawer-search {
+    display: grid;
+    gap: 7px;
+}
+
+.drawer-search span {
+    color: #8ec5ff;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.drawer-search input {
+    min-height: 44px;
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 14px;
+    outline: 0;
+    background: rgba(255, 255, 255, 0.06);
+    color: #f8fafc;
+    padding: 10px 12px;
+}
+
+.drawer-view-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.drawer-view-grid button {
+    min-height: 42px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.055);
+    color: #dbe7f7;
+    cursor: pointer;
+    font-weight: 850;
+}
+
+.drawer-view-grid button.active,
+.drawer-view-grid button:hover {
+    border-color: rgba(58, 134, 255, 0.48);
+    background: rgba(58, 134, 255, 0.18);
+    color: #ffffff;
+}
+
+@media (max-width: 820px) {
+    .panel-actions {
+        align-items: stretch;
+    }
+
+    .view-select-wrap,
+    .filter-button,
+    .refresh-button {
+        width: 100%;
+    }
+
+    .view-select-wrap select {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .filter-drawer-panel {
+        inset: 0;
+        width: 100%;
+        border-radius: 0;
+    }
+
+    .drawer-view-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Hard visual fixes after cache-busted dark release. */
 body {
     padding-top: 112px;

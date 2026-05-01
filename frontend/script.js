@@ -49,6 +49,10 @@ const avgChange = document.getElementById("avgChange");
 const viewTitle = document.getElementById("viewTitle");
 const viewMeta = document.getElementById("viewMeta");
 const searchInput = document.getElementById("stockSearch");
+const viewSelect = document.getElementById("viewSelect");
+const filterButton = document.getElementById("filterButton");
+const filterDrawer = document.getElementById("filterDrawer");
+const drawerStockSearch = document.getElementById("drawerStockSearch");
 const refreshButton = document.getElementById("refreshButton");
 const statementModal = document.getElementById("statementModal");
 const modalPanel = document.querySelector(".modal-panel");
@@ -171,6 +175,12 @@ function loadView(type) {
     document.querySelectorAll(".tab-button").forEach(button => {
         button.classList.toggle("active", button.dataset.view === type);
     });
+    document.querySelectorAll("[data-drawer-view]").forEach(button => {
+        button.classList.toggle("active", button.dataset.drawerView === type);
+    });
+    if (viewSelect) {
+        viewSelect.value = type;
+    }
     renderGrid();
 }
 
@@ -1161,9 +1171,66 @@ document.querySelectorAll(".tab-button").forEach(button => {
     button.addEventListener("click", () => loadView(button.dataset.view));
 });
 
+if (viewSelect) {
+    viewSelect.addEventListener("change", event => {
+        loadView(event.target.value);
+    });
+}
+
 searchInput.addEventListener("input", event => {
     searchTerm = event.target.value.trim().toLowerCase();
+    if (drawerStockSearch && drawerStockSearch.value !== event.target.value) {
+        drawerStockSearch.value = event.target.value;
+    }
     renderGrid();
+});
+
+if (drawerStockSearch) {
+    drawerStockSearch.addEventListener("input", event => {
+        searchTerm = event.target.value.trim().toLowerCase();
+        if (searchInput && searchInput.value !== event.target.value) {
+            searchInput.value = event.target.value;
+        }
+        renderGrid();
+    });
+}
+
+function openFilterDrawer() {
+    if (!filterDrawer) {
+        return;
+    }
+    filterDrawer.hidden = false;
+    document.body.classList.add("filter-open");
+}
+
+function closeFilterDrawer() {
+    if (!filterDrawer) {
+        return;
+    }
+    filterDrawer.hidden = true;
+    document.body.classList.remove("filter-open");
+}
+
+if (filterButton) {
+    filterButton.addEventListener("click", openFilterDrawer);
+}
+
+document.querySelectorAll("[data-open-filters]").forEach(element => {
+    element.addEventListener("click", event => {
+        event.preventDefault();
+        openFilterDrawer();
+    });
+});
+
+document.querySelectorAll("[data-close-filters]").forEach(element => {
+    element.addEventListener("click", closeFilterDrawer);
+});
+
+document.querySelectorAll("[data-drawer-view]").forEach(button => {
+    button.addEventListener("click", () => {
+        loadView(button.dataset.drawerView);
+        closeFilterDrawer();
+    });
 });
 
 refreshButton.addEventListener("click", loadHeatmap);
@@ -1216,6 +1283,9 @@ enableStatementTableTouchPan();
 window.addEventListener("keydown", event => {
     if (event.key === "Escape" && !statementModal.hidden) {
         closeFinancialStatements();
+    }
+    if (event.key === "Escape" && filterDrawer && !filterDrawer.hidden) {
+        closeFilterDrawer();
     }
 });
 window.addEventListener("resize", () => {
