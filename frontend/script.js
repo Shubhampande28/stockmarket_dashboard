@@ -432,10 +432,17 @@ function renderStockSnapshotWithFinancials(stock, data) {
     const range = valuation.fiftyTwoWeekLow && valuation.fiftyTwoWeekHigh
         ? `${formatCompactPrice(valuation.fiftyTwoWeekLow)} - ${formatCompactPrice(valuation.fiftyTwoWeekHigh)}`
         : "--";
-    const source = valuation.source;
-    const sourceHtml = source?.url
-        ? `<a href="${escapeAttribute(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.provider || "Market source")}</a>`
-        : escapeHtml(source?.provider || "Upstox live quote");
+    const quoteSource = valuation.source;
+    const quoteSourceHtml = quoteSource?.url
+        ? `<a href="${escapeAttribute(quoteSource.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(quoteSource.provider || "Yahoo Finance quote summary")}</a>`
+        : "--";
+    const statementSourceHtml = data.source?.url
+        ? `<a href="${escapeAttribute(data.source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml([data.source.provider, data.source.label].filter(Boolean).join(" - "))}</a>`
+        : escapeHtml([data.source?.provider, data.source?.label].filter(Boolean).join(" - ") || "Statement source unavailable");
+    const filing = data.source?.annualReport;
+    const filingHtml = filing?.url
+        ? `<strong>Official filing: <a href="${escapeAttribute(filing.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml([filing.provider, filing.year].filter(Boolean).join(" - ") || "NSE annual report")}</a></strong>`
+        : "";
 
     stockSnapshot.innerHTML = `
         <div class="snapshot-main">
@@ -454,9 +461,11 @@ function renderStockSnapshotWithFinancials(stock, data) {
             <span>52W range <strong>${range}</strong></span>
         </div>
         <div class="snapshot-source">
-            <span>Quote source</span>
+            <span>Data sources</span>
             <strong>Live price: Upstox market quote</strong>
-            <strong>Valuation: ${sourceHtml}</strong>
+            <strong>Valuation: ${quoteSourceHtml}</strong>
+            <strong>P&L, Balance Sheet, Cash Flow: ${statementSourceHtml}</strong>
+            ${filingHtml}
         </div>
     `;
 }

@@ -1107,14 +1107,22 @@ h1 {
     }
 
     #heatmap {
-        grid-template-columns: repeat(8, minmax(0, 1fr));
-        grid-auto-rows: 86px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
         min-height: 520px;
+        padding: 10px;
+        overflow-x: hidden;
     }
 
     .tile {
-        margin: 6px;
-        padding: 10px;
+        flex: 0 0 auto;
+        width: 100%;
+        min-height: 118px;
+        margin: 0;
+        padding: 12px;
+        animation: none;
+        transform: none;
     }
 
     .tile-rank,
@@ -1156,12 +1164,15 @@ h1 {
     }
 
     .statement-modal {
+        display: flex;
         align-items: stretch;
+        justify-content: stretch;
         padding: 0;
     }
 
     .modal-panel {
         width: 100%;
+        min-height: 100svh;
         max-height: 100svh;
         border: 0;
         border-radius: 0;
@@ -1187,6 +1198,15 @@ h1 {
     .statement-table {
         min-width: 620px;
     }
+
+    .snapshot-source {
+        font-size: 11px;
+    }
+
+    .snapshot-source strong {
+        font-size: 11px;
+        line-height: 1.35;
+    }
 }
 
 @media (max-width: 520px) {
@@ -1201,14 +1221,14 @@ h1 {
     }
 
     #heatmap {
-        grid-template-columns: repeat(8, minmax(0, 1fr));
-        grid-auto-rows: 84px;
+        display: flex;
         min-height: 0;
-        padding: 0;
+        padding: 10px;
     }
 
     .tile {
-        padding: 10px;
+        min-height: 112px;
+        padding: 11px;
     }
 
     .price {
@@ -1275,11 +1295,11 @@ h1 {
 
     .heatmap-panel {
         height: auto;
-        min-height: 560px;
+        min-height: 0;
     }
 
     .modal-panel {
-        max-height: calc(100svh - 20px);
+        max-height: 100svh;
     }
 }
 
@@ -1295,14 +1315,15 @@ h1 {
     }
 
     #heatmap {
-        grid-template-columns: repeat(8, minmax(0, 1fr));
-        grid-auto-rows: 72px;
-        min-height: 520px;
+        display: flex;
+        min-height: 0;
     }
 
     .tile {
         margin: 5px;
-        padding: 9px;
+        min-height: 98px;
+        margin: 0;
+        padding: 10px;
     }
 
     .tile-top {
