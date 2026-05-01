@@ -313,8 +313,10 @@ function renderGrid() {
     const stocks = getFilteredStocks();
     const intensityMap = getRankIntensityMap(stocks);
     const layout = getGridLayout();
+    const isPhoneLayout = window.matchMedia("(max-width: 640px)").matches;
 
     heatmap.innerHTML = "";
+    heatmap.classList.toggle("phone-heatmap", isPhoneLayout);
     viewTitle.textContent = viewLabels[currentView];
     viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown`;
 
@@ -340,14 +342,28 @@ function renderGrid() {
         tile.dataset.symbol = stock.symbol;
         tile.setAttribute("aria-label", `Open financial statements for ${stock.name || stock.symbol}`);
         tile.style.background = getColor(stock.change, intensity);
-        tile.style.setProperty("--span-x", mosaic.spanX);
-        tile.style.setProperty("--span-y", mosaic.spanY);
-        tile.style.setProperty("--text-boost", mosaic.textBoost);
-        tile.style.setProperty("--bloom-scale", movement.bloomScale);
-        tile.style.setProperty("--growth-space", growthSpace);
-        tile.style.setProperty("--pulse-duration", movement.pulseDuration);
-        tile.style.setProperty("--pulse-glow", movement.pulseGlow);
-        tile.style.setProperty("--pulse-delay", movement.pulseDelay);
+
+        if (isPhoneLayout) {
+            const featured = intensity > 0.72;
+            tile.classList.toggle("featured", featured);
+            tile.style.setProperty("--span-x", featured ? 2 : 1);
+            tile.style.setProperty("--span-y", featured ? 2 : 1);
+            tile.style.setProperty("--text-boost", "0px");
+            tile.style.setProperty("--bloom-scale", "1");
+            tile.style.setProperty("--growth-space", "0px");
+            tile.style.setProperty("--pulse-duration", "5.2s");
+            tile.style.setProperty("--pulse-glow", "0.24");
+            tile.style.setProperty("--pulse-delay", movement.pulseDelay);
+        } else {
+            tile.style.setProperty("--span-x", mosaic.spanX);
+            tile.style.setProperty("--span-y", mosaic.spanY);
+            tile.style.setProperty("--text-boost", mosaic.textBoost);
+            tile.style.setProperty("--bloom-scale", movement.bloomScale);
+            tile.style.setProperty("--growth-space", growthSpace);
+            tile.style.setProperty("--pulse-duration", movement.pulseDuration);
+            tile.style.setProperty("--pulse-glow", movement.pulseGlow);
+            tile.style.setProperty("--pulse-delay", movement.pulseDelay);
+        }
         tile.title = `${stock.symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
         tile.innerHTML = `

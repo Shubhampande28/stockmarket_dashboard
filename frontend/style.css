@@ -1131,6 +1131,16 @@ h1 {
         animation-duration: 5.2s;
     }
 
+    #heatmap.phone-heatmap .tile {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+
+    #heatmap.phone-heatmap .tile.featured {
+        grid-column: span 2;
+        grid-row: span 2;
+    }
+
     .tile-rank,
     .stock-details {
         display: none;
