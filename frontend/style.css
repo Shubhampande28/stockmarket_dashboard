@@ -1108,21 +1108,20 @@ h1 {
 
     #heatmap {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-auto-rows: 132px;
-        gap: 10px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-auto-rows: 86px;
+        grid-auto-flow: dense;
+        gap: 0;
         min-height: 520px;
-        padding: 10px;
+        padding: 0;
         overflow: auto;
         overflow-x: hidden;
     }
 
     .tile {
-        grid-column: auto !important;
-        grid-row: auto !important;
         min-width: 0;
-        min-height: 132px;
-        margin: 0;
+        min-height: 0;
+        margin: 5px;
         padding: 10px;
         animation-duration: 5.2s;
     }
@@ -1148,7 +1147,7 @@ h1 {
 
     .stock-name {
         font-size: 11px;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 1;
     }
 
     .price {
@@ -1223,14 +1222,15 @@ h1 {
 
     #heatmap {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-auto-rows: 126px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-auto-rows: 82px;
+        grid-auto-flow: dense;
         min-height: 0;
-        padding: 10px;
+        padding: 0;
     }
 
     .tile {
-        min-height: 126px;
+        min-height: 0;
         padding: 9px;
     }
 
@@ -1319,14 +1319,15 @@ h1 {
 
     #heatmap {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-auto-rows: 118px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-auto-rows: 76px;
+        grid-auto-flow: dense;
         min-height: 0;
     }
 
     .tile {
-        min-height: 118px;
-        margin: 0;
+        min-height: 0;
+        margin: 4px;
         padding: 8px;
     }
 
