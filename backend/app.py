@@ -65,6 +65,13 @@ def load_json_cache(path):
 def save_json_cache(path, payload):
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
+def to_nse_base_symbol(symbol):
+    return str(symbol or "").upper().strip().replace(".NS", "")
+
+def to_nse_symbol(symbol):
+    base_symbol = to_nse_base_symbol(symbol)
+    return f"{base_symbol}.NS" if base_symbol else ""
+
 def get_upstox_config():
     return {
         "client_id": os.environ.get("UPSTOX_CLIENT_ID", "").strip(),
@@ -652,6 +659,7 @@ def normalize_timeseries_rows(timeseries_result):
     return statements
 
 def get_yahoo_timeseries(session, crumb, symbol):
+    symbol = to_nse_symbol(symbol)
     fields = [
         field
         for statement_fields in FINANCIAL_TIMESERIES_FIELDS.values()
@@ -670,6 +678,7 @@ def get_yahoo_timeseries(session, crumb, symbol):
     return res.json().get("timeseries", {}).get("result", []) or []
 
 def get_yahoo_quote_summary(session, symbol):
+    symbol = to_nse_symbol(symbol)
     modules = "price,summaryDetail,defaultKeyStatistics,financialData"
     url = f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}"
     res = session.get(url, params={"modules": modules}, timeout=12)
@@ -726,7 +735,7 @@ def get_nse_session():
     return session
 
 def get_nse_quote_summary(symbol):
-    base_symbol = symbol.replace(".NS", "")
+    base_symbol = to_nse_base_symbol(symbol)
     session = get_nse_session()
     res = session.get(
         "https://www.nseindia.com/api/quote-equity",
@@ -755,6 +764,7 @@ def find_first_number(payload, keys):
     return None
 
 def build_nse_valuation_payload(summary, symbol):
+    base_symbol = to_nse_base_symbol(symbol)
     return {
         "marketCap": find_first_number(summary, {"marketcap", "ffmc", "mcap", "marketcapitalisation"}),
         "peTrailing": find_first_number(summary, {"symbolpe", "pdsymbolpe", "pe", "peratio"}),
@@ -768,7 +778,7 @@ def build_nse_valuation_payload(summary, symbol):
         "source": {
             "provider": "NSE quote equity",
             "label": "NSE market and valuation statistics",
-            "url": f"https://www.nseindia.com/get-quotes/equity?symbol={symbol.replace('.NS', '')}"
+            "url": f"https://www.nseindia.com/get-quotes/equity?symbol={base_symbol}"
         }
     }
 
@@ -1004,7 +1014,7 @@ def fetch_apify_financials(symbol):
     if cached:
         return cached
 
-    base_symbol = symbol.replace(".NS", "")
+    base_symbol = to_nse_base_symbol(symbol)
     screener_url = f"https://www.screener.in/company/{base_symbol}/consolidated/"
     actor_id = config["actor_id"].replace("/", "~")
     url = f"https://api.apify.com/v2/acts/{actor_id}/run-sync-get-dataset-items"
@@ -1090,7 +1100,7 @@ def fetch_screener_financials(symbol):
     except ImportError:
         return None
 
-    base_symbol = symbol.replace(".NS", "")
+    base_symbol = to_nse_base_symbol(symbol)
     urls = [
         f"https://www.screener.in/company/{base_symbol}/consolidated/",
         f"https://www.screener.in/company/{base_symbol}/"
@@ -1317,8 +1327,7 @@ def get_financials(symbol):
     if not re.fullmatch(r"[A-Z0-9&.-]{1,24}", clean_symbol):
         return jsonify({"error": "Invalid stock symbol."}), 400
 
-    if "." not in clean_symbol:
-        clean_symbol = f"{clean_symbol}.NS"
+    clean_symbol = to_nse_symbol(clean_symbol)
 
     try:
         try:
@@ -1357,14 +1366,14 @@ def get_financials(symbol):
         return jsonify({
             "symbol": clean_symbol,
             "name": STOCK_NAMES.get(clean_symbol.replace(".NS", ""), clean_symbol),
-            "currency": "INR",
+            "currency": "INR Cr",
             "source": {
-                "provider": "Yahoo Finance structured annual fundamentals",
-                "label": "Annual financial statements",
-                "url": "https://finance.yahoo.com/",
+                "provider": "Yahoo Finance NSE fallback",
+                "label": f"Annual financial statements for {clean_symbol}",
+                "url": f"https://finance.yahoo.com/quote/{clean_symbol}",
                 "annualReport": report_source
             },
-            "sourceNote": "Numbers are fetched from structured annual fundamentals as an INR fallback. NSE annual report link is provided as the official filing reference where available.",
+            "sourceNote": "Fallback figures are fetched only for NSE-listed Yahoo symbols ending in .NS and displayed in INR. Prefer Screener/NSE filing figures where available.",
             "valuation": safe_nse_valuation_payload(clean_symbol),
             "statements": statements
         })
