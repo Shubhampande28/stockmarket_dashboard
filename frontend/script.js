@@ -313,7 +313,7 @@ function renderGrid() {
     const stocks = getFilteredStocks();
     const intensityMap = getRankIntensityMap(stocks);
     const layout = getGridLayout();
-    const isPhoneLayout = window.matchMedia("(max-width: 640px)").matches;
+    const isPhoneLayout = isPhoneViewport();
 
     heatmap.innerHTML = "";
     heatmap.classList.toggle("phone-heatmap", isPhoneLayout);
@@ -412,6 +412,13 @@ function renderGrid() {
 
         heatmap.appendChild(tile);
     });
+}
+
+function isPhoneViewport() {
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const narrowViewport = window.innerWidth <= 760;
+    const narrowScreen = Math.min(window.screen.width || window.innerWidth, window.screen.height || window.innerHeight) <= 760;
+    return narrowViewport || (coarsePointer && narrowScreen);
 }
 
 function renderPhoneGrid(stocks, intensityMap) {
