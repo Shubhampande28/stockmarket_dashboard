@@ -209,6 +209,30 @@ function getMovementStyleBase(intensity, index) {
 }
 
 function getMosaicStyle(stock, intensity) {
+    if (window.innerWidth <= 420) {
+        return {
+            spanX: 8,
+            spanY: intensity > 0.75 ? 3 : 2,
+            textBoost: "0px"
+        };
+    }
+
+    if (window.innerWidth <= 640) {
+        return {
+            spanX: intensity > 0.75 ? 8 : 4,
+            spanY: intensity > 0.75 ? 3 : 2,
+            textBoost: `${(intensity * 2).toFixed(1)}px`
+        };
+    }
+
+    if (window.innerWidth <= 900) {
+        return {
+            spanX: intensity > 0.8 ? 6 : intensity > 0.45 ? 4 : 3,
+            spanY: intensity > 0.8 ? 3 : 2,
+            textBoost: `${(intensity * 3).toFixed(1)}px`
+        };
+    }
+
     const spanX = intensity > 0.85 ? 6 : intensity > 0.65 ? 5 : intensity > 0.38 ? 4 : 3;
     const spanY = intensity > 0.85 ? 4 : intensity > 0.65 ? 4 : intensity > 0.38 ? 3 : 2;
     const textBoost = intensity * 5;
