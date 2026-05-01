@@ -34,3 +34,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Node / frontend builds
+node_modules/
+dist/
+equilytics-react/node_modules/
+equilytics-react/dist/
