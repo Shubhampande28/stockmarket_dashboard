@@ -211,15 +211,15 @@ function getMovementStyleBase(intensity, index) {
 function getMosaicStyle(stock, intensity) {
     if (window.innerWidth <= 420) {
         return {
-            spanX: 8,
-            spanY: intensity > 0.75 ? 3 : 2,
+            spanX: intensity > 0.78 ? 6 : intensity > 0.45 ? 4 : 3,
+            spanY: intensity > 0.78 ? 3 : 2,
             textBoost: "0px"
         };
     }
 
     if (window.innerWidth <= 640) {
         return {
-            spanX: intensity > 0.75 ? 8 : 4,
+            spanX: intensity > 0.78 ? 6 : intensity > 0.45 ? 4 : 3,
             spanY: intensity > 0.75 ? 3 : 2,
             textBoost: `${(intensity * 2).toFixed(1)}px`
         };
