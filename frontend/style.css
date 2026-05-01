@@ -1363,6 +1363,7 @@ h1 {
         align-items: stretch;
         justify-content: stretch;
         padding: 0;
+        overflow: hidden;
     }
 
     .modal-panel {
@@ -1374,16 +1375,54 @@ h1 {
     }
 
     .modal-header {
-        padding: 14px;
+        flex: 0 0 auto;
+        padding: 14px 14px 12px;
     }
 
     .modal-header h2 {
-        font-size: 19px;
+        max-width: calc(100vw - 86px);
+        overflow: hidden;
+        font-size: 20px;
+        line-height: 1.15;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .icon-button {
+        flex: 0 0 auto;
         width: 36px;
         height: 36px;
+    }
+
+    .statement-source,
+    .statement-source-note {
+        display: none;
+    }
+
+    .statement-tabs {
+        flex: 0 0 auto;
+        padding: 10px 14px;
+        gap: 8px;
+        overflow-x: auto;
+    }
+
+    .statement-tab {
+        min-height: 36px;
+        padding: 8px 12px;
+        white-space: nowrap;
+    }
+
+    .stock-snapshot {
+        flex: 0 0 auto;
+        gap: 8px;
+        padding-top: 10px;
+    }
+
+    .news-panel,
+    .financial-panel.active,
+    .tab-panel.active {
+        min-height: 0;
+        overflow: auto;
     }
 
     .snapshot-metrics {

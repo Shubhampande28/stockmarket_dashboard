@@ -957,6 +957,102 @@ def fetch_apify_financials(symbol):
 
     return None
 
+def parse_screener_number(value):
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    text = text.replace(",", "").replace("%", "").replace("+", "").strip()
+    if not text or text in {"-", "--"}:
+        return None
+    if text.startswith("(") and text.endswith(")"):
+        text = f"-{text[1:-1]}"
+    try:
+        return float(text)
+    except ValueError:
+        return text
+
+def parse_screener_table(section):
+    table = section.find("table") if section else None
+    if table is None:
+        return {"periods": [], "rows": []}
+
+    header_cells = table.select("thead th")
+    if not header_cells:
+        first_row = table.find("tr")
+        header_cells = first_row.find_all(["th", "td"]) if first_row else []
+
+    periods = [
+        normalize_period_label(cell.get_text(" ", strip=True))
+        for cell in header_cells[1:]
+    ]
+    periods = [period for period in periods if period]
+
+    rows = []
+    for row_index, row in enumerate(table.select("tbody tr")):
+        cells = row.find_all(["th", "td"])
+        if len(cells) < 2:
+            continue
+
+        label = re.sub(r"\s+", " ", cells[0].get_text(" ", strip=True)).replace("+", "").strip()
+        values = [parse_screener_number(cell.get_text(" ", strip=True)) for cell in cells[1:1 + len(periods)]]
+        if label and any(value is not None for value in values):
+            rows.append({
+                "key": re.sub(r"\W+", "", label) or f"row{row_index}",
+                "label": label,
+                "values": values
+            })
+
+    return {"periods": periods, "rows": rows}
+
+def fetch_screener_financials(symbol):
+    cached = cache_get(FINANCIALS_CACHE_PATH, f"screener:{symbol}", FINANCIALS_CACHE_TTL)
+    if cached:
+        return cached
+
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        return None
+
+    base_symbol = symbol.replace(".NS", "")
+    urls = [
+        f"https://www.screener.in/company/{base_symbol}/consolidated/",
+        f"https://www.screener.in/company/{base_symbol}/"
+    ]
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    }
+
+    for url in urls:
+        res = requests.get(url, headers=headers, timeout=15)
+        if res.status_code == 404:
+            continue
+        res.raise_for_status()
+        soup = BeautifulSoup(res.text, "html.parser")
+        statements = {
+            "profitLoss": parse_screener_table(soup.find(id="profit-loss")),
+            "balanceSheet": parse_screener_table(soup.find(id="balance-sheet")),
+            "cashFlow": parse_screener_table(soup.find(id="cash-flow"))
+        }
+
+        if any(statement["rows"] for statement in statements.values()):
+            name_tag = soup.select_one("h1")
+            payload = {
+                "symbol": symbol,
+                "name": name_tag.get_text(" ", strip=True) if name_tag else STOCK_NAMES.get(base_symbol, symbol),
+                "currency": "INR Cr",
+                "source": {
+                    "provider": "Screener.in",
+                    "label": "Profit & Loss, Balance Sheet and Cash Flow",
+                    "url": url
+                },
+                "sourceNote": "P&L, Balance Sheet and Cash Flow are fetched from Screener.in public company pages and cached for 30 days. Verify figures with official filings before making decisions.",
+                "statements": statements
+            }
+            cache_set(FINANCIALS_CACHE_PATH, f"screener:{symbol}", payload)
+            return payload
+
+    return None
+
 def normalize_news_item(item):
     title = item.findtext("title", default="").strip()
     link = item.findtext("link", default="").strip()
@@ -1158,6 +1254,18 @@ def get_financials(symbol):
                 return jsonify(apify_payload)
         except requests.RequestException:
             apify_payload = None
+
+        try:
+            screener_payload = fetch_screener_financials(clean_symbol)
+            if screener_payload:
+                report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
+                screener_payload["source"]["annualReport"] = report_source
+                session, crumb = get_yahoo_session()
+                quote_summary = get_yahoo_quote_summary(session, clean_symbol)
+                screener_payload["valuation"] = build_valuation_payload(quote_summary, clean_symbol)
+                return jsonify(screener_payload)
+        except requests.RequestException:
+            screener_payload = None
 
         report_source = None
         try:
