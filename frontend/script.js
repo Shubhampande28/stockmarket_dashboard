@@ -34,6 +34,7 @@ const statementLabels = {
 const heatmap = document.getElementById("heatmap");
 const message = document.getElementById("message");
 const marketStatus = document.getElementById("marketStatus");
+const lastFetched = document.getElementById("lastFetched");
 const stockCount = document.getElementById("stockCount");
 const gainerCount = document.getElementById("gainerCount");
 const loserCount = document.getElementById("loserCount");
@@ -75,6 +76,7 @@ async function loadHeatmap() {
         updateSummary();
         renderGrid();
         setStatus("ready", "Live data loaded");
+        setLastFetched();
     } catch (error) {
         fullData = {};
         renderGrid();
@@ -104,6 +106,21 @@ function setLoading(isLoading) {
 function setStatus(state, label) {
     marketStatus.className = `market-status ${state}`;
     marketStatus.querySelector("span:last-child").textContent = label;
+}
+
+function setLastFetched(date = new Date()) {
+    if (!lastFetched) {
+        return;
+    }
+
+    lastFetched.textContent = date.toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    });
 }
 
 function showMessage(text, type = "") {

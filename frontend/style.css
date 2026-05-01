@@ -113,6 +113,41 @@ h1 {
     box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
 }
 
+.last-updated-card,
+.dashboard-disclaimer {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.last-updated-card {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+}
+
+.last-updated-card span {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.last-updated-card strong {
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.25;
+}
+
+.dashboard-disclaimer {
+    margin-top: 12px;
+    padding: 10px 12px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.35;
+}
+
 .tabs {
     display: grid;
     grid-template-columns: 1fr;
