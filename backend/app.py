@@ -28,7 +28,7 @@ FINANCIALS_CACHE_PATH = BASE_DIR / "financials_cache.json"
 NEWS_CACHE_TTL = 60 * 60 * 24 * 30
 AI_CACHE_TTL = 60 * 60 * 24 * 365
 FINANCIALS_CACHE_TTL = 60 * 60 * 24 * 30
-FINANCIALS_CACHE_VERSION = "nse-inr-v2"
+FINANCIALS_CACHE_VERSION = "nse-inr-v3"
 NEWS_LIMIT = 8
 AUTH_STATE_PATH = BASE_DIR / "auth_state.json"
 UPSTOX_AUTH_URL = "https://api.upstox.com/v2/login/authorization/dialog"
@@ -786,12 +786,23 @@ def safe_nse_valuation_payload(symbol):
     try:
         return build_nse_valuation_payload(get_nse_quote_summary(symbol), symbol)
     except requests.RequestException:
-        session = requests.Session()
-        session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                          "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        })
-        return safe_valuation_payload(session, symbol)
+        base_symbol = to_nse_base_symbol(symbol)
+        return {
+            "marketCap": None,
+            "peTrailing": None,
+            "peForward": None,
+            "epsTrailing": None,
+            "bookValue": None,
+            "priceToBook": None,
+            "dividendYield": None,
+            "fiftyTwoWeekLow": None,
+            "fiftyTwoWeekHigh": None,
+            "source": {
+                "provider": "NSE quote equity",
+                "label": "NSE market and valuation statistics",
+                "url": f"https://www.nseindia.com/get-quotes/equity?symbol={base_symbol}"
+            }
+        }
 
 def get_nse_annual_report_source(symbol):
     session = requests.Session()
@@ -1350,33 +1361,12 @@ def get_financials(symbol):
         except requests.RequestException:
             apify_payload = None
 
-        report_source = None
-        try:
-            report_source = get_nse_annual_report_source(clean_symbol.replace(".NS", ""))
-        except requests.RequestException:
-            report_source = None
-
-        session, crumb = get_yahoo_session()
-        timeseries_result = get_yahoo_timeseries(session, crumb, clean_symbol)
-        statements = normalize_timeseries_rows(timeseries_result)
-
-        if not any(statement["rows"] for statement in statements.values()):
-            return jsonify({"error": "Financial statements are not available for this stock."}), 404
-
         return jsonify({
-            "symbol": clean_symbol,
-            "name": STOCK_NAMES.get(clean_symbol.replace(".NS", ""), clean_symbol),
-            "currency": "INR Cr",
-            "source": {
-                "provider": "Yahoo Finance NSE fallback",
-                "label": f"Annual financial statements for {clean_symbol}",
-                "url": f"https://finance.yahoo.com/quote/{clean_symbol}",
-                "annualReport": report_source
-            },
-            "sourceNote": "Fallback figures are fetched only for NSE-listed Yahoo symbols ending in .NS and displayed in INR. Prefer Screener/NSE filing figures where available.",
-            "valuation": safe_nse_valuation_payload(clean_symbol),
-            "statements": statements
-        })
+            "error": (
+                "INR financial statements are not available from Indian sources for this stock right now. "
+                "Yahoo/ADR dollar financials are intentionally blocked to avoid wrong currency values."
+            )
+        }), 404
     except requests.RequestException:
         return jsonify({"error": "Unable to load financial statements right now."}), 502
 
