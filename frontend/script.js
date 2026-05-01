@@ -317,6 +317,7 @@ function renderGrid() {
 
     heatmap.innerHTML = "";
     heatmap.classList.toggle("phone-heatmap", isPhoneLayout);
+    heatmap.classList.toggle("desktop-heatmap", !isPhoneLayout);
     viewTitle.textContent = viewLabels[currentView];
     viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown`;
 
@@ -328,6 +329,11 @@ function renderGrid() {
     }
 
     hideMessage();
+
+    if (isPhoneLayout) {
+        renderPhoneGrid(stocks, intensityMap);
+        return;
+    }
 
     stocks.forEach((stock, index) => {
         const intensity = intensityMap.get(getStockKey(stock, index)) || 0.25;
@@ -401,6 +407,35 @@ function renderGrid() {
                     <span class="label">Low</span>
                     <strong>${formatCompactPrice(stock.low)}</strong>
                 </div>
+            </div>
+        `;
+
+        heatmap.appendChild(tile);
+    });
+}
+
+function renderPhoneGrid(stocks, intensityMap) {
+    stocks.forEach((stock, index) => {
+        const intensity = intensityMap.get(getStockKey(stock, index)) || 0.25;
+        const tile = document.createElement("article");
+        const featured = intensity > 0.76;
+
+        tile.className = `mobile-tile ${featured ? "featured" : ""} ${getMovementClass(stock.change)}`;
+        tile.tabIndex = 0;
+        tile.role = "button";
+        tile.dataset.symbol = stock.symbol;
+        tile.setAttribute("aria-label", `Open financial statements for ${stock.name || stock.symbol}`);
+        tile.style.background = getColor(stock.change, intensity);
+        tile.title = `${stock.symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
+
+        tile.innerHTML = `
+            <div class="mobile-tile-head">
+                <strong>${escapeHtml(stock.symbol.replace(".NS", ""))}</strong>
+                <span>${formatChange(stock.change)}</span>
+            </div>
+            <div class="mobile-tile-body">
+                <span>${escapeHtml(stock.name || stock.symbol.replace(".NS", ""))}</span>
+                <strong>${formatPrice(stock.price)}</strong>
             </div>
         `;
 
@@ -827,7 +862,7 @@ searchInput.addEventListener("input", event => {
 
 refreshButton.addEventListener("click", loadHeatmap);
 heatmap.addEventListener("click", event => {
-    const tile = event.target.closest(".tile");
+    const tile = event.target.closest(".tile, .mobile-tile");
     if (!tile) {
         return;
     }
@@ -843,7 +878,7 @@ heatmap.addEventListener("keydown", event => {
         return;
     }
 
-    const tile = event.target.closest(".tile");
+    const tile = event.target.closest(".tile, .mobile-tile");
     if (!tile) {
         return;
     }

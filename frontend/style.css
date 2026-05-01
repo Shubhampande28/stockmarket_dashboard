@@ -497,6 +497,10 @@ h1 {
     font-weight: 800;
 }
 
+.mobile-tile {
+    display: none;
+}
+
 .statement-modal[hidden] {
     display: none;
 }
@@ -1108,7 +1112,7 @@ h1 {
     }
 
     #heatmap {
-        display: grid;
+        display: grid !important;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         grid-auto-rows: calc((100vw - 36px) / 3);
         grid-auto-flow: dense;
@@ -1121,63 +1125,111 @@ h1 {
         overflow-x: hidden;
     }
 
-    .tile {
-        min-width: 0;
-        width: 100%;
-        min-height: 0;
-        margin: 0;
-        padding: 9px;
-        aspect-ratio: 1 / 1;
-        animation-duration: 5.2s;
+    #heatmap.phone-heatmap .tile {
+        display: none;
     }
 
-    #heatmap.phone-heatmap .tile {
+    .mobile-tile {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
         grid-column: span 1;
         grid-row: span 1;
+        min-width: 0;
+        min-height: 0;
+        width: 100%;
+        height: 100%;
+        padding: 9px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 7px;
+        overflow: hidden;
+        color: #ffffff;
+        cursor: pointer;
+        box-shadow: inset 0 -1px 0 rgba(15, 23, 42, 0.14);
     }
 
-    #heatmap.phone-heatmap .tile.featured {
+    .mobile-tile.featured {
         grid-column: span 2;
         grid-row: span 2;
     }
 
-    .tile-rank,
-    .stock-details {
-        display: none;
+    .mobile-tile::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 52%),
+            linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.2));
+        pointer-events: none;
     }
 
-    .tile-top,
-    .price-wrap {
+    .mobile-tile-head,
+    .mobile-tile-body {
+        position: relative;
+        z-index: 1;
+        min-width: 0;
+    }
+
+    .mobile-tile-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
         gap: 5px;
     }
 
-    .price-wrap {
-        align-items: flex-start;
-        flex-direction: column;
-        margin: 6px 0 0;
+    .mobile-tile-head strong {
+        overflow: hidden;
+        font-size: 11px;
+        line-height: 1.05;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    .symbol {
+    .mobile-tile-head span {
+        flex: 0 0 auto;
+        padding: 3px 5px;
+        border-radius: 5px;
+        background: rgba(15, 23, 42, 0.28);
+        font-size: 10px;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .mobile-tile-body {
+        display: grid;
+        gap: 4px;
+    }
+
+    .mobile-tile-body span {
+        display: -webkit-box;
+        overflow: hidden;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: 10px;
+        font-weight: 750;
+        line-height: 1.15;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .mobile-tile-body strong {
+        overflow: hidden;
+        font-size: 15px;
+        font-weight: 950;
+        line-height: 1;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mobile-tile.featured .mobile-tile-head strong {
+        font-size: 14px;
+    }
+
+    .mobile-tile.featured .mobile-tile-body span {
         font-size: 12px;
     }
 
-    .stock-name {
-        font-size: 10px;
-        -webkit-line-clamp: 1;
-    }
-
-    .price {
-        font-size: 15px;
-    }
-
-    .change {
-        align-items: flex-start;
-        padding: 4px 6px;
-        font-size: 10px;
-    }
-
-    .change small {
-        display: none;
+    .mobile-tile.featured .mobile-tile-body strong {
+        font-size: 24px;
     }
 
     .statement-modal {
@@ -1238,7 +1290,7 @@ h1 {
     }
 
     #heatmap {
-        display: grid;
+        display: grid !important;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         grid-auto-rows: calc((100vw - 32px) / 3);
         grid-auto-flow: dense;
@@ -1246,8 +1298,7 @@ h1 {
         padding: 8px;
     }
 
-    .tile {
-        min-height: 0;
+    .mobile-tile {
         padding: 8px;
     }
 
@@ -1335,39 +1386,15 @@ h1 {
     }
 
     #heatmap {
-        display: grid;
+        display: grid !important;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         grid-auto-rows: calc((100vw - 32px) / 3);
         grid-auto-flow: dense;
         min-height: 0;
     }
 
-    .tile {
-        min-height: 0;
-        margin: 0;
-        padding: 8px;
-    }
-
-    .tile-top {
-        display: block;
-    }
-
-    .price-wrap {
-        align-items: flex-start;
-        justify-content: space-between;
-    }
-
-    .stock-name {
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-    }
-
-    .price {
-        font-size: 14px;
-    }
-
-    .change {
-        font-size: 10px;
+    .mobile-tile-body strong {
+        font-size: 13px;
     }
 
     .statement-tabs,
@@ -1384,15 +1411,7 @@ h1 {
         grid-auto-rows: calc((100vw - 28px) / 2);
     }
 
-    .symbol {
-        font-size: 13px;
-    }
-
-    .price {
+    .mobile-tile-body strong {
         font-size: 15px;
-    }
-
-    .change {
-        padding: 4px 6px;
     }
 }
