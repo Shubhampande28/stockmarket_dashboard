@@ -7,79 +7,94 @@
     <link rel="stylesheet" href="./style.css?v=20260502-pro-ui">
 </head>
 <body>
-    <main class="app-shell">
-        <aside class="side-rail" aria-label="Market navigation">
-            <div class="brand-block">
-                <div>
-                    <p class="eyebrow">Live market overview</p>
-                    <h1>Stock Heatmap</h1>
-                    <p class="brand-subtitle">Research NSE movers, sectors, news and financials in one focused workspace.</p>
+    <header class="site-header" aria-label="Primary navigation">
+        <div class="header-inner">
+            <a class="brand-logo" href="#" aria-label="Stock Heatmap home">
+                <span class="brand-mark">SH</span>
+                <span>Stock Heatmap</span>
+            </a>
+
+            <nav class="main-nav" aria-label="Main menu">
+                <a class="active" href="#">Home</a>
+                <a href="#">Heatmap</a>
+                <a href="#">Screeners</a>
+                <a href="#">Insights</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="login-button" type="button">Login</button>
+                <button class="open-account-button" type="button">Open Account</button>
+            </div>
+        </div>
+    </header>
+
+    <section class="filter-bar-wrap" aria-label="Market filters">
+        <div class="filter-bar">
+            <div class="filter-scroll tabs" role="tablist" aria-label="Market views">
+                <button class="tab-button active" type="button" data-view="movers">Top Movers</button>
+                <button class="tab-button" type="button" data-view="all">All Stocks</button>
+                <button class="tab-button" type="button" data-view="gainers">Gainers</button>
+                <button class="tab-button" type="button" data-view="losers">Losers</button>
+
+                <div class="sector-menu">
+                    <button class="sector-trigger" type="button" aria-haspopup="true" aria-expanded="false">Sectors</button>
+                    <div class="sector-dropdown" role="menu" aria-label="Sector filters">
+                        <button class="tab-button" type="button" data-view="it" role="menuitem">IT</button>
+                        <button class="tab-button" type="button" data-view="bank" role="menuitem">Banking</button>
+                        <button class="tab-button" type="button" data-view="finance" role="menuitem">Finance</button>
+                        <button class="tab-button" type="button" data-view="auto" role="menuitem">Auto</button>
+                        <button class="tab-button" type="button" data-view="pharma" role="menuitem">Pharma</button>
+                        <button class="tab-button" type="button" data-view="fmcg" role="menuitem">FMCG</button>
+                        <button class="tab-button" type="button" data-view="metal" role="menuitem">Metal</button>
+                        <button class="tab-button" type="button" data-view="energy" role="menuitem">Energy</button>
+                        <button class="tab-button" type="button" data-view="cement" role="menuitem">Cement</button>
+                        <button class="tab-button" type="button" data-view="consumer" role="menuitem">Consumer</button>
+                        <button class="tab-button" type="button" data-view="infra" role="menuitem">Infra</button>
+                    </div>
                 </div>
-            </div>
-
-            <div class="market-status" id="marketStatus">
-                <span class="status-dot"></span>
-                <span>Connecting</span>
-            </div>
-
-            <div class="last-updated-card">
-                <span>Last fetched</span>
-                <strong id="lastFetched">Not fetched yet</strong>
             </div>
 
             <label class="search-wrap" for="stockSearch">
                 <span>Search</span>
                 <input id="stockSearch" type="search" placeholder="INFY, HDFC..." autocomplete="off">
             </label>
+        </div>
+    </section>
 
-            <div class="market-summary" aria-label="Market summary">
-                <div>
-                    <span>Stocks</span>
-                    <strong id="stockCount">--</strong>
-                </div>
-                <div>
-                    <span>Gainers</span>
-                    <strong id="gainerCount">--</strong>
-                </div>
-                <div>
-                    <span>Losers</span>
-                    <strong id="loserCount">--</strong>
-                </div>
-                <div>
-                    <span>Avg move</span>
-                    <strong id="avgChange">--</strong>
-                </div>
-            </div>
-
-            <div class="tabs" role="tablist" aria-label="Market views">
-                <button class="tab-button active" type="button" data-view="movers">Top Movers</button>
-                <button class="tab-button" type="button" data-view="all">All Stocks</button>
-                <button class="tab-button" type="button" data-view="gainers">Gainers</button>
-                <button class="tab-button" type="button" data-view="losers">Losers</button>
-                <button class="tab-button" type="button" data-view="it">IT</button>
-                <button class="tab-button" type="button" data-view="bank">Banking</button>
-                <button class="tab-button" type="button" data-view="finance">Finance</button>
-                <button class="tab-button" type="button" data-view="auto">Auto</button>
-                <button class="tab-button" type="button" data-view="pharma">Pharma</button>
-                <button class="tab-button" type="button" data-view="fmcg">FMCG</button>
-                <button class="tab-button" type="button" data-view="metal">Metal</button>
-                <button class="tab-button" type="button" data-view="energy">Energy</button>
-                <button class="tab-button" type="button" data-view="cement">Cement</button>
-                <button class="tab-button" type="button" data-view="consumer">Consumer</button>
-                <button class="tab-button" type="button" data-view="infra">Infra</button>
-                <button class="tab-button" type="button" data-view="others">Others</button>
-            </div>
-
-            <p class="dashboard-disclaimer">For information only. Market data, news summaries, and financial figures may be delayed or inaccurate. This is not investment advice.</p>
-        </aside>
-
+    <main class="app-shell">
         <section class="heatmap-panel">
             <header class="panel-heading">
                 <div>
                     <h2 id="viewTitle">Top 10 gainers and losers</h2>
-                    <p id="viewMeta">Waiting for market data</p>
+                    <p><span id="viewMeta">Waiting for market data</span> · Clean market view for fast scanning.</p>
                 </div>
                 <div class="panel-actions">
+                    <div class="market-status" id="marketStatus">
+                        <span class="status-dot"></span>
+                        <span>Connecting</span>
+                    </div>
+                    <div class="market-summary" aria-label="Market summary">
+                        <div>
+                            <span>Stocks</span>
+                            <strong id="stockCount">--</strong>
+                        </div>
+                        <div>
+                            <span>Gainers</span>
+                            <strong id="gainerCount">--</strong>
+                        </div>
+                        <div>
+                            <span>Losers</span>
+                            <strong id="loserCount">--</strong>
+                        </div>
+                        <div>
+                            <span>Avg move</span>
+                            <strong id="avgChange">--</strong>
+                        </div>
+                    </div>
+                    <div class="last-updated-card">
+                        <span>Last fetched</span>
+                        <strong id="lastFetched">Not fetched yet</strong>
+                    </div>
                     <span class="panel-pill">NSE universe</span>
                     <button class="refresh-button" id="refreshButton" type="button">Refresh</button>
                 </div>

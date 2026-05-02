@@ -172,9 +172,21 @@ function updateSummary() {
 
 function loadView(type) {
     currentView = type;
+    const sectorViews = ["it", "bank", "finance", "auto", "pharma", "fmcg", "metal", "energy", "cement", "consumer", "infra"];
+    const sectorTrigger = document.querySelector(".sector-trigger");
+
+    if (heatmap) {
+        heatmap.classList.add("is-switching");
+    }
+
     document.querySelectorAll(".tab-button").forEach(button => {
         button.classList.toggle("active", button.dataset.view === type);
     });
+    if (sectorTrigger) {
+        const isSectorView = sectorViews.includes(type);
+        sectorTrigger.classList.toggle("active", isSectorView);
+        sectorTrigger.textContent = isSectorView ? viewLabels[type] : "Sectors";
+    }
     document.querySelectorAll("[data-drawer-view]").forEach(button => {
         button.classList.toggle("active", button.dataset.drawerView === type);
     });
@@ -182,6 +194,10 @@ function loadView(type) {
         viewSelect.value = type;
     }
     renderGrid();
+
+    if (heatmap) {
+        requestAnimationFrame(() => heatmap.classList.remove("is-switching"));
+    }
 }
 
 function getTileColorBase(change, intensity = 0.3) {
