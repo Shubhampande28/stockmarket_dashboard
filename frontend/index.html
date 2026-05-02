@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Market Heatmap</title>
-    <link rel="stylesheet" href="./style.css?v=20260502-pro-ui">
+    <link rel="stylesheet" href="./style.css?v=20260502-horizontal-refine">
 </head>
 <body>
     <header class="site-header" aria-label="Primary navigation">
@@ -29,10 +29,37 @@
     </header>
 
     <section class="filter-bar-wrap" aria-label="Market filters">
+        <div class="index-strip" aria-label="Market index deltas">
+            <div class="index-card">
+                <span>NIFTY 50</span>
+                <strong>23,997.55</strong>
+                <em>-180.10 (-0.74%)</em>
+            </div>
+            <div class="index-card">
+                <span>BANK NIFTY</span>
+                <strong>54,863.35</strong>
+                <em>-540.25 (-0.98%)</em>
+            </div>
+            <div class="index-card">
+                <span>FIN NIFTY</span>
+                <strong>25,657.35</strong>
+                <em>-256.60 (-0.99%)</em>
+            </div>
+            <div class="index-card">
+                <span>SENSEX</span>
+                <strong>76,913.50</strong>
+                <em>-582.86 (-0.75%)</em>
+            </div>
+            <div class="index-card">
+                <span>MIDCPNIFTY</span>
+                <strong>13,826.00</strong>
+                <em>-106.70 (-0.77%)</em>
+            </div>
+        </div>
+
         <div class="filter-bar">
             <div class="filter-scroll tabs" role="tablist" aria-label="Market views">
                 <button class="tab-button active" type="button" data-view="movers">Top Movers</button>
-                <button class="tab-button" type="button" data-view="all">All Stocks</button>
                 <button class="tab-button" type="button" data-view="gainers">Gainers</button>
                 <button class="tab-button" type="button" data-view="losers">Losers</button>
 
@@ -73,27 +100,16 @@
                         <span class="status-dot"></span>
                         <span>Connecting</span>
                     </div>
-                    <div class="market-summary" aria-label="Market summary">
-                        <div>
-                            <span>Stocks</span>
-                            <strong id="stockCount">--</strong>
-                        </div>
-                        <div>
-                            <span>Gainers</span>
-                            <strong id="gainerCount">--</strong>
-                        </div>
-                        <div>
-                            <span>Losers</span>
-                            <strong id="loserCount">--</strong>
-                        </div>
-                        <div>
-                            <span>Avg move</span>
-                            <strong id="avgChange">--</strong>
-                        </div>
-                    </div>
                     <div class="last-updated-card">
                         <span>Last fetched</span>
                         <strong id="lastFetched">Not fetched yet</strong>
+                    </div>
+                    <div class="refresh-countdown" aria-label="Next refresh countdown">
+                        <span class="countdown-ring" id="refreshRing"></span>
+                        <span>
+                            <small>Next refresh</small>
+                            <strong id="refreshCountdown">--s</strong>
+                        </span>
                     </div>
                     <span class="panel-pill">NSE universe</span>
                     <button class="refresh-button" id="refreshButton" type="button">Refresh</button>
@@ -158,6 +174,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260502-pro-ui"></script>
+    <script src="./script.js?v=20260502-horizontal-refine"></script>
 </body>
 </html>

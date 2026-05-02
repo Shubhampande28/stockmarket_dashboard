@@ -54,6 +54,8 @@ const filterButton = document.getElementById("filterButton");
 const filterDrawer = document.getElementById("filterDrawer");
 const drawerStockSearch = document.getElementById("drawerStockSearch");
 const refreshButton = document.getElementById("refreshButton");
+const refreshCountdown = document.getElementById("refreshCountdown");
+const refreshRing = document.getElementById("refreshRing");
 const statementModal = document.getElementById("statementModal");
 const modalPanel = document.querySelector(".modal-panel");
 const statementTitle = document.getElementById("statementTitle");
@@ -75,6 +77,9 @@ const financialTitle = document.getElementById("financialTitle");
 const financialMeta = document.getElementById("financialMeta");
 const statementMessage = document.getElementById("statementMessage");
 const statementContent = document.getElementById("statementContent");
+const REFRESH_INTERVAL_SECONDS = 60;
+let refreshSecondsRemaining = REFRESH_INTERVAL_SECONDS;
+let refreshTimer;
 
 async function loadHeatmap() {
     setLoading(true);
@@ -97,6 +102,7 @@ async function loadHeatmap() {
         renderGrid();
         setStatus("ready", "Live data loaded");
         setLastFetched();
+        resetRefreshCountdown();
     } catch (error) {
         fullData = {};
         renderGrid();
@@ -143,6 +149,43 @@ function setLastFetched(date = new Date()) {
     });
 }
 
+function renderRefreshCountdown() {
+    if (refreshCountdown) {
+        refreshCountdown.textContent = `${refreshSecondsRemaining}s`;
+    }
+
+    if (refreshRing) {
+        const elapsed = REFRESH_INTERVAL_SECONDS - refreshSecondsRemaining;
+        const progress = Math.min(Math.max(elapsed / REFRESH_INTERVAL_SECONDS, 0), 1);
+        refreshRing.style.setProperty("--refresh-progress", `${Math.round(progress * 360)}deg`);
+    }
+}
+
+function resetRefreshCountdown() {
+    refreshSecondsRemaining = REFRESH_INTERVAL_SECONDS;
+    renderRefreshCountdown();
+}
+
+function startRefreshCountdown() {
+    if (!refreshCountdown) {
+        return;
+    }
+
+    clearInterval(refreshTimer);
+    resetRefreshCountdown();
+    refreshTimer = setInterval(() => {
+        refreshSecondsRemaining -= 1;
+
+        if (refreshSecondsRemaining <= 0) {
+            resetRefreshCountdown();
+            loadHeatmap();
+            return;
+        }
+
+        renderRefreshCountdown();
+    }, 1000);
+}
+
 function showMessage(text, type = "") {
     message.textContent = text;
     message.className = `message visible ${type}`;
@@ -186,6 +229,8 @@ function loadView(type) {
         const isSectorView = sectorViews.includes(type);
         sectorTrigger.classList.toggle("active", isSectorView);
         sectorTrigger.textContent = isSectorView ? viewLabels[type] : "Sectors";
+        sectorTrigger.setAttribute("aria-expanded", "false");
+        sectorTrigger.closest(".sector-menu")?.classList.remove("open");
     }
     document.querySelectorAll("[data-drawer-view]").forEach(button => {
         button.classList.toggle("active", button.dataset.drawerView === type);
@@ -1187,6 +1232,26 @@ document.querySelectorAll(".tab-button").forEach(button => {
     button.addEventListener("click", () => loadView(button.dataset.view));
 });
 
+document.querySelectorAll(".sector-trigger").forEach(button => {
+    button.addEventListener("click", event => {
+        event.stopPropagation();
+        const menu = button.closest(".sector-menu");
+        const isOpen = menu?.classList.toggle("open");
+        button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+});
+
+document.addEventListener("click", event => {
+    document.querySelectorAll(".sector-menu.open").forEach(menu => {
+        if (menu.contains(event.target)) {
+            return;
+        }
+
+        menu.classList.remove("open");
+        menu.querySelector(".sector-trigger")?.setAttribute("aria-expanded", "false");
+    });
+});
+
 if (viewSelect) {
     viewSelect.addEventListener("change", event => {
         loadView(event.target.value);
@@ -1314,5 +1379,6 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("load", () => {
+    startRefreshCountdown();
     loadHeatmap();
 });
