@@ -760,9 +760,11 @@ function renderStockSnapshot(stock) {
 
 function renderStockSnapshotWithFinancials(stock, data) {
     const valuation = data.valuation || {};
-    const range = valuation.fiftyTwoWeekLow && valuation.fiftyTwoWeekHigh
-        ? `${formatCompactPrice(valuation.fiftyTwoWeekLow)} - ${formatCompactPrice(valuation.fiftyTwoWeekHigh)}`
-        : "--";
+    const info = data.info || {};
+    const range = formatSnapshotRange(info, valuation);
+    const marketCap = formatSnapshotMarketCap(info, valuation);
+    const trailingPe = formatSnapshotRatio(info.stockPe, valuation.peTrailing);
+    const forwardPe = formatSnapshotRatio(valuation.peForward);
     const quoteSource = valuation.source;
     const quoteSourceHtml = quoteSource?.url
         ? `<a href="${escapeAttribute(quoteSource.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(quoteSource.provider || "Yahoo Finance quote summary")}</a>`
@@ -786,9 +788,9 @@ function renderStockSnapshotWithFinancials(stock, data) {
             <span>High <strong>${formatCompactPrice(stock.high)}</strong></span>
             <span>Low <strong>${formatCompactPrice(stock.low)}</strong></span>
             <span>Close <strong>${formatCompactPrice(stock.close)}</strong></span>
-            <span>Market cap <strong>${formatMarketCap(valuation.marketCap)}</strong></span>
-            <span>Trailing P/E <strong>${formatRatio(valuation.peTrailing)}</strong></span>
-            <span>Forward P/E <strong>${formatRatio(valuation.peForward)}</strong></span>
+            <span>Market cap <strong>${marketCap}</strong></span>
+            <span>Trailing P/E <strong>${trailingPe}</strong></span>
+            <span>Forward P/E <strong>${forwardPe}</strong></span>
             <span>52W range <strong>${range}</strong></span>
         </div>
         <div class="snapshot-source">
@@ -799,6 +801,79 @@ function renderStockSnapshotWithFinancials(stock, data) {
             ${filingHtml}
         </div>
     `;
+}
+
+function getFirstFilledValue(...values) {
+    return values.find(value => {
+        if (value === null || value === undefined) {
+            return false;
+        }
+
+        const text = String(value).trim();
+        return text && text !== "--";
+    });
+}
+
+function formatInfoDisplayText(display) {
+    if (!display || display.value === "--") {
+        return "--";
+    }
+
+    return [
+        display.prefix,
+        display.value,
+        display.unit
+    ].filter(Boolean).join(" ");
+}
+
+function formatInfoFallback(rawValue, fallbackPrefix = "", fallbackUnit = "") {
+    return escapeHtml(formatInfoDisplayText(parseInfoDisplay(rawValue, fallbackPrefix, fallbackUnit)));
+}
+
+function formatSnapshotMarketCap(info, valuation) {
+    const marketCap = getFirstFilledValue(valuation.marketCap);
+    if (marketCap !== undefined) {
+        return formatMarketCap(marketCap);
+    }
+
+    return formatInfoFallback(info.marketCap, "", "Cr");
+}
+
+function formatSnapshotRatio(...values) {
+    return formatRatio(getFirstFilledValue(...values));
+}
+
+function formatSnapshotRange(info, valuation) {
+    const low = toFiniteNumber(valuation.fiftyTwoWeekLow);
+    const high = toFiniteNumber(valuation.fiftyTwoWeekHigh);
+
+    if (low !== null && high !== null) {
+        return `${formatCompactPrice(low)} - ${formatCompactPrice(high)}`;
+    }
+
+    const infoRange = formatInfoHighLowRange(info.highLow);
+    if (infoRange) {
+        return escapeHtml(infoRange);
+    }
+
+    return "--";
+}
+
+function formatInfoHighLowRange(rawValue) {
+    const values = String(rawValue || "")
+        .replace(/,/g, "")
+        .match(/\d+(?:\.\d+)?/g)
+        ?.map(Number)
+        .filter(Number.isFinite);
+
+    if (!values || values.length < 2) {
+        return "";
+    }
+
+    const [first, second] = values;
+    const low = Math.min(first, second);
+    const high = Math.max(first, second);
+    return `${formatCompactPrice(low)} - ${formatCompactPrice(high)}`;
 }
 
 async function loadFinancialStatements(stock) {

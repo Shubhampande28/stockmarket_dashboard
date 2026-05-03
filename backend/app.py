@@ -28,7 +28,7 @@ FINANCIALS_CACHE_PATH = BASE_DIR / "financials_cache.json"
 NEWS_CACHE_TTL = 60 * 60 * 24 * 30
 AI_CACHE_TTL = 60 * 60 * 24 * 365
 FINANCIALS_CACHE_TTL = 60 * 60 * 24 * 30
-FINANCIALS_CACHE_VERSION = "nse-inr-v5-info"
+FINANCIALS_CACHE_VERSION = "nse-inr-v6-top-ratios"
 NEWS_LIMIT = 8
 AUTH_STATE_PATH = BASE_DIR / "auth_state.json"
 UPSTOX_AUTH_URL = "https://api.upstox.com/v2/login/authorization/dialog"
@@ -1249,7 +1249,11 @@ def parse_screener_top_ratios(soup):
             continue
 
         label = spans[0].get_text(" ", strip=True)
-        value = spans[-1].get_text(" ", strip=True)
+        value = " ".join(
+            span.get_text(" ", strip=True)
+            for span in spans[1:]
+            if span.get_text(" ", strip=True)
+        )
         key = key_map.get(normalize_info_label(label))
         if key and value:
             ratios[key] = re.sub(r"\s+", " ", value).strip()
