@@ -24,23 +24,7 @@ let resizeTimer;
 let activeStatementType = "news";
 let activeFinancials = null;
 let activeStock = null;
-let selectedSectors = new Set();
-let visibleCardCount = 30;
 const API_BASE = "";
-const sectorViews = ["it", "bank", "finance", "auto", "pharma", "fmcg", "metal", "energy", "cement", "consumer", "infra"];
-const sectorLabels = {
-    it: "IT",
-    bank: "Banking",
-    finance: "Finance",
-    auto: "Auto",
-    pharma: "Pharma",
-    fmcg: "FMCG",
-    metal: "Metal",
-    energy: "Energy",
-    cement: "Cement",
-    consumer: "Consumer",
-    infra: "Infra"
-};
 
 const statementLabels = {
     profitLoss: "P&L",
@@ -70,10 +54,6 @@ const filterButton = document.getElementById("filterButton");
 const filterDrawer = document.getElementById("filterDrawer");
 const drawerStockSearch = document.getElementById("drawerStockSearch");
 const refreshButton = document.getElementById("refreshButton");
-const sectorTrigger = document.getElementById("sectorTrigger");
-const filterSidebar = document.getElementById("filterSidebar");
-const collapseFilter = document.getElementById("collapseFilter");
-const resetFilters = document.getElementById("resetFilters");
 const statementModal = document.getElementById("statementModal");
 const modalPanel = document.querySelector(".modal-panel");
 const statementTitle = document.getElementById("statementTitle");
@@ -115,7 +95,7 @@ async function loadHeatmap() {
         fullData = normalizePayload(data);
         updateSummary();
         renderGrid();
-        setStatus("ready", "Live");
+        setStatus("ready", "Live data loaded");
         setLastFetched();
     } catch (error) {
         fullData = {};
@@ -153,9 +133,13 @@ function setLastFetched(date = new Date()) {
         return;
     }
 
-    lastFetched.textContent = date.toLocaleTimeString("en-IN", {
+    lastFetched.textContent = date.toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
         hour: "2-digit",
-        minute: "2-digit"
+        minute: "2-digit",
+        second: "2-digit"
     });
 }
 
@@ -188,7 +172,8 @@ function updateSummary() {
 
 function loadView(type) {
     currentView = type;
-    visibleCardCount = 30;
+    const sectorViews = ["it", "bank", "finance", "auto", "pharma", "fmcg", "metal", "energy", "cement", "consumer", "infra"];
+    const sectorTrigger = document.querySelector(".sector-trigger");
 
     if (heatmap) {
         heatmap.classList.add("is-switching");
@@ -197,6 +182,13 @@ function loadView(type) {
     document.querySelectorAll(".tab-button").forEach(button => {
         button.classList.toggle("active", button.dataset.view === type);
     });
+    if (sectorTrigger) {
+        const isSectorView = sectorViews.includes(type);
+        sectorTrigger.classList.toggle("active", isSectorView);
+        sectorTrigger.textContent = isSectorView ? viewLabels[type] : "Sectors";
+        sectorTrigger.setAttribute("aria-expanded", "false");
+        sectorTrigger.closest(".sector-menu")?.classList.remove("open");
+    }
     document.querySelectorAll("[data-drawer-view]").forEach(button => {
         button.classList.toggle("active", button.dataset.drawerView === type);
     });
@@ -318,19 +310,8 @@ function shuffleArray(array) {
 }
 
 function getFilteredStocks() {
-    const sourceStocks = ["movers", "gainers", "losers"].includes(currentView)
-        ? (fullData.all || fullData[currentView] || [])
-        : (fullData[currentView] || []);
-    const stocks = [...sourceStocks];
+    const stocks = [...(fullData[currentView] || [])];
     let sortedStocks = sortStocksForView(stocks);
-
-    if (selectedSectors.size) {
-        const sectorSymbols = new Set();
-        selectedSectors.forEach(sector => {
-            (fullData[sector] || []).forEach(stock => sectorSymbols.add(stock.symbol));
-        });
-        sortedStocks = sortedStocks.filter(stock => sectorSymbols.has(stock.symbol));
-    }
 
     if (searchTerm) {
         sortedStocks = sortedStocks.filter(stock => {
@@ -341,7 +322,7 @@ function getFilteredStocks() {
     }
 
     // 👇 Yahan shuffle kar do (display ke just pehle)
-    return sortedStocks.slice(0, visibleCardCount);
+    return shuffleArray(sortedStocks.slice(0, 100));
 }
 
 function sortStocksForView(stocks) {
@@ -374,11 +355,15 @@ function getRankedLosers(stocks) {
 
 function renderGrid() {
     const stocks = getFilteredStocks();
-    const totalStocks = getFilteredStockCount();
+    const intensityMap = getRankIntensityMap(stocks);
+    const layout = getGridLayout();
+    const isPhoneLayout = isPhoneViewport();
 
     heatmap.innerHTML = "";
+    heatmap.classList.toggle("phone-heatmap", isPhoneLayout);
+    heatmap.classList.toggle("desktop-heatmap", !isPhoneLayout);
     viewTitle.textContent = viewLabels[currentView];
-    viewMeta.textContent = `${totalStocks} ${totalStocks === 1 ? "stock" : "stocks"} found`;
+    viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown`;
 
     if (!stocks.length) {
         if (Object.keys(fullData).length) {
@@ -389,134 +374,82 @@ function renderGrid() {
 
     hideMessage();
 
-    stocks.forEach((stock, index) => {
-        const tile = document.createElement("article");
-        const trend = getMovementClass(stock.change);
-        const insight = getInsightLabel(stock);
-        const sector = getStockSector(stock);
-
-        tile.className = `stock-card ${trend}`;
-        tile.tabIndex = 0;
-        tile.role = "button";
-        tile.dataset.symbol = stock.symbol;
-        tile.setAttribute("aria-label", `Open stock detail for ${stock.name || stock.symbol}`);
-        tile.title = `${stock.symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
-
-        tile.innerHTML = `
-            <div class="stock-card-main">
-                <div class="stock-title">
-                    <strong>${escapeHtml(stock.name || stock.symbol.replace(".NS", ""))}</strong>
-                    <span>#${index + 1} - ${escapeHtml(stock.symbol.replace(".NS", ""))} ${sector ? `- ${escapeHtml(sector)}` : ""}</span>
-                </div>
-                <strong class="card-price">${formatPrice(stock.price)}</strong>
-            </div>
-            <div class="stock-price-row">
-                <span class="change-pill ${stock.change >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</span>
-                <span class="insight-badge">${escapeHtml(insight)}</span>
-            </div>
-            <div class="stock-metrics">
-                <span>PE <strong>${formatMetricValue(stock.pe || stock.peTrailing || stock.stockPe)}</strong></span>
-                <span>ROE <strong>${formatMetricValue(stock.roe, "%")}</strong></span>
-                <span>Vol <strong>${formatMetricValue(stock.volume)}</strong></span>
-                <span>MCap <strong>${formatMetricValue(stock.marketCap)}</strong></span>
-            </div>
-            <div class="sparkline" aria-hidden="true">
-                <span></span><span></span><span></span><span></span><span></span>
-            </div>
-        `;
-
-        heatmap.appendChild(tile);
-    });
-
-    if (stocks.length < totalStocks) {
-        const moreButton = document.createElement("button");
-        moreButton.className = "load-more-button";
-        moreButton.type = "button";
-        moreButton.textContent = "Load more";
-        moreButton.addEventListener("click", () => {
-            visibleCardCount += 30;
-            renderGrid();
-        });
-        heatmap.appendChild(moreButton);
-    }
-}
-
-function getFilteredStockCount() {
-    const currentLimit = visibleCardCount;
-    visibleCardCount = Number.MAX_SAFE_INTEGER;
-    const count = getFilteredStocks().length;
-    visibleCardCount = currentLimit;
-    return count;
-}
-
-function getStockSector(stock) {
-    const sector = sectorViews.find(key =>
-        (fullData[key] || []).some(item => item.symbol === stock.symbol)
-    );
-    return sector ? sectorLabels[sector] : "";
-}
-
-function getInsightLabel(stock) {
-    const change = Number(stock.change || 0);
-    if (change >= 3) {
-        return "Strong Momentum";
-    }
-    if (change >= 1) {
-        return "Bullish";
-    }
-    if (change <= -3) {
-        return "High Risk";
-    }
-    if (change <= -1) {
-        return "Weak Trend";
-    }
-    return "Watchlist";
-}
-
-function formatMetricValue(value, suffix = "") {
-    if (value === null || value === undefined || value === "" || Number.isNaN(Number(value))) {
-        return "--";
+    if (isPhoneLayout) {
+        renderPhoneGrid(stocks, intensityMap);
+        return;
     }
 
-    const number = Number(value);
-    if (Math.abs(number) >= 10000000) {
-        return `${(number / 10000000).toLocaleString("en-IN", { maximumFractionDigits: 1 })}Cr`;
-    }
-    if (Math.abs(number) >= 100000) {
-        return `${(number / 100000).toLocaleString("en-IN", { maximumFractionDigits: 1 })}L`;
-    }
-    return `${number.toLocaleString("en-IN", { maximumFractionDigits: 1 })}${suffix}`;
-}
-
-function renderPhoneGrid(stocks, intensityMap) {
     stocks.forEach((stock, index) => {
         const intensity = intensityMap.get(getStockKey(stock, index)) || 0.25;
         const tile = document.createElement("article");
-        const featured = intensity > 0.76;
+        const movement = getMovementStyle(intensity, index);
+        const mosaic = getMosaicStyle(stock, intensity);
+        const growthSpace = getGrowthSpace(mosaic, movement.bloomScale, layout);
 
-        tile.className = `mobile-tile ${featured ? "featured" : ""} ${getMovementClass(stock.change)}`;
+        tile.className = `tile ${getMovementClass(stock.change)}`;
         tile.tabIndex = 0;
         tile.role = "button";
         tile.dataset.symbol = stock.symbol;
         tile.setAttribute("aria-label", `Open financial statements for ${stock.name || stock.symbol}`);
         tile.style.background = getColor(stock.change, intensity);
+
+        if (isPhoneLayout) {
+            const featured = intensity > 0.72;
+            tile.classList.toggle("featured", featured);
+            tile.style.setProperty("--span-x", featured ? 2 : 1);
+            tile.style.setProperty("--span-y", featured ? 2 : 1);
+            tile.style.setProperty("--text-boost", "0px");
+            tile.style.setProperty("--bloom-scale", "1");
+            tile.style.setProperty("--growth-space", "0px");
+            tile.style.setProperty("--pulse-duration", "5.2s");
+            tile.style.setProperty("--pulse-glow", "0.24");
+            tile.style.setProperty("--pulse-delay", movement.pulseDelay);
+        } else {
+            tile.style.setProperty("--span-x", mosaic.spanX);
+            tile.style.setProperty("--span-y", mosaic.spanY);
+            tile.style.setProperty("--text-boost", mosaic.textBoost);
+            tile.style.setProperty("--bloom-scale", movement.bloomScale);
+            tile.style.setProperty("--growth-space", growthSpace);
+            tile.style.setProperty("--pulse-duration", movement.pulseDuration);
+            tile.style.setProperty("--pulse-glow", movement.pulseGlow);
+            tile.style.setProperty("--pulse-delay", movement.pulseDelay);
+        }
         tile.title = `${stock.symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
         tile.innerHTML = `
-            <div class="mobile-tile-head">
-                <div class="mobile-tile-identity">
-                    <strong>${escapeHtml(stock.name || stock.symbol.replace(".NS", ""))}</strong>
-                    <small>${escapeHtml(stock.symbol.replace(".NS", ""))}</small>
+            <div class="tile-top">
+                <div class="identity">
+                    <div class="symbol">${escapeHtml(stock.symbol.replace(".NS", ""))}</div>
+                    <div class="stock-name">${escapeHtml(stock.name || stock.symbol.replace(".NS", ""))}</div>
                 </div>
-                <span class="mobile-change-badge">
-                    <strong>${formatChange(stock.change)}</strong>
-                    <small>${formatNetChange(stock.netChange)}</small>
-                </span>
+                <div class="tile-rank">#${index + 1}</div>
             </div>
-            <div class="mobile-tile-body">
-                <div class="mobile-tile-price">
-                    <span>LTP</span>
-                    <strong>${formatPrice(stock.price)}</strong>
+            <div class="price-wrap">
+                <div>
+                    <span class="label">Last traded</span>
+                    <div class="price">${formatPrice(stock.price)}</div>
+                </div>
+                <div class="change ${stock.change >= 0 ? "gain" : "loss"}">
+                    <span>${formatChange(stock.change)}</span>
+                    <small>${formatNetChange(stock.netChange)}</small>
+                </div>
+            </div>
+            <div class="stock-details">
+                <div class="metric">
+                    <span class="label">Open</span>
+                    <strong>${formatCompactPrice(stock.open)}</strong>
+                </div>
+                <div class="metric">
+                    <span class="label">Close</span>
+                    <strong>${formatCompactPrice(stock.close)}</strong>
+                </div>
+                <div class="metric">
+                    <span class="label">High</span>
+                    <strong>${formatCompactPrice(stock.high)}</strong>
+                </div>
+                <div class="metric">
+                    <span class="label">Low</span>
+                    <strong>${formatCompactPrice(stock.low)}</strong>
                 </div>
             </div>
         `;
@@ -1265,54 +1198,6 @@ document.querySelectorAll(".sector-trigger").forEach(button => {
     });
 });
 
-function updateSectorTrigger() {
-    const label = selectedSectors.size ? `Sectors (${selectedSectors.size})` : "Sectors";
-    document.querySelectorAll(".sector-trigger").forEach(button => {
-        button.textContent = label;
-        button.classList.toggle("active", selectedSectors.size > 0);
-    });
-}
-
-function syncSectorInputs() {
-    document.querySelectorAll("[data-sector-filter]").forEach(input => {
-        input.checked = selectedSectors.has(input.value);
-    });
-    updateSectorTrigger();
-}
-
-function renderSectorFilterCopies() {
-    const markup = sectorViews.map(key => `
-        <label><input type="checkbox" value="${escapeAttribute(key)}" data-sector-filter> ${escapeHtml(sectorLabels[key])}</label>
-    `).join("");
-
-    document.querySelectorAll(".sidebar-sector-list, .sheet-sector-list").forEach(container => {
-        container.innerHTML = markup;
-    });
-
-    document.querySelectorAll(".sector-dropdown input[type='checkbox']").forEach(input => {
-        input.dataset.sectorFilter = "";
-    });
-
-    syncSectorInputs();
-}
-
-document.addEventListener("change", event => {
-    const input = event.target.closest("[data-sector-filter]");
-    if (!input) {
-        return;
-    }
-
-    if (input.checked) {
-        selectedSectors.add(input.value);
-    } else {
-        selectedSectors.delete(input.value);
-    }
-
-    visibleCardCount = 30;
-    syncSectorInputs();
-    renderGrid();
-});
-
 document.addEventListener("click", event => {
     document.querySelectorAll(".sector-menu.open").forEach(menu => {
         if (menu.contains(event.target)) {
@@ -1348,14 +1233,6 @@ if (drawerStockSearch) {
     });
 }
 
-if (collapseFilter) {
-    collapseFilter.addEventListener("click", () => {
-        filterSidebar?.classList.toggle("collapsed");
-        document.body.classList.toggle("filter-sidebar-collapsed", filterSidebar?.classList.contains("collapsed"));
-        collapseFilter.textContent = filterSidebar?.classList.contains("collapsed") ? "Expand" : "Collapse";
-    });
-}
-
 function openFilterDrawer() {
     if (!filterDrawer) {
         return;
@@ -1387,18 +1264,6 @@ document.querySelectorAll("[data-close-filters]").forEach(element => {
     element.addEventListener("click", closeFilterDrawer);
 });
 
-if (resetFilters) {
-    resetFilters.addEventListener("click", () => {
-        selectedSectors = new Set();
-        visibleCardCount = 30;
-        document.querySelectorAll(".filter-sheet input[type='checkbox'], .filter-sidebar input[type='checkbox']").forEach(input => {
-            input.checked = false;
-        });
-        syncSectorInputs();
-        renderGrid();
-    });
-}
-
 document.querySelectorAll("[data-drawer-view]").forEach(button => {
     button.addEventListener("click", () => {
         loadView(button.dataset.drawerView);
@@ -1408,7 +1273,7 @@ document.querySelectorAll("[data-drawer-view]").forEach(button => {
 
 refreshButton.addEventListener("click", loadHeatmap);
 heatmap.addEventListener("click", event => {
-    const tile = event.target.closest(".stock-card, .tile, .mobile-tile");
+    const tile = event.target.closest(".tile, .mobile-tile");
     if (!tile) {
         return;
     }
@@ -1424,7 +1289,7 @@ heatmap.addEventListener("keydown", event => {
         return;
     }
 
-    const tile = event.target.closest(".stock-card, .tile, .mobile-tile");
+    const tile = event.target.closest(".tile, .mobile-tile");
     if (!tile) {
         return;
     }
@@ -1471,18 +1336,5 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("load", () => {
-    renderSectorFilterCopies();
     loadHeatmap();
 });
-
-window.addEventListener("scroll", () => {
-    if (!Object.keys(fullData).length) {
-        return;
-    }
-
-    const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 420;
-    if (nearBottom && getFilteredStocks().length < getFilteredStockCount()) {
-        visibleCardCount += 30;
-        renderGrid();
-    }
-}, { passive: true });

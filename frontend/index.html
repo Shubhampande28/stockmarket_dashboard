@@ -3,144 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Equilytics</title>
-    <link rel="stylesheet" href="./style.css?v=20260503-equilytics-screener">
+    <title>Stock Market Heatmap</title>
+    <link rel="stylesheet" href="./style.css?v=20260502-horizontal-refine">
 </head>
 <body>
     <header class="site-header" aria-label="Primary navigation">
         <div class="header-inner">
-            <a class="brand-logo" href="#" aria-label="Equilytics home">
-                <span class="brand-mark">EQ</span>
-                <span>Equilytics</span>
+            <a class="brand-logo" href="#" aria-label="Stock Heatmap home">
+                <span class="brand-mark">SH</span>
+                <span>Stock Heatmap</span>
             </a>
-            <label class="search-wrap header-search" for="stockSearch">
-                <span>Search</span>
-                <input id="stockSearch" type="search" placeholder="Search stocks" autocomplete="off">
-            </label>
-        </div>
-        <div class="status-bar" aria-label="Market status">
-            <div class="market-status" id="marketStatus">
-                <span class="status-dot"></span>
-                <span>Connecting</span>
-            </div>
-            <span>Updated <strong id="lastFetched">--:--</strong></span>
-            <button class="refresh-button" id="refreshButton" type="button">Refresh</button>
+
+            <nav class="main-nav" aria-label="Main menu">
+                <a class="active" href="#">Home</a>
+                <a href="#">Heatmap</a>
+                <a href="#">Screeners</a>
+                <a href="#">Insights</a>
+            </nav>
+
         </div>
     </header>
 
     <section class="filter-bar-wrap" aria-label="Market filters">
+        <div class="index-strip" aria-label="Market index deltas">
+            <div class="index-card">
+                <span>NIFTY 50</span>
+                <strong>23,997.55</strong>
+                <em>-180.10 (-0.74%)</em>
+            </div>
+            <div class="index-card">
+                <span>BANK NIFTY</span>
+                <strong>54,863.35</strong>
+                <em>-540.25 (-0.98%)</em>
+            </div>
+            <div class="index-card">
+                <span>FIN NIFTY</span>
+                <strong>25,657.35</strong>
+                <em>-256.60 (-0.99%)</em>
+            </div>
+            <div class="index-card">
+                <span>SENSEX</span>
+                <strong>76,913.50</strong>
+                <em>-582.86 (-0.75%)</em>
+            </div>
+            <div class="index-card">
+                <span>MIDCPNIFTY</span>
+                <strong>13,826.00</strong>
+                <em>-106.70 (-0.77%)</em>
+            </div>
+        </div>
+
         <div class="filter-bar">
             <div class="filter-scroll tabs" role="tablist" aria-label="Market views">
                 <button class="tab-button active" type="button" data-view="movers">Top Movers</button>
                 <button class="tab-button" type="button" data-view="gainers">Gainers</button>
                 <button class="tab-button" type="button" data-view="losers">Losers</button>
-            </div>
-            <div class="secondary-filters">
+
                 <div class="sector-menu">
-                    <button class="sector-trigger" id="sectorTrigger" type="button" aria-haspopup="true" aria-expanded="false">Sectors</button>
+                    <button class="sector-trigger" type="button" aria-haspopup="true" aria-expanded="false">Sectors</button>
                     <div class="sector-dropdown" role="menu" aria-label="Sector filters">
-                        <label><input type="checkbox" value="it"> IT</label>
-                        <label><input type="checkbox" value="bank"> Banking</label>
-                        <label><input type="checkbox" value="finance"> Finance</label>
-                        <label><input type="checkbox" value="auto"> Auto</label>
-                        <label><input type="checkbox" value="pharma"> Pharma</label>
-                        <label><input type="checkbox" value="fmcg"> FMCG</label>
-                        <label><input type="checkbox" value="metal"> Metal</label>
-                        <label><input type="checkbox" value="energy"> Energy</label>
-                        <label><input type="checkbox" value="cement"> Cement</label>
-                        <label><input type="checkbox" value="consumer"> Consumer</label>
-                        <label><input type="checkbox" value="infra"> Infra</label>
+                        <button class="tab-button" type="button" data-view="it" role="menuitem">IT</button>
+                        <button class="tab-button" type="button" data-view="bank" role="menuitem">Banking</button>
+                        <button class="tab-button" type="button" data-view="finance" role="menuitem">Finance</button>
+                        <button class="tab-button" type="button" data-view="auto" role="menuitem">Auto</button>
+                        <button class="tab-button" type="button" data-view="pharma" role="menuitem">Pharma</button>
+                        <button class="tab-button" type="button" data-view="fmcg" role="menuitem">FMCG</button>
+                        <button class="tab-button" type="button" data-view="metal" role="menuitem">Metal</button>
+                        <button class="tab-button" type="button" data-view="energy" role="menuitem">Energy</button>
+                        <button class="tab-button" type="button" data-view="cement" role="menuitem">Cement</button>
+                        <button class="tab-button" type="button" data-view="consumer" role="menuitem">Consumer</button>
+                        <button class="tab-button" type="button" data-view="infra" role="menuitem">Infra</button>
                     </div>
                 </div>
-                <button class="filter-toggle" type="button" data-open-filters>Filters</button>
             </div>
+
+            <label class="search-wrap" for="stockSearch">
+                <span>Search</span>
+                <input id="stockSearch" type="search" placeholder="INFY, HDFC..." autocomplete="off">
+            </label>
         </div>
     </section>
 
     <main class="app-shell">
-        <aside class="filter-sidebar" id="filterSidebar" aria-label="Advanced filters">
-            <div class="filter-panel">
-                <div class="filter-panel-head">
-                    <strong>Filters</strong>
-                    <button class="collapse-filter" id="collapseFilter" type="button" aria-label="Collapse filters">Collapse</button>
-                </div>
-                <div class="filter-group desktop-sector-group">
-                    <span>Sector</span>
-                    <div class="sidebar-sector-list"></div>
-                </div>
-                <div class="filter-group">
-                    <span>Market Cap</span>
-                    <label><input type="checkbox"> Large cap</label>
-                    <label><input type="checkbox"> Mid cap</label>
-                    <label><input type="checkbox"> Small cap</label>
-                </div>
-                <div class="filter-group">
-                    <span>PE Ratio</span>
-                    <label><input type="checkbox"> Under 20</label>
-                    <label><input type="checkbox"> 20 to 50</label>
-                    <label><input type="checkbox"> Above 50</label>
-                </div>
-                <div class="filter-group">
-                    <span>Volume</span>
-                    <label><input type="checkbox"> High activity</label>
-                    <label><input type="checkbox"> Rising volume</label>
-                </div>
-                <div class="filter-group">
-                    <span>Returns</span>
-                    <label><input type="checkbox"> Positive today</label>
-                    <label><input type="checkbox"> Strong movers</label>
-                </div>
-            </div>
-        </aside>
-
-        <section class="results-panel heatmap-panel">
-            <header class="results-heading">
+        <section class="heatmap-panel">
+            <header class="panel-heading">
                 <div>
-                    <h1 id="viewTitle">Top Movers</h1>
-                    <p id="viewMeta">Waiting for market data</p>
+                    <h2 id="viewTitle">Top 10 gainers and losers</h2>
+                    <p><span id="viewMeta">Waiting for market data</span> · Clean market view for fast scanning.</p>
                 </div>
-                <button class="filter-toggle desktop-filter-toggle" type="button" data-open-filters>Filters</button>
+                <div class="panel-actions">
+                    <div class="market-status" id="marketStatus">
+                        <span class="status-dot"></span>
+                        <span>Connecting</span>
+                    </div>
+                    <div class="last-updated-card">
+                        <span>Last fetched</span>
+                        <strong id="lastFetched">Not fetched yet</strong>
+                    </div>
+                    <button class="refresh-button" id="refreshButton" type="button">Refresh</button>
+                </div>
             </header>
 
             <div id="message" class="message loading">Loading market data...</div>
-            <div id="heatmap" class="stock-results" aria-live="polite"></div>
+            <div id="heatmap" aria-live="polite"></div>
         </section>
     </main>
-
-    <div class="filter-sheet" id="filterDrawer" hidden>
-        <div class="filter-sheet-backdrop" data-close-filters></div>
-        <section class="filter-sheet-panel" role="dialog" aria-modal="true" aria-label="Filters">
-            <header>
-                <strong>Filters</strong>
-                <button class="icon-button" type="button" aria-label="Close filters" data-close-filters>&times;</button>
-            </header>
-            <div class="filter-group">
-                <span>Sector</span>
-                <div class="sheet-sector-list"></div>
-            </div>
-            <div class="filter-group">
-                <span>Market Cap</span>
-                <label><input type="checkbox"> Large cap</label>
-                <label><input type="checkbox"> Mid cap</label>
-                <label><input type="checkbox"> Small cap</label>
-            </div>
-            <div class="filter-group">
-                <span>PE Ratio</span>
-                <label><input type="checkbox"> Under 20</label>
-                <label><input type="checkbox"> 20 to 50</label>
-                <label><input type="checkbox"> Above 50</label>
-            </div>
-            <div class="filter-group">
-                <span>Volume</span>
-                <label><input type="checkbox"> High activity</label>
-                <label><input type="checkbox"> Rising volume</label>
-            </div>
-            <div class="filter-sheet-actions">
-                <button class="reset-filter" type="button" id="resetFilters">Reset</button>
-                <button class="apply-filter" type="button" data-close-filters>Apply</button>
-            </div>
-        </section>
-    </div>
 
     <div class="statement-modal" id="statementModal" hidden>
         <div class="modal-backdrop" data-close-statements></div>
@@ -195,6 +162,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260503-equilytics-screener"></script>
+    <script src="./script.js?v=20260502-horizontal-refine"></script>
 </body>
 </html>
