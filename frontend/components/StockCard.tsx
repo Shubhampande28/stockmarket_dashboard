@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 
 export type StockCardProps = {
   name: string;
@@ -52,7 +53,7 @@ function getSparklinePoints(values: number[]) {
     .join(" ");
 }
 
-export function StockCard({
+export default function StockCard({
   name,
   price,
   change,
@@ -63,6 +64,7 @@ export function StockCard({
   trend,
   insight,
 }: StockCardProps) {
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const isPositive = change >= 0;
   const sparklinePoints = useMemo(() => getSparklinePoints(trend), [trend]);
@@ -74,15 +76,22 @@ export function StockCard({
 
   function handleClick() {
     window.sessionStorage.setItem("stockGridScrollY", String(window.scrollY));
-    window.location.assign(getStockPath(name));
+    router.push(getStockPath(name));
   }
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={handleClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleClick();
+        }
+      }}
       className={[
-        "w-full rounded-xl border border-gray-200 bg-white p-3 text-left shadow-sm",
+        "cursor-pointer rounded-xl border border-gray-200 bg-white p-3 shadow-sm",
         "transition-all duration-200 ease-out hover:scale-[1.02] hover:shadow-md active:scale-[0.98]",
         "focus:outline-none focus:ring-2 focus:ring-blue-500/30",
         "border-l-2",
@@ -91,22 +100,20 @@ export function StockCard({
       ].join(" ")}
       aria-label={`Open ${name} stock details`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="min-w-0 truncate text-sm font-medium text-gray-900">
-          {name}
-        </h3>
-        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+      <div className="flex items-center justify-between gap-3 text-sm font-medium">
+        <span className="min-w-0 truncate text-gray-900">{name}</span>
+        <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-slate-600">
           #{rank}
         </span>
       </div>
 
-      <div className="mt-2 flex items-baseline gap-2">
-        <strong className="text-xl font-semibold leading-none text-gray-950">
-          {formatNumber(price)}
-        </strong>
+      <div className="mt-1 flex items-center gap-2">
+        <span className="text-xl font-semibold text-gray-950">
+          ₹{formatNumber(price)}
+        </span>
         <span
           className={[
-            "text-xs font-semibold",
+            "text-sm font-semibold",
             isPositive ? "text-[#16a34a]" : "text-[#dc2626]",
           ].join(" ")}
         >
@@ -133,18 +140,16 @@ export function StockCard({
         />
       </svg>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
-        <span>PE {formatNumber(pe, 1)}</span>
-        <span aria-hidden="true">|</span>
-        <span>ROE {formatNumber(roe, 1)}%</span>
-        <span aria-hidden="true">|</span>
-        <span>Vol {volume}</span>
+      <div className="mt-2 flex justify-between gap-2 text-xs text-gray-500">
+        <span>PE: {formatNumber(pe, 1)}</span>
+        <span>ROE: {formatNumber(roe, 1)}%</span>
+        <span>{volume}</span>
       </div>
 
-      <span className="mt-2 inline-flex rounded-full bg-[#f1f5f9] px-2 py-1 text-[11px] font-medium text-slate-700">
+      <div className="mt-2 inline-block rounded-md bg-[#f1f5f9] px-2 py-1 text-xs text-slate-700">
         {insight}
-      </span>
-    </button>
+      </div>
+    </div>
   );
 }
 
