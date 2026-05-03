@@ -3433,3 +3433,34 @@ body {
         overflow: visible !important;
     }
 }
+
+/* Mobile: let the colored filter/search section scroll away with the page */
+@media (max-width: 640px) {
+    .site-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 50 !important;
+    }
+
+    .filter-bar-wrap {
+        position: relative !important;
+        top: auto !important;
+        z-index: auto !important;
+        border-radius: 0 0 14px 14px;
+    }
+
+    .filter-bar,
+    .filter-scroll.tabs,
+    .index-strip,
+    .search-wrap {
+        position: relative !important;
+        top: auto !important;
+    }
+
+    .sector-dropdown {
+        position: absolute !important;
+        top: calc(100% + 10px) !important;
+        left: 0 !important;
+        width: min(420px, calc(100vw - 24px)) !important;
+    }
+}
