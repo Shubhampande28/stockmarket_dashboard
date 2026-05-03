@@ -827,7 +827,7 @@ function formatInfoDisplayText(display) {
 }
 
 function formatInfoFallback(rawValue, fallbackPrefix = "", fallbackUnit = "") {
-    return escapeHtml(formatInfoDisplayText(parseInfoDisplay(rawValue, fallbackPrefix, fallbackUnit)));
+    return escapeHtml(formatInfoDisplayText(parseInfoDisplay(dedupeRepeatedMetricText(rawValue), fallbackPrefix, fallbackUnit)));
 }
 
 function formatSnapshotMarketCap(info, valuation) {
@@ -840,14 +840,14 @@ function formatSnapshotMarketCap(info, valuation) {
 }
 
 function formatSnapshotRatio(...values) {
-    return formatRatio(getFirstFilledValue(...values));
+    return formatRatio(dedupeRepeatedMetricText(getFirstFilledValue(...values)));
 }
 
 function formatSnapshotRange(info, valuation) {
     const low = toFiniteNumber(valuation.fiftyTwoWeekLow);
     const high = toFiniteNumber(valuation.fiftyTwoWeekHigh);
 
-    if (low !== null && high !== null) {
+    if (low !== null && high !== null && low > 0 && high > 0) {
         return `${formatCompactPrice(low)} - ${formatCompactPrice(high)}`;
     }
 
@@ -859,12 +859,38 @@ function formatSnapshotRange(info, valuation) {
     return "--";
 }
 
+function dedupeRepeatedMetricText(rawValue) {
+    const text = String(rawValue || "").replace(/\s+/g, " ").trim();
+
+    if (!text || text === "--") {
+        return rawValue;
+    }
+
+    const parts = text.split(" ");
+    if (parts.length % 2 === 0) {
+        const mid = parts.length / 2;
+        const first = parts.slice(0, mid).join(" ");
+        const second = parts.slice(mid).join(" ");
+        if (first === second) {
+            return first;
+        }
+    }
+
+    const numbers = text.match(/[\d,]+(?:\.\d+)?/g) || [];
+    const uniqueNumbers = [...new Set(numbers)];
+    if (numbers.length > 1 && uniqueNumbers.length === 1 && text.replace(/[\d,.\s]/g, "") === "") {
+        return uniqueNumbers[0];
+    }
+
+    return rawValue;
+}
+
 function formatInfoHighLowRange(rawValue) {
-    const values = String(rawValue || "")
+    const values = String(dedupeRepeatedMetricText(rawValue) || "")
         .replace(/,/g, "")
         .match(/\d+(?:\.\d+)?/g)
         ?.map(Number)
-        .filter(Number.isFinite);
+        .filter(value => Number.isFinite(value) && value > 0);
 
     if (!values || values.length < 2) {
         return "";
@@ -1142,7 +1168,7 @@ function renderStockInfo(stock, data = activeFinancials) {
 }
 
 function parseInfoDisplay(rawValue, fallbackPrefix = "", fallbackUnit = "") {
-    const text = String(rawValue || "--")
+    const text = String(dedupeRepeatedMetricText(rawValue) || "--")
         .replace(/₹/g, "")
         .replace(/\s+/g, " ")
         .trim();

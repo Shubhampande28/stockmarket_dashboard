@@ -1249,11 +1249,17 @@ def parse_screener_top_ratios(soup):
             continue
 
         label = spans[0].get_text(" ", strip=True)
-        value = " ".join(
+        value_parts = [
             span.get_text(" ", strip=True)
             for span in spans[1:]
             if span.get_text(" ", strip=True)
-        )
+        ]
+        if len(value_parts) % 2 == 0:
+            mid = len(value_parts) // 2
+            if value_parts[:mid] == value_parts[mid:]:
+                value_parts = value_parts[:mid]
+
+        value = " ".join(value_parts)
         key = key_map.get(normalize_info_label(label))
         if key and value:
             ratios[key] = re.sub(r"\s+", " ", value).strip()
