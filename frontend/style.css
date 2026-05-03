@@ -2686,3 +2686,264 @@ body::before {
     }
 
 }
+
+/* Tickertape-inspired dark top band and clean content background */
+:root {
+    --tt-bg: #f7f8fa;
+    --tt-ink: #17212f;
+    --tt-muted: #7d8a99;
+    --tt-dark: #121c27;
+    --tt-dark-soft: #192635;
+    --tt-dark-card: #1d2a3a;
+    --tt-line: #e7ebf0;
+    --tt-blue: #1473e6;
+    --tt-green: #17b26a;
+    --tt-red: #f04455;
+    --tt-shadow: 0 18px 42px rgba(18, 28, 39, 0.08);
+}
+
+body {
+    background:
+        linear-gradient(180deg, var(--tt-dark) 0 156px, var(--tt-bg) 156px 100%) !important;
+    color: var(--tt-ink);
+}
+
+body::before {
+    display: none !important;
+}
+
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--tt-dark) !important;
+    color: #ffffff;
+    backdrop-filter: none;
+}
+
+.header-inner {
+    min-height: 54px !important;
+}
+
+.brand-logo,
+.main-nav a {
+    color: #ffffff !important;
+}
+
+.brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #ffffff !important;
+    color: var(--tt-dark) !important;
+    box-shadow: none !important;
+}
+
+.main-nav a {
+    min-height: 54px !important;
+    color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+    color: #ffffff !important;
+}
+
+.main-nav a::after {
+    background: #ffffff !important;
+}
+
+.filter-bar-wrap {
+    top: 54px !important;
+    overflow: visible;
+    border-bottom: 0 !important;
+    border-radius: 0 0 14px 14px;
+    background: var(--tt-dark) !important;
+    box-shadow: 0 16px 34px rgba(18, 28, 39, 0.14);
+    backdrop-filter: none;
+}
+
+.index-strip {
+    grid-template-columns: repeat(5, minmax(132px, 1fr)) !important;
+    gap: 8px !important;
+    width: min(1024px, calc(100% - 32px)) !important;
+    margin: 6px auto 10px !important;
+}
+
+.index-card {
+    min-height: 58px !important;
+    padding: 11px 13px !important;
+    border: 1px solid rgba(255, 255, 255, 0.04) !important;
+    border-radius: 8px !important;
+    background: var(--tt-dark-card) !important;
+    box-shadow: none !important;
+}
+
+.index-card span {
+    color: rgba(255, 255, 255, 0.48) !important;
+}
+
+.index-card strong {
+    color: #ffffff !important;
+}
+
+.index-card em {
+    color: var(--tt-red) !important;
+}
+
+.filter-bar {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 346px) !important;
+    min-height: 52px !important;
+    padding-bottom: 14px;
+}
+
+.filter-scroll .tab-button,
+.sector-trigger {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    background: var(--tt-dark-soft) !important;
+    color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.filter-scroll .tab-button.active,
+.sector-trigger.active {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    background: #ffffff !important;
+    color: var(--tt-dark) !important;
+    box-shadow: none !important;
+}
+
+.search-wrap {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    background: var(--tt-dark-soft) !important;
+    color: rgba(255, 255, 255, 0.56) !important;
+}
+
+.search-wrap input {
+    color: #ffffff !important;
+}
+
+.search-wrap input::placeholder {
+    color: rgba(255, 255, 255, 0.46) !important;
+}
+
+.sector-dropdown {
+    border: 1px solid var(--tt-line) !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    box-shadow: var(--tt-shadow) !important;
+}
+
+.sector-dropdown .tab-button {
+    border-color: var(--tt-line) !important;
+    background: #ffffff !important;
+    color: var(--tt-ink) !important;
+}
+
+.app-shell {
+    width: min(1024px, calc(100% - 32px)) !important;
+    height: auto !important;
+    min-height: calc(100svh - 210px) !important;
+    margin-top: 32px !important;
+}
+
+.heatmap-panel {
+    overflow: hidden;
+    border: 1px solid var(--tt-line) !important;
+    border-radius: 14px !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow: var(--tt-shadow) !important;
+}
+
+.panel-heading {
+    min-height: 72px !important;
+    border-bottom: 1px solid var(--tt-line) !important;
+    background: #ffffff !important;
+}
+
+.panel-heading h2 {
+    color: var(--tt-ink);
+}
+
+.panel-heading p,
+.last-updated-card span {
+    color: var(--tt-muted) !important;
+}
+
+.market-status,
+.last-updated-card {
+    border-color: var(--tt-line) !important;
+    border-radius: 8px !important;
+    background: #fbfcfd !important;
+    box-shadow: none !important;
+}
+
+.refresh-button {
+    border-color: var(--tt-dark) !important;
+    border-radius: 8px !important;
+    background: var(--tt-dark) !important;
+    color: #ffffff !important;
+}
+
+#heatmap {
+    background: #fbfcfd !important;
+    padding: 10px !important;
+}
+
+.tile,
+#heatmap.phone-heatmap .mobile-tile {
+    border-radius: 8px !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 8px 16px rgba(18, 28, 39, 0.08) !important;
+}
+
+.message {
+    border-color: var(--tt-line) !important;
+    border-radius: 10px !important;
+    background: #fbfcfd !important;
+}
+
+.modal-panel {
+    border-color: var(--tt-line) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 28px 80px rgba(18, 28, 39, 0.22) !important;
+}
+
+@media (max-width: 820px) {
+    body {
+        background:
+            linear-gradient(180deg, var(--tt-dark) 0 190px, var(--tt-bg) 190px 100%) !important;
+    }
+
+    .filter-bar-wrap {
+        top: 102px !important;
+    }
+
+    .index-strip {
+        margin-top: 8px !important;
+        padding-inline: 10px;
+    }
+}
+
+@media (max-width: 640px) {
+    .filter-bar {
+        grid-template-columns: minmax(0, 1fr) !important;
+        padding-inline: 12px !important;
+    }
+
+    .search-wrap {
+        max-width: none !important;
+    }
+
+    .app-shell {
+        width: 100% !important;
+        margin-top: 18px !important;
+    }
+
+    .heatmap-panel {
+        border-radius: 14px 14px 0 0 !important;
+        border-left: 0 !important;
+        border-right: 0 !important;
+    }
+}
