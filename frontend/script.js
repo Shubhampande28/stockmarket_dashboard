@@ -457,6 +457,7 @@ function createStockCard(stock, index) {
     card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
     card.innerHTML = `
+        ${index === 0 ? `<div class="top-signal-label">${escapeHtml(getTopSignalLabel(stock))}</div>` : ""}
         <div class="stock-card-header">
             <span class="stock-card-name">${escapeHtml(stock.name || symbol)}</span>
             <span class="stock-card-rank">#${index + 1}</span>
@@ -500,6 +501,11 @@ function getMovementAccent(change, isPositive) {
 
     const lightness = 50 - intensity * 10;
     return `hsl(0 74% ${lightness}%)`;
+}
+
+function getTopSignalLabel(stock) {
+    const direction = Number(stock.change || 0) >= 0 ? "Top upside signal" : "Top downside signal";
+    return `${direction} · ${formatChange(stock.change)}`;
 }
 
 function hydrateVisibleCardMetrics(stocks) {
@@ -1711,10 +1717,19 @@ window.addEventListener("resize", () => {
         if (Object.keys(fullData).length) {
             renderGrid();
         }
+        updateMobileHeaderState();
     }, 120);
 });
 
+function updateMobileHeaderState() {
+    const shouldCollapse = window.innerWidth <= 640 && window.scrollY > 48;
+    document.body.classList.toggle("mobile-header-collapsed", shouldCollapse);
+}
+
+window.addEventListener("scroll", updateMobileHeaderState, { passive: true });
+
 window.addEventListener("load", () => {
     prepareStockDetailPage();
+    updateMobileHeaderState();
     loadHeatmap();
 });

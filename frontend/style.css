@@ -3916,3 +3916,180 @@ body {
         animation: none !important;
     }
 }
+
+/* Mobile-first scan layout */
+.top-signal-label {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .site-header {
+        transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .header-inner {
+        display: flex !important;
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 8px !important;
+        padding: 8px 12px 7px !important;
+    }
+
+    .brand-logo {
+        min-height: 28px;
+        transition: opacity 160ms ease, max-height 160ms ease, transform 160ms ease;
+    }
+
+    .main-nav {
+        display: flex !important;
+        justify-content: flex-start !important;
+        gap: 16px !important;
+        width: 100%;
+        overflow-x: auto;
+        padding: 0 0 2px !important;
+        scrollbar-width: none;
+    }
+
+    .main-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .main-nav a {
+        flex: 0 0 auto;
+        min-height: 34px !important;
+        padding: 0 2px !important;
+    }
+
+    body.mobile-header-collapsed .brand-logo {
+        max-height: 0;
+        min-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
+    }
+
+    body.mobile-header-collapsed .header-inner {
+        gap: 0 !important;
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+    }
+
+    .filter-bar-wrap {
+        padding: 10px 0 12px !important;
+    }
+
+    .index-strip {
+        display: flex !important;
+        grid-template-columns: none !important;
+        gap: 10px !important;
+        width: 100% !important;
+        margin: 0 0 12px !important;
+        padding: 0 12px 4px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+    }
+
+    .index-strip::-webkit-scrollbar {
+        display: none;
+    }
+
+    .index-card {
+        flex: 0 0 154px;
+        min-height: 58px !important;
+        scroll-snap-align: start;
+    }
+
+    .filter-bar {
+        padding-inline: 12px !important;
+    }
+
+    .filter-scroll.tabs {
+        overflow-x: auto !important;
+        padding-bottom: 2px !important;
+        scrollbar-width: none;
+    }
+
+    .filter-scroll.tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    #heatmap.stock-card-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        grid-auto-rows: auto !important;
+        gap: 12px !important;
+        padding: 12px !important;
+    }
+
+    .stock-card,
+    .stock-card.large,
+    .stock-card.medium,
+    .stock-card.small {
+        grid-column: 1 / -1 !important;
+        grid-row: auto !important;
+        min-height: 0 !important;
+        padding: 15px !important;
+        border-radius: 14px;
+    }
+
+    .stock-card.large:first-child {
+        box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 var(--card-hover-y, 16px) var(--card-hover-blur, 30px) var(--card-shadow, rgba(15, 23, 42, 0.12)) !important;
+    }
+
+    .top-signal-label {
+        display: inline-flex;
+        width: fit-content;
+        max-width: 100%;
+        margin-bottom: 9px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.06);
+        color: #334155;
+        font-size: 11px;
+        font-weight: 850;
+        line-height: 1;
+    }
+
+    .stock-card-header {
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .stock-card-name {
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    .stock-card-price-row {
+        margin-top: 8px;
+        gap: 10px;
+    }
+
+    .stock-card-price-row strong,
+    .stock-card.large .stock-card-price-row strong,
+    .stock-card.medium .stock-card-price-row strong,
+    .stock-card.small .stock-card-price-row strong {
+        font-size: 24px;
+    }
+
+    .stock-card-insight-inline {
+        margin-top: 8px;
+    }
+
+    .stock-card-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 12px;
+        margin-top: 12px;
+        font-size: 12px;
+    }
+
+    .panel-heading {
+        gap: 12px;
+        padding: 14px 12px !important;
+    }
+}
