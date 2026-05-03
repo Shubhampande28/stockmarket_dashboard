@@ -2943,16 +2943,16 @@ body::before {
     min-width: 0;
     min-height: 0;
     padding: 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid rgba(226, 232, 240, 0.9);
     border-left-width: 2px;
     border-radius: 12px;
     background: #ffffff !important;
     color: #111827;
     cursor: pointer;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     opacity: 0;
     transform: translateY(8px) scale(0.985);
-    animation: stockCardIn 200ms ease-out forwards;
+    animation: stockCardIn 220ms ease-out forwards;
     animation-delay: var(--mount-delay, 0ms);
     transition:
         grid-column 220ms ease,
@@ -2979,10 +2979,14 @@ body::before {
     grid-row: span 2;
 }
 
+.stock-card.large {
+    transform: translateY(8px) scale(0.995);
+}
+
 .stock-card.large:first-child {
-    border-color: rgba(20, 115, 230, 0.22);
+    border-color: rgba(20, 115, 230, 0.28);
     border-left-color: #1473e6;
-    box-shadow: 0 14px 34px rgba(20, 115, 230, 0.12);
+    box-shadow: 0 16px 36px rgba(20, 115, 230, 0.13);
 }
 
 .stock-card.positive {
@@ -3085,13 +3089,12 @@ body::before {
 }
 
 .stock-card-insight-block {
-    display: grid;
-    gap: 4px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
     margin-top: 12px;
-    padding: 10px;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    background: #f8fafc;
+    min-width: 0;
 }
 
 .stock-card-insight-block span {
@@ -3106,6 +3109,7 @@ body::before {
 .stock-card-insight-block strong {
     font-size: 12px;
     font-weight: 800;
+    white-space: nowrap;
 }
 
 .stock-card-insight-block strong.gain {
@@ -3117,9 +3121,8 @@ body::before {
 }
 
 .stock-card.large .stock-card-insight-block {
-    gap: 6px;
+    gap: 8px 12px;
     margin-top: 16px;
-    padding: 12px;
 }
 
 .stock-card.large .stock-card-insight-block span {
@@ -3208,10 +3211,6 @@ body::before {
         flex-direction: row;
         gap: 6px;
         font-size: 11px;
-    }
-
-    .stock-card-insight-block {
-        padding: 8px;
     }
 
     .stock-card-insight-block span,

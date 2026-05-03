@@ -47,7 +47,7 @@ export default function StockCard({
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const isPositive = change >= 0;
-  const trendDirection = isPositive ? "Uptrend ↑" : "Downtrend ↓";
+  const trendDirection = isPositive ? "↑ Uptrend" : "↓ Downtrend";
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsMounted(true));
@@ -105,13 +105,13 @@ export default function StockCard({
         </span>
       </div>
 
-      <div className="mt-3 rounded-lg border border-gray-200 bg-slate-50 p-2.5">
-        <span className="block truncate text-xs font-semibold text-slate-800">
-          {insight}
+      <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="truncate text-xs font-semibold text-slate-800">
+          {isPositive ? "🔥" : "⚠"} {insight}
         </span>
         <strong
           className={[
-            "mt-1 block text-xs font-bold",
+            "whitespace-nowrap text-xs font-bold",
             isPositive ? "text-[#16a34a]" : "text-[#dc2626]",
           ].join(" ")}
         >
@@ -134,7 +134,7 @@ export function StockCardGrid({ stocks }: StockCardGridProps) {
         <StockCard
           key={`${stock.rank}-${stock.name}`}
           {...stock}
-          size={stock.size ?? (index < 2 ? "large" : index < 5 ? "medium" : "small")}
+          size={stock.size ?? (index === 0 ? "large" : index < 4 ? "medium" : "small")}
         />
       ))}
     </div>

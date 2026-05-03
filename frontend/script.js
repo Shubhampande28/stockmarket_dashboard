@@ -384,13 +384,13 @@ function createStockCard(stock, index) {
     const symbol = stock.symbol.replace(".NS", "");
     const cardSize = getCardSize(index);
     const insight = getStockInsight(stock);
-    const trendDirection = isPositive ? "Uptrend ↑" : "Downtrend ↓";
+    const trendDirection = isPositive ? "↑ Uptrend" : "↓ Downtrend";
 
     card.className = `stock-card ${isPositive ? "positive" : "negative"} ${cardSize}`;
     card.tabIndex = 0;
     card.role = "button";
     card.dataset.symbol = stock.symbol;
-    card.style.setProperty("--mount-delay", `${Math.min(index, 18) * 18}ms`);
+    card.style.setProperty("--mount-delay", `${Math.min(index, 18) * 38}ms`);
     card.setAttribute("aria-label", `Open ${stock.name || symbol} stock details`);
     card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
@@ -406,7 +406,7 @@ function createStockCard(stock, index) {
             </span>
         </div>
         <div class="stock-card-insight-block">
-            <span>${escapeHtml(insight)}</span>
+            <span>${isPositive ? "🔥" : "⚠"} ${escapeHtml(insight)}</span>
             <strong class="${isPositive ? "gain" : "loss"}">${trendDirection}</strong>
         </div>
         <div class="stock-card-metrics">
@@ -425,11 +425,11 @@ function getCardSize(index) {
         return index === 0 ? "large" : "small";
     }
 
-    if (index < 2) {
+    if (index === 0) {
         return "large";
     }
 
-    if (index < 5) {
+    if (index < 4) {
         return "medium";
     }
 
