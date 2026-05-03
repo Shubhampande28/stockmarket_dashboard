@@ -358,13 +358,9 @@ function getRankedLosers(stocks) {
 
 function renderGrid() {
     const stocks = getFilteredStocks();
-    const intensityMap = getRankIntensityMap(stocks);
-    const layout = getGridLayout();
-    const isPhoneLayout = isPhoneViewport();
 
     heatmap.innerHTML = "";
-    heatmap.classList.toggle("phone-heatmap", isPhoneLayout);
-    heatmap.classList.toggle("desktop-heatmap", !isPhoneLayout);
+    heatmap.className = "stock-card-grid";
     viewTitle.textContent = viewLabels[currentView];
     viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown`;
 
@@ -377,88 +373,96 @@ function renderGrid() {
 
     hideMessage();
 
-    if (isPhoneLayout) {
-        renderPhoneGrid(stocks, intensityMap);
-        return;
-    }
-
     stocks.forEach((stock, index) => {
-        const intensity = intensityMap.get(getStockKey(stock, index)) || 0.25;
-        const tile = document.createElement("article");
-        const movement = getMovementStyle(intensity, index);
-        const mosaic = getMosaicStyle(stock, intensity);
-        const growthSpace = getGrowthSpace(mosaic, movement.bloomScale, layout);
-
-        tile.className = `tile ${getMovementClass(stock.change)}`;
-        tile.tabIndex = 0;
-        tile.role = "button";
-        tile.dataset.symbol = stock.symbol;
-        tile.setAttribute("aria-label", `Open financial statements for ${stock.name || stock.symbol}`);
-        tile.style.background = getColor(stock.change, intensity);
-
-        if (isPhoneLayout) {
-            const featured = intensity > 0.72;
-            tile.classList.toggle("featured", featured);
-            tile.style.setProperty("--span-x", featured ? 2 : 1);
-            tile.style.setProperty("--span-y", featured ? 2 : 1);
-            tile.style.setProperty("--text-boost", "0px");
-            tile.style.setProperty("--bloom-scale", "1");
-            tile.style.setProperty("--growth-space", "0px");
-            tile.style.setProperty("--pulse-duration", "5.2s");
-            tile.style.setProperty("--pulse-glow", "0.24");
-            tile.style.setProperty("--pulse-delay", movement.pulseDelay);
-        } else {
-            tile.style.setProperty("--span-x", mosaic.spanX);
-            tile.style.setProperty("--span-y", mosaic.spanY);
-            tile.style.setProperty("--text-boost", mosaic.textBoost);
-            tile.style.setProperty("--bloom-scale", movement.bloomScale);
-            tile.style.setProperty("--growth-space", growthSpace);
-            tile.style.setProperty("--pulse-duration", movement.pulseDuration);
-            tile.style.setProperty("--pulse-glow", movement.pulseGlow);
-            tile.style.setProperty("--pulse-delay", movement.pulseDelay);
-        }
-        tile.title = `${stock.symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
-
-        tile.innerHTML = `
-            <div class="tile-top">
-                <div class="identity">
-                    <div class="symbol">${escapeHtml(stock.symbol.replace(".NS", ""))}</div>
-                    <div class="stock-name">${escapeHtml(stock.name || stock.symbol.replace(".NS", ""))}</div>
-                </div>
-                <div class="tile-rank">#${index + 1}</div>
-            </div>
-            <div class="price-wrap">
-                <div>
-                    <span class="label">Last traded</span>
-                    <div class="price">${formatPrice(stock.price)}</div>
-                </div>
-                <div class="change ${stock.change >= 0 ? "gain" : "loss"}">
-                    <span>${formatChange(stock.change)}</span>
-                    <small>${formatNetChange(stock.netChange)}</small>
-                </div>
-            </div>
-            <div class="stock-details">
-                <div class="metric">
-                    <span class="label">Open</span>
-                    <strong>${formatCompactPrice(stock.open)}</strong>
-                </div>
-                <div class="metric">
-                    <span class="label">Close</span>
-                    <strong>${formatCompactPrice(stock.close)}</strong>
-                </div>
-                <div class="metric">
-                    <span class="label">High</span>
-                    <strong>${formatCompactPrice(stock.high)}</strong>
-                </div>
-                <div class="metric">
-                    <span class="label">Low</span>
-                    <strong>${formatCompactPrice(stock.low)}</strong>
-                </div>
-            </div>
-        `;
-
-        heatmap.appendChild(tile);
+        heatmap.appendChild(createStockCard(stock, index));
     });
+}
+
+function createStockCard(stock, index) {
+    const card = document.createElement("article");
+    const isPositive = Number(stock.change || 0) >= 0;
+    const symbol = stock.symbol.replace(".NS", "");
+    const trend = [
+        toFiniteNumber(stock.open),
+        toFiniteNumber(stock.low),
+        toFiniteNumber(stock.close),
+        toFiniteNumber(stock.high),
+        toFiniteNumber(stock.price)
+    ].filter(value => value !== null);
+
+    card.className = `stock-card ${isPositive ? "positive" : "negative"}`;
+    card.tabIndex = 0;
+    card.role = "button";
+    card.dataset.symbol = stock.symbol;
+    card.style.setProperty("--mount-delay", `${Math.min(index, 18) * 18}ms`);
+    card.setAttribute("aria-label", `Open ${stock.name || symbol} stock details`);
+    card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
+
+    card.innerHTML = `
+        <div class="stock-card-header">
+            <span class="stock-card-name">${escapeHtml(stock.name || symbol)}</span>
+            <span class="stock-card-rank">#${index + 1}</span>
+        </div>
+        <div class="stock-card-price-row">
+            <strong>₹${formatPrice(stock.price)}</strong>
+            <span class="stock-card-change ${isPositive ? "gain" : "loss"}">
+                ${formatChange(stock.change)}
+            </span>
+        </div>
+        <svg class="stock-card-sparkline" viewBox="0 0 100 32" preserveAspectRatio="none" role="img" aria-label="${escapeAttribute(symbol)} trend sparkline">
+            <polyline
+                points="${getSparklinePoints(trend)}"
+                fill="none"
+                stroke="${isPositive ? "#16a34a" : "#dc2626"}"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                vector-effect="non-scaling-stroke"
+            ></polyline>
+        </svg>
+        <div class="stock-card-metrics">
+            <span>PE: --</span>
+            <span>ROE: --</span>
+            <span>Vol: --</span>
+        </div>
+        <span class="stock-card-insight">${escapeHtml(getStockInsight(stock))}</span>
+    `;
+
+    return card;
+}
+
+function getSparklinePoints(values) {
+    const width = 100;
+    const height = 32;
+    const safeValues = values.length ? values : [0, 0];
+    const min = Math.min(...safeValues);
+    const max = Math.max(...safeValues);
+    const range = max - min || 1;
+    const step = width / Math.max(safeValues.length - 1, 1);
+
+    return safeValues.map((value, index) => {
+        const x = index * step;
+        const y = height - ((value - min) / range) * (height - 4) - 2;
+        return `${x.toFixed(2)},${y.toFixed(2)}`;
+    }).join(" ");
+}
+
+function getStockInsight(stock) {
+    const change = Number(stock.change || 0);
+
+    if (change >= 3) {
+        return "Strong Momentum";
+    }
+    if (change > 0) {
+        return "Positive Trend";
+    }
+    if (change <= -3) {
+        return "High Pressure";
+    }
+    if (change < 0) {
+        return "Weak Trend";
+    }
+    return "Watchlist";
 }
 
 function isPhoneViewport() {
@@ -1400,7 +1404,7 @@ document.querySelectorAll("[data-drawer-view]").forEach(button => {
 
 refreshButton.addEventListener("click", loadHeatmap);
 heatmap.addEventListener("click", event => {
-    const tile = event.target.closest(".tile, .mobile-tile");
+    const tile = event.target.closest(".stock-card, .tile, .mobile-tile");
     if (!tile) {
         return;
     }
@@ -1416,7 +1420,7 @@ heatmap.addEventListener("keydown", event => {
         return;
     }
 
-    const tile = event.target.closest(".tile, .mobile-tile");
+    const tile = event.target.closest(".stock-card, .tile, .mobile-tile");
     if (!tile) {
         return;
     }

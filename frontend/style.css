@@ -2926,6 +2926,178 @@ body::before {
     }
 }
 
+/* React-ready StockCard design ported to current vanilla dashboard */
+#heatmap.stock-card-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-auto-rows: auto !important;
+    grid-auto-flow: row !important;
+    gap: 16px !important;
+    padding: 16px !important;
+    overflow: auto !important;
+    background: #fbfcfd !important;
+}
+
+.stock-card {
+    display: block !important;
+    min-width: 0;
+    min-height: 0;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-left-width: 2px;
+    border-radius: 12px;
+    background: #ffffff !important;
+    color: #111827;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    opacity: 0;
+    transform: translateY(8px);
+    animation: stockCardIn 200ms ease-out forwards;
+    animation-delay: var(--mount-delay, 0ms);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.stock-card.positive {
+    border-left-color: #16a34a;
+}
+
+.stock-card.negative {
+    border-left-color: #dc2626;
+}
+
+.stock-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.stock-card:active {
+    transform: scale(0.98);
+}
+
+.stock-card:focus-visible {
+    outline: 3px solid rgba(20, 115, 230, 0.24);
+    outline-offset: 2px;
+}
+
+.stock-card-header,
+.stock-card-price-row,
+.stock-card-metrics {
+    display: flex;
+    align-items: center;
+}
+
+.stock-card-header {
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.stock-card-name {
+    min-width: 0;
+    overflow: hidden;
+    color: #111827;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stock-card-rank {
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.stock-card-price-row {
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.stock-card-price-row strong {
+    color: #030712;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.15;
+}
+
+.stock-card-change {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.stock-card-change.gain {
+    color: #16a34a;
+}
+
+.stock-card-change.loss {
+    color: #dc2626;
+}
+
+.stock-card-sparkline {
+    display: block;
+    width: 100%;
+    height: 32px;
+    margin-top: 8px;
+}
+
+.stock-card-metrics {
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.stock-card-metrics span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stock-card-insight {
+    display: inline-block;
+    max-width: 100%;
+    margin-top: 8px;
+    padding: 4px 8px;
+    overflow: hidden;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@keyframes stockCardIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 980px) {
+    #heatmap.stock-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    #heatmap.stock-card-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 10px !important;
+        padding: 12px !important;
+    }
+
+    .stock-card {
+        min-height: 126px;
+    }
+}
+
 /* Standalone stock detail page */
 body.stock-detail-page {
     background: #f7f8fa !important;
