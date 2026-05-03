@@ -390,7 +390,14 @@ function createStockCard(stock, index) {
     card.tabIndex = 0;
     card.role = "button";
     card.dataset.symbol = stock.symbol;
+    const intensity = getCardIntensity(stock.change);
     card.style.setProperty("--mount-delay", `${Math.min(index, 18) * 38}ms`);
+    card.style.setProperty("--move-intensity", intensity.toFixed(2));
+    card.style.setProperty("--card-shadow-y", `${(6 + intensity * 14).toFixed(1)}px`);
+    card.style.setProperty("--card-shadow-blur", `${(14 + intensity * 22).toFixed(1)}px`);
+    card.style.setProperty("--card-hover-y", `${(10 + intensity * 18).toFixed(1)}px`);
+    card.style.setProperty("--card-hover-blur", `${(22 + intensity * 26).toFixed(1)}px`);
+    card.style.setProperty("--card-overlay-opacity", (0.18 + intensity * 0.18).toFixed(2));
     card.setAttribute("aria-label", `Open ${stock.name || symbol} stock details`);
     card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
@@ -422,6 +429,11 @@ function createStockCard(stock, index) {
     `;
 
     return card;
+}
+
+function getCardIntensity(change) {
+    const value = Math.abs(Number(change) || 0);
+    return Math.min(Math.max(value / 4, 0.18), 1);
 }
 
 function hydrateVisibleCardMetrics(stocks) {
