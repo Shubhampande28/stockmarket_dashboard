@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Market Heatmap</title>
-    <link rel="stylesheet" href="./style.css?v=20260504-spacing-motion">
+    <link rel="stylesheet" href="./style.css?v=20260504-search-intensity">
 </head>
 <body>
     <header class="site-header" aria-label="Primary navigation">
@@ -77,10 +77,11 @@
                 </div>
             </div>
 
-            <label class="search-wrap" for="stockSearch">
-                <span>Search</span>
-                <input id="stockSearch" type="search" placeholder="INFY, HDFC..." autocomplete="off">
-            </label>
+            <div class="search-wrap" role="search">
+                <label for="stockSearch">Search</label>
+                <input id="stockSearch" type="search" placeholder="INFY, HDFC..." autocomplete="off" aria-controls="searchSuggestions" aria-expanded="false">
+                <div class="search-suggestions" id="searchSuggestions" role="listbox" hidden></div>
+            </div>
         </div>
     </section>
 
@@ -162,6 +163,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260504-spacing-motion"></script>
+    <script src="./script.js?v=20260504-search-intensity"></script>
 </body>
 </html>

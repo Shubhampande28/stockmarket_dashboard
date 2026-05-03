@@ -19,6 +19,8 @@ const viewLabels = {
 
 let currentView = "movers";
 let fullData = {};
+let fullUniverse = [];
+let visibleStocks = [];
 let searchTerm = "";
 let resizeTimer;
 let activeStatementType = "news";
@@ -54,6 +56,7 @@ const avgChange = document.getElementById("avgChange");
 const viewTitle = document.getElementById("viewTitle");
 const viewMeta = document.getElementById("viewMeta");
 const searchInput = document.getElementById("stockSearch");
+const searchSuggestions = document.getElementById("searchSuggestions");
 const viewSelect = document.getElementById("viewSelect");
 const filterButton = document.getElementById("filterButton");
 const filterDrawer = document.getElementById("filterDrawer");
@@ -98,6 +101,7 @@ async function loadHeatmap() {
         }
 
         fullData = normalizePayload(data);
+        fullUniverse = buildFullUniverse(fullData);
         updateSummary();
         renderGrid();
         setStatus("ready", "Live data loaded");
@@ -118,6 +122,27 @@ function normalizePayload(data) {
         payload[key] = Array.isArray(data[key]) ? data[key] : [];
         return payload;
     }, {});
+}
+
+function buildFullUniverse(data) {
+    const bySymbol = new Map();
+    const preferred = [
+        ...(data.all || []),
+        ...Object.keys(viewLabels).flatMap(key => data[key] || [])
+    ];
+
+    preferred.forEach(stock => {
+        if (!stock?.symbol || bySymbol.has(stock.symbol)) {
+            return;
+        }
+
+        bySymbol.set(stock.symbol, stock);
+    });
+
+    return Array.from(bySymbol.values()).sort((a, b) => {
+        const left = (a.name || a.symbol || "").localeCompare(b.name || b.symbol || "");
+        return left || String(a.symbol).localeCompare(String(b.symbol));
+    });
 }
 
 function setLoading(isLoading) {
@@ -316,7 +341,8 @@ function shuffleArray(array) {
 }
 
 function getFilteredStocks() {
-    const stocks = [...(fullData[currentView] || [])];
+    const sourceStocks = searchTerm ? fullUniverse : (fullData[currentView] || []);
+    const stocks = [...sourceStocks];
     let sortedStocks = sortStocksForView(stocks);
 
     if (searchTerm) {
@@ -332,6 +358,23 @@ function getFilteredStocks() {
 }
 
 function sortStocksForView(stocks) {
+    if (searchTerm) {
+        return stocks.sort((a, b) => {
+            const aSymbol = a.symbol.replace(".NS", "").toLowerCase();
+            const bSymbol = b.symbol.replace(".NS", "").toLowerCase();
+            const aName = (a.name || "").toLowerCase();
+            const bName = (b.name || "").toLowerCase();
+            const aStarts = aSymbol.startsWith(searchTerm) || aName.startsWith(searchTerm);
+            const bStarts = bSymbol.startsWith(searchTerm) || bName.startsWith(searchTerm);
+
+            if (aStarts !== bStarts) {
+                return aStarts ? -1 : 1;
+            }
+
+            return Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0));
+        });
+    }
+
     if (currentView === "losers") {
         return stocks.sort((a, b) => Number(a.change || 0) - Number(b.change || 0));
     }
@@ -357,10 +400,11 @@ function getRankedLosers(stocks) {
 
 function renderGrid() {
     const stocks = getFilteredStocks();
+    visibleStocks = stocks;
 
     heatmap.innerHTML = "";
     heatmap.className = "stock-card-grid";
-    viewTitle.textContent = viewLabels[currentView];
+    viewTitle.textContent = searchTerm ? "Search results" : viewLabels[currentView];
     viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown`;
 
     if (!stocks.length) {
@@ -391,13 +435,24 @@ function createStockCard(stock, index) {
     card.role = "button";
     card.dataset.symbol = stock.symbol;
     const intensity = getCardIntensity(stock.change);
+    const tintOpacity = 0.04 + intensity * 0.08;
+    const flowOpacity = 0.16 + intensity * 0.26;
+    const shadowOpacity = 0.07 + intensity * 0.07;
+    const positiveColor = getMovementAccent(stock.change, true);
+    const negativeColor = getMovementAccent(stock.change, false);
+    const movementColor = isPositive ? positiveColor : negativeColor;
     card.style.setProperty("--mount-delay", `${Math.min(index, 18) * 38}ms`);
     card.style.setProperty("--move-intensity", intensity.toFixed(2));
     card.style.setProperty("--card-shadow-y", `${(6 + intensity * 14).toFixed(1)}px`);
     card.style.setProperty("--card-shadow-blur", `${(14 + intensity * 22).toFixed(1)}px`);
     card.style.setProperty("--card-hover-y", `${(10 + intensity * 18).toFixed(1)}px`);
     card.style.setProperty("--card-hover-blur", `${(22 + intensity * 26).toFixed(1)}px`);
-    card.style.setProperty("--card-overlay-opacity", (0.18 + intensity * 0.18).toFixed(2));
+    card.style.setProperty("--card-overlay-opacity", (0.1 + intensity * 0.18).toFixed(2));
+    card.style.setProperty("--card-border", movementColor);
+    card.style.setProperty("--card-tint", isPositive ? `rgba(22, 163, 74, ${tintOpacity.toFixed(3)})` : `rgba(220, 38, 38, ${tintOpacity.toFixed(3)})`);
+    card.style.setProperty("--card-flow", isPositive ? `rgba(34, 197, 94, ${flowOpacity.toFixed(3)})` : `rgba(248, 113, 113, ${flowOpacity.toFixed(3)})`);
+    card.style.setProperty("--card-direction-tint", isPositive ? `rgba(34, 197, 94, ${(tintOpacity * 1.1).toFixed(3)})` : `rgba(248, 113, 113, ${(tintOpacity * 1.1).toFixed(3)})`);
+    card.style.setProperty("--card-shadow", isPositive ? `rgba(22, 163, 74, ${shadowOpacity.toFixed(3)})` : `rgba(220, 38, 38, ${shadowOpacity.toFixed(3)})`);
     card.setAttribute("aria-label", `Open ${stock.name || symbol} stock details`);
     card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
@@ -433,7 +488,18 @@ function createStockCard(stock, index) {
 
 function getCardIntensity(change) {
     const value = Math.abs(Number(change) || 0);
-    return Math.min(Math.max(value / 4, 0.18), 1);
+    return Math.min(value / 10, 1);
+}
+
+function getMovementAccent(change, isPositive) {
+    const intensity = getCardIntensity(change);
+    if (isPositive) {
+        const lightness = 46 - intensity * 12;
+        return `hsl(142 72% ${lightness}%)`;
+    }
+
+    const lightness = 50 - intensity * 10;
+    return `hsl(0 74% ${lightness}%)`;
 }
 
 function hydrateVisibleCardMetrics(stocks) {
@@ -494,6 +560,74 @@ function applyCardMetrics(symbol, metrics) {
             roeNode.textContent = formatCardMetric(metrics.roe, "%");
         }
     });
+}
+
+function getSearchMatches(limit = 8) {
+    if (!searchTerm) {
+        return [];
+    }
+
+    return fullUniverse
+        .filter(stock => {
+            const symbol = stock.symbol.toLowerCase();
+            const name = (stock.name || "").toLowerCase();
+            return symbol.includes(searchTerm) || name.includes(searchTerm);
+        })
+        .sort((a, b) => {
+            const aSymbol = a.symbol.replace(".NS", "").toLowerCase();
+            const bSymbol = b.symbol.replace(".NS", "").toLowerCase();
+            const aName = (a.name || "").toLowerCase();
+            const bName = (b.name || "").toLowerCase();
+            const aStarts = aSymbol.startsWith(searchTerm) || aName.startsWith(searchTerm);
+            const bStarts = bSymbol.startsWith(searchTerm) || bName.startsWith(searchTerm);
+            if (aStarts !== bStarts) {
+                return aStarts ? -1 : 1;
+            }
+            return Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0));
+        })
+        .slice(0, limit);
+}
+
+function renderSearchSuggestions() {
+    if (!searchSuggestions || !searchInput) {
+        return;
+    }
+
+    const matches = getSearchMatches();
+    searchInput.setAttribute("aria-expanded", matches.length ? "true" : "false");
+
+    if (!matches.length) {
+        searchSuggestions.hidden = true;
+        searchSuggestions.innerHTML = "";
+        return;
+    }
+
+    searchSuggestions.hidden = false;
+    searchSuggestions.innerHTML = matches.map(stock => {
+        const symbol = stock.symbol.replace(".NS", "");
+        const isPositive = Number(stock.change || 0) >= 0;
+        return `
+            <button class="search-suggestion" type="button" data-symbol="${escapeAttribute(stock.symbol)}" role="option">
+                <span>
+                    <strong>${escapeHtml(symbol)}</strong>
+                    <small>${escapeHtml(stock.name || symbol)}</small>
+                </span>
+                <span class="suggestion-price">
+                    <strong>₹${formatPrice(stock.price)}</strong>
+                    <small class="${isPositive ? "gain" : "loss"}">${formatChange(stock.change)}</small>
+                </span>
+            </button>
+        `;
+    }).join("");
+}
+
+function closeSearchSuggestions() {
+    if (!searchSuggestions || !searchInput) {
+        return;
+    }
+
+    searchSuggestions.hidden = true;
+    searchInput.setAttribute("aria-expanded", "false");
 }
 
 function getCardSize(index) {
@@ -1152,7 +1286,8 @@ function showStatementMessage(text, type = "") {
 }
 
 function getStockBySymbol(symbol) {
-    return Object.values(fullData)
+    return fullUniverse.find(stock => stock.symbol === symbol)
+        || Object.values(fullData)
         .flat()
         .find(stock => stock.symbol === symbol);
 }
@@ -1440,6 +1575,30 @@ searchInput.addEventListener("input", event => {
         drawerStockSearch.value = event.target.value;
     }
     renderGrid();
+    renderSearchSuggestions();
+});
+
+searchInput.addEventListener("focus", renderSearchSuggestions);
+
+if (searchSuggestions) {
+    searchSuggestions.addEventListener("click", event => {
+        const option = event.target.closest(".search-suggestion");
+        if (!option) {
+            return;
+        }
+
+        const stock = getStockBySymbol(option.dataset.symbol);
+        if (stock) {
+            closeSearchSuggestions();
+            openStockPage(stock);
+        }
+    });
+}
+
+document.addEventListener("click", event => {
+    if (!event.target.closest(".search-wrap")) {
+        closeSearchSuggestions();
+    }
 });
 
 if (drawerStockSearch) {
@@ -1449,6 +1608,7 @@ if (drawerStockSearch) {
             searchInput.value = event.target.value;
         }
         renderGrid();
+        renderSearchSuggestions();
     });
 }
 
