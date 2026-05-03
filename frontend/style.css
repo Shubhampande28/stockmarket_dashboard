@@ -3387,3 +3387,49 @@ body.stock-detail-page .icon-button[data-close-statements] {
         grid-row: span 2;
     }
 }
+
+/* Natural page scrolling for the stock card grid */
+html,
+body {
+    height: auto;
+    overflow-y: auto;
+}
+
+.app-shell,
+.heatmap-panel,
+#heatmap,
+#heatmap.stock-card-grid,
+#heatmap.phone-heatmap {
+    max-height: none !important;
+    overflow: visible !important;
+    overscroll-behavior: auto !important;
+}
+
+#heatmap,
+#heatmap.stock-card-grid {
+    flex: 0 0 auto !important;
+    min-height: auto !important;
+}
+
+@media (max-width: 640px) {
+    * {
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+    }
+
+    html,
+    body {
+        height: auto !important;
+        overflow-y: auto !important;
+    }
+
+    .app-shell,
+    .heatmap-panel,
+    #heatmap,
+    #heatmap.stock-card-grid,
+    #heatmap.phone-heatmap {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+    }
+}
