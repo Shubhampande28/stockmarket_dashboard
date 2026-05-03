@@ -731,6 +731,185 @@ function renderPriceChart(stock) {
     `;
 }
 
+function openChartPage(stock) {
+    if (!stock) {
+        return;
+    }
+
+    const points = [
+        { label: "Open", value: toFiniteNumber(stock.open) },
+        { label: "High", value: toFiniteNumber(stock.high) },
+        { label: "Low", value: toFiniteNumber(stock.low) },
+        { label: "Close", value: toFiniteNumber(stock.close) },
+        { label: "LTP", value: toFiniteNumber(stock.price) }
+    ].filter(point => point.value !== null);
+
+    const page = window.open("", "_blank");
+    if (!page) {
+        return;
+    }
+    page.opener = null;
+
+    const title = `${stock.symbol.replace(".NS", "")} Price Chart`;
+    const isGain = Number(stock.change || 0) >= 0;
+    let chartMarkup = `<div class="empty">Open, high, low, close data is not available.</div>`;
+
+    if (points.length >= 2) {
+        const values = points.map(point => point.value);
+        const minValue = Math.min(...values);
+        const maxValue = Math.max(...values);
+        const padding = Math.max((maxValue - minValue) * 0.16, Math.abs(maxValue) * 0.004, 1);
+        const chartMin = minValue - padding;
+        const chartMax = maxValue + padding;
+        const valueRange = chartMax - chartMin || 1;
+        const polyline = points.map((point, index) => {
+            const x = 42 + index * (416 / Math.max(points.length - 1, 1));
+            const y = 26 + ((chartMax - point.value) / valueRange) * 176;
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(" ");
+        const areaLine = `42,220 ${polyline} 458,220`;
+        const markerHtml = points.map((point, index) => {
+            const x = 42 + index * (416 / Math.max(points.length - 1, 1));
+            const y = 26 + ((chartMax - point.value) / valueRange) * 176;
+            return `
+                <g class="chart-marker">
+                    <line x1="${x.toFixed(1)}" y1="210" x2="${x.toFixed(1)}" y2="218"></line>
+                    <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5"></circle>
+                </g>
+            `;
+        }).join("");
+        const pointCards = points.map(point => `
+            <span>
+                ${escapeHtml(point.label)}
+                <strong>${formatCompactPrice(point.value)}</strong>
+            </span>
+        `).join("");
+
+        chartMarkup = `
+            <div class="chart-visual ${isGain ? "gain" : "loss"}">
+                <svg viewBox="0 0 500 240" role="img" aria-label="Price chart for ${escapeAttribute(stock.name || stock.symbol)}">
+                    <defs>
+                        <linearGradient id="priceAreaGradient" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stop-color="currentColor" stop-opacity="0.24"></stop>
+                            <stop offset="100%" stop-color="currentColor" stop-opacity="0"></stop>
+                        </linearGradient>
+                    </defs>
+                    <g class="chart-grid">
+                        <line x1="42" y1="34" x2="458" y2="34"></line>
+                        <line x1="42" y1="94" x2="458" y2="94"></line>
+                        <line x1="42" y1="154" x2="458" y2="154"></line>
+                        <line x1="42" y1="214" x2="458" y2="214"></line>
+                    </g>
+                    <text x="42" y="22" class="chart-scale">${formatCompactPrice(chartMax)}</text>
+                    <text x="42" y="232" class="chart-scale">${formatCompactPrice(chartMin)}</text>
+                    <polygon class="chart-area" points="${areaLine}"></polygon>
+                    <polyline class="chart-line" points="${polyline}"></polyline>
+                    ${markerHtml}
+                </svg>
+            </div>
+            <div class="chart-points">${pointCards}</div>
+        `;
+    }
+
+    page.document.write(`<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${escapeHtml(title)}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f7f8fa;
+            color: #17212f;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            min-height: 72px;
+            padding: 18px clamp(16px, 4vw, 44px);
+            background: #121c27;
+            color: #ffffff;
+        }
+        h1 { margin: 0; font-size: clamp(20px, 4vw, 30px); line-height: 1.1; }
+        header span { color: rgba(255,255,255,.68); font-size: 13px; font-weight: 800; }
+        main {
+            width: min(980px, calc(100% - 28px));
+            margin: 28px auto;
+            padding: clamp(16px, 3vw, 28px);
+            border: 1px solid #e7ebf0;
+            border-radius: 14px;
+            background: #ffffff;
+            box-shadow: 0 18px 42px rgba(18, 28, 39, 0.08);
+        }
+        .summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .price { font-size: 28px; font-weight: 950; }
+        .change {
+            padding: 6px 9px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 900;
+        }
+        .gain .change { background: #e8f7ef; color: #087443; }
+        .loss .change { background: #fff0f1; color: #c2414b; }
+        .chart-visual { color: ${isGain ? "#16a34a" : "#dc2626"}; }
+        svg { display: block; width: 100%; height: auto; }
+        .chart-grid line { stroke: #e7ebf0; stroke-width: 1; }
+        .chart-area { fill: url(#priceAreaGradient); }
+        .chart-line { fill: none; stroke: currentColor; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+        .chart-marker line { stroke: #98a2b3; stroke-width: 1.4; }
+        .chart-marker circle { fill: #ffffff; stroke: currentColor; stroke-width: 3; }
+        .chart-scale { fill: #667085; font-size: 12px; font-weight: 800; }
+        .chart-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .chart-points span {
+            display: grid;
+            gap: 4px;
+            padding: 12px;
+            border: 1px solid #e7ebf0;
+            border-radius: 10px;
+            color: #667085;
+            font-size: 12px;
+            font-weight: 850;
+        }
+        .chart-points strong { color: #17212f; font-size: 16px; }
+        .empty { padding: 24px; border-radius: 10px; background: #f7f8fa; color: #667085; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>${escapeHtml(stock.name || stock.symbol.replace(".NS", ""))}</h1>
+            <span>${escapeHtml(stock.symbol.replace(".NS", ""))} intraday OHLC snapshot</span>
+        </div>
+    </header>
+    <main class="${isGain ? "gain" : "loss"}">
+        <div class="summary">
+            <strong class="price">${formatPrice(stock.price)}</strong>
+            <span class="change">${formatChange(stock.change)}</span>
+        </div>
+        ${chartMarkup}
+    </main>
+</body>
+</html>`);
+    page.document.close();
+}
+
 function renderStockInfo(stock, data = activeFinancials) {
     if (!stockInfo || !infoMeta) {
         return;
@@ -1307,6 +1486,11 @@ document.querySelectorAll("[data-close-statements]").forEach(element => {
 
 document.querySelectorAll(".statement-tab").forEach(button => {
     button.addEventListener("click", () => {
+        if (button.dataset.statement === "chart") {
+            openChartPage(activeStock);
+            return;
+        }
+
         activeStatementType = button.dataset.statement;
         if (activeFinancials || activeStatementType === "info" || activeStatementType === "chart") {
             renderActiveStatement();
