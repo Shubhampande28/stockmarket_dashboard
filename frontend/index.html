@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Market Heatmap</title>
-    <link rel="stylesheet" href="./style.css?v=20260504-mobile-scan">
+    <link rel="stylesheet" href="./style.css?v=20260504-mobile-hybrid">
 </head>
 <body>
     <header class="site-header" aria-label="Primary navigation">
@@ -19,6 +19,22 @@
                 <a href="#">Heatmap</a>
                 <a href="#">Screeners</a>
                 <a href="#">Insights</a>
+                <div class="sector-menu nav-sector-menu">
+                    <button class="sector-trigger" type="button" aria-haspopup="true" aria-expanded="false">Sectors</button>
+                    <div class="sector-dropdown" role="menu" aria-label="Sector filters">
+                        <button class="tab-button" type="button" data-view="it" role="menuitem">IT</button>
+                        <button class="tab-button" type="button" data-view="bank" role="menuitem">Banking</button>
+                        <button class="tab-button" type="button" data-view="finance" role="menuitem">Finance</button>
+                        <button class="tab-button" type="button" data-view="auto" role="menuitem">Auto</button>
+                        <button class="tab-button" type="button" data-view="pharma" role="menuitem">Pharma</button>
+                        <button class="tab-button" type="button" data-view="fmcg" role="menuitem">FMCG</button>
+                        <button class="tab-button" type="button" data-view="metal" role="menuitem">Metal</button>
+                        <button class="tab-button" type="button" data-view="energy" role="menuitem">Energy</button>
+                        <button class="tab-button" type="button" data-view="cement" role="menuitem">Cement</button>
+                        <button class="tab-button" type="button" data-view="consumer" role="menuitem">Consumer</button>
+                        <button class="tab-button" type="button" data-view="infra" role="menuitem">Infra</button>
+                    </div>
+                </div>
             </nav>
 
         </div>
@@ -59,22 +75,6 @@
                 <button class="tab-button" type="button" data-view="gainers">Gainers</button>
                 <button class="tab-button" type="button" data-view="losers">Losers</button>
 
-                <div class="sector-menu">
-                    <button class="sector-trigger" type="button" aria-haspopup="true" aria-expanded="false">Sectors</button>
-                    <div class="sector-dropdown" role="menu" aria-label="Sector filters">
-                        <button class="tab-button" type="button" data-view="it" role="menuitem">IT</button>
-                        <button class="tab-button" type="button" data-view="bank" role="menuitem">Banking</button>
-                        <button class="tab-button" type="button" data-view="finance" role="menuitem">Finance</button>
-                        <button class="tab-button" type="button" data-view="auto" role="menuitem">Auto</button>
-                        <button class="tab-button" type="button" data-view="pharma" role="menuitem">Pharma</button>
-                        <button class="tab-button" type="button" data-view="fmcg" role="menuitem">FMCG</button>
-                        <button class="tab-button" type="button" data-view="metal" role="menuitem">Metal</button>
-                        <button class="tab-button" type="button" data-view="energy" role="menuitem">Energy</button>
-                        <button class="tab-button" type="button" data-view="cement" role="menuitem">Cement</button>
-                        <button class="tab-button" type="button" data-view="consumer" role="menuitem">Consumer</button>
-                        <button class="tab-button" type="button" data-view="infra" role="menuitem">Infra</button>
-                    </div>
-                </div>
             </div>
 
             <div class="search-wrap" role="search">
@@ -163,6 +163,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260504-mobile-scan"></script>
+    <script src="./script.js?v=20260504-mobile-hybrid"></script>
 </body>
 </html>

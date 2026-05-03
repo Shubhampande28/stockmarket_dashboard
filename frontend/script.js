@@ -449,6 +449,8 @@ function createStockCard(stock, index) {
     card.style.setProperty("--card-hover-blur", `${(22 + intensity * 26).toFixed(1)}px`);
     card.style.setProperty("--card-overlay-opacity", (0.1 + intensity * 0.18).toFixed(2));
     card.style.setProperty("--card-border", movementColor);
+    card.style.setProperty("--change-color", movementColor);
+    card.style.setProperty("--change-opacity", (0.78 + intensity * 0.22).toFixed(2));
     card.style.setProperty("--card-tint", isPositive ? `rgba(22, 163, 74, ${tintOpacity.toFixed(3)})` : `rgba(220, 38, 38, ${tintOpacity.toFixed(3)})`);
     card.style.setProperty("--card-flow", isPositive ? `rgba(34, 197, 94, ${flowOpacity.toFixed(3)})` : `rgba(248, 113, 113, ${flowOpacity.toFixed(3)})`);
     card.style.setProperty("--card-direction-tint", isPositive ? `rgba(34, 197, 94, ${(tintOpacity * 1.1).toFixed(3)})` : `rgba(248, 113, 113, ${(tintOpacity * 1.1).toFixed(3)})`);
@@ -641,6 +643,7 @@ function getCardSize(index) {
 
     if (isMobile) {
         if (index === 0) return "large";
+        if (index <= 3 && getCardIntensity(visibleStocks[index]?.change) >= 0.2) return "medium";
         return "small";
     }
 
@@ -1722,8 +1725,7 @@ window.addEventListener("resize", () => {
 });
 
 function updateMobileHeaderState() {
-    const shouldCollapse = window.innerWidth <= 640 && window.scrollY > 48;
-    document.body.classList.toggle("mobile-header-collapsed", shouldCollapse);
+    document.body.classList.remove("mobile-header-collapsed");
 }
 
 window.addEventListener("scroll", updateMobileHeaderState, { passive: true });
