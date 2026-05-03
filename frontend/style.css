@@ -2929,9 +2929,9 @@ body::before {
 /* React-ready StockCard design ported to current vanilla dashboard */
 #heatmap.stock-card-grid {
     display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    grid-auto-rows: auto !important;
-    grid-auto-flow: row !important;
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+    grid-auto-rows: 86px !important;
+    grid-auto-flow: dense !important;
     gap: 16px !important;
     padding: 16px !important;
     overflow: auto !important;
@@ -2951,10 +2951,38 @@ body::before {
     cursor: pointer;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(8px) scale(0.985);
     animation: stockCardIn 200ms ease-out forwards;
     animation-delay: var(--mount-delay, 0ms);
-    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+    transition:
+        grid-column 220ms ease,
+        grid-row 220ms ease,
+        transform 200ms ease,
+        box-shadow 200ms ease,
+        border-color 200ms ease;
+}
+
+.stock-card.large {
+    grid-column: span 6;
+    grid-row: span 2;
+    padding: 16px;
+}
+
+.stock-card.medium {
+    grid-column: span 4;
+    grid-row: span 2;
+    padding: 14px;
+}
+
+.stock-card.small {
+    grid-column: span 3;
+    grid-row: span 2;
+}
+
+.stock-card.large:first-child {
+    border-color: rgba(20, 115, 230, 0.22);
+    border-left-color: #1473e6;
+    box-shadow: 0 14px 34px rgba(20, 115, 230, 0.12);
 }
 
 .stock-card.positive {
@@ -2993,6 +3021,14 @@ body::before {
     font-weight: 500;
 }
 
+.stock-card.large .stock-card-header {
+    font-size: 16px;
+}
+
+.stock-card.medium .stock-card-header {
+    font-size: 15px;
+}
+
 .stock-card-name {
     min-width: 0;
     overflow: hidden;
@@ -3023,6 +3059,18 @@ body::before {
     line-height: 1.15;
 }
 
+.stock-card.large .stock-card-price-row strong {
+    font-size: 28px;
+}
+
+.stock-card.medium .stock-card-price-row strong {
+    font-size: 23px;
+}
+
+.stock-card.large .stock-card-change {
+    font-size: 16px;
+}
+
 .stock-card-change {
     font-size: 14px;
     font-weight: 700;
@@ -3041,6 +3089,16 @@ body::before {
     width: 100%;
     height: 32px;
     margin-top: 8px;
+}
+
+.stock-card.large .stock-card-sparkline {
+    height: 48px;
+    margin-top: 14px;
+}
+
+.stock-card.medium .stock-card-sparkline {
+    height: 40px;
+    margin-top: 11px;
 }
 
 .stock-card-metrics {
@@ -3076,25 +3134,79 @@ body::before {
 @keyframes stockCardIn {
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
 @media (max-width: 980px) {
     #heatmap.stock-card-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+        grid-auto-rows: 82px !important;
+    }
+
+    .stock-card.large {
+        grid-column: span 4;
+        grid-row: span 2;
+    }
+
+    .stock-card.medium,
+    .stock-card.small {
+        grid-column: span 4;
+        grid-row: span 2;
     }
 }
 
 @media (max-width: 640px) {
     #heatmap.stock-card-grid {
-        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        grid-auto-rows: 86px !important;
         gap: 10px !important;
         padding: 12px !important;
     }
 
     .stock-card {
-        min-height: 126px;
+        padding: 11px;
+    }
+
+    .stock-card.large {
+        grid-column: 1 / -1;
+        grid-row: span 2;
+        padding: 14px;
+    }
+
+    .stock-card.medium,
+    .stock-card.small {
+        grid-column: span 1;
+        grid-row: span 2;
+    }
+
+    .stock-card.large .stock-card-price-row strong {
+        font-size: 24px;
+    }
+
+    .stock-card.medium .stock-card-price-row strong,
+    .stock-card.small .stock-card-price-row strong {
+        font-size: 17px;
+    }
+
+    .stock-card.large .stock-card-sparkline {
+        height: 42px;
+    }
+
+    .stock-card.medium .stock-card-sparkline,
+    .stock-card.small .stock-card-sparkline {
+        height: 28px;
+    }
+
+    .stock-card-metrics {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 11px;
+    }
+
+    .stock-card-insight {
+        font-size: 11px;
     }
 }
 

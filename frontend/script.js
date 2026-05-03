@@ -382,6 +382,7 @@ function createStockCard(stock, index) {
     const card = document.createElement("article");
     const isPositive = Number(stock.change || 0) >= 0;
     const symbol = stock.symbol.replace(".NS", "");
+    const cardSize = getCardSize(index);
     const trend = [
         toFiniteNumber(stock.open),
         toFiniteNumber(stock.low),
@@ -390,7 +391,7 @@ function createStockCard(stock, index) {
         toFiniteNumber(stock.price)
     ].filter(value => value !== null);
 
-    card.className = `stock-card ${isPositive ? "positive" : "negative"}`;
+    card.className = `stock-card ${isPositive ? "positive" : "negative"} ${cardSize}`;
     card.tabIndex = 0;
     card.role = "button";
     card.dataset.symbol = stock.symbol;
@@ -429,6 +430,24 @@ function createStockCard(stock, index) {
     `;
 
     return card;
+}
+
+function getCardSize(index) {
+    const isMobile = window.innerWidth <= 640;
+
+    if (isMobile) {
+        return index === 0 ? "large" : "small";
+    }
+
+    if (index < 2) {
+        return "large";
+    }
+
+    if (index < 5) {
+        return "medium";
+    }
+
+    return "small";
 }
 
 function getSparklinePoints(values) {

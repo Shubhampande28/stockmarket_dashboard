@@ -13,6 +13,7 @@ export type StockCardProps = {
   volume: string;
   trend: number[];
   insight: string;
+  size?: "large" | "medium" | "small";
 };
 
 type StockCardGridProps = {
@@ -63,6 +64,7 @@ export default function StockCard({
   volume,
   trend,
   insight,
+  size = "small",
 }: StockCardProps) {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
@@ -96,8 +98,11 @@ export default function StockCard({
         "focus:outline-none focus:ring-2 focus:ring-blue-500/30",
         "border-l-2",
         isPositive ? "border-l-green-600" : "border-l-red-600",
+        size === "large" && "col-span-2 row-span-2 p-4",
+        size === "medium" && "col-span-1 row-span-2 p-3.5",
+        size === "small" && "col-span-1 row-span-1",
         isMounted ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
-      ].join(" ")}
+      ].filter(Boolean).join(" ")}
       aria-label={`Open ${name} stock details`}
     >
       <div className="flex items-center justify-between gap-3 text-sm font-medium">
@@ -108,7 +113,7 @@ export default function StockCard({
       </div>
 
       <div className="mt-1 flex items-center gap-2">
-        <span className="text-xl font-semibold text-gray-950">
+        <span className={size === "large" ? "text-2xl font-semibold text-gray-950" : "text-xl font-semibold text-gray-950"}>
           ₹{formatNumber(price)}
         </span>
         <span
@@ -123,7 +128,7 @@ export default function StockCard({
       </div>
 
       <svg
-        className="mt-3 h-8 w-full"
+        className={size === "large" ? "mt-3 h-12 w-full" : "mt-3 h-8 w-full"}
         viewBox="0 0 100 32"
         preserveAspectRatio="none"
         role="img"
@@ -155,9 +160,13 @@ export default function StockCard({
 
 export function StockCardGrid({ stocks }: StockCardGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {stocks.map((stock) => (
-        <StockCard key={`${stock.rank}-${stock.name}`} {...stock} />
+    <div className="grid auto-rows-[92px] grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-6">
+      {stocks.map((stock, index) => (
+        <StockCard
+          key={`${stock.rank}-${stock.name}`}
+          {...stock}
+          size={stock.size ?? (index < 2 ? "large" : index < 5 ? "medium" : "small")}
+        />
       ))}
     </div>
   );
