@@ -27,6 +27,9 @@ let activeStock = null;
 let standaloneStockRendered = false;
 let tradingViewScriptPromise = null;
 const API_BASE = "";
+const cardMetricCache = new Map();
+const pendingCardMetricSymbols = new Set();
+let cardMetricQueue = Promise.resolve();
 
 const statementLabels = {
     profitLoss: "P&L",
@@ -324,24 +327,20 @@ function getFilteredStocks() {
         });
     }
 
-    // 👇 Yahan shuffle kar do (display ke just pehle)
-    return shuffleArray(sortedStocks.slice(0, 100));
+    // ❌ REMOVE shuffle
+    return sortedStocks.slice(0, 100);
 }
 
 function sortStocksForView(stocks) {
-    if (currentView === "gainers") {
-        return stocks.sort((a, b) => Number(b.change || 0) - Number(a.change || 0));
-    }
-
     if (currentView === "losers") {
         return stocks.sort((a, b) => Number(a.change || 0) - Number(b.change || 0));
     }
 
     if (currentView === "movers") {
-        return [...getRankedGainers(stocks), ...getRankedLosers(stocks)];
+        return stocks.sort((a, b) => Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0)));
     }
 
-    return [...getRankedGainers(stocks), ...getRankedLosers(stocks)];
+    return stocks.sort((a, b) => Number(b.change || 0) - Number(a.change || 0));
 }
 
 function getRankedGainers(stocks) {
@@ -376,6 +375,7 @@ function renderGrid() {
     stocks.forEach((stock, index) => {
         heatmap.appendChild(createStockCard(stock, index));
     });
+    hydrateVisibleCardMetrics(stocks);
 }
 
 function createStockCard(stock, index) {
@@ -405,35 +405,97 @@ function createStockCard(stock, index) {
                 ${formatChange(stock.change)}
             </span>
         </div>
-        <div class="stock-card-insight-block">
-            <span>${isPositive ? "🔥" : "⚠"} ${escapeHtml(insight)}</span>
-            <strong class="${isPositive ? "gain" : "loss"}">${trendDirection}</strong>
+        <div class="stock-card-insight-inline">
+            <span class="insight-label">
+                ${isPositive ? "🔥" : "⚠"} ${escapeHtml(insight)}
+            </span>
+            <span class="insight-trend ${isPositive ? "gain" : "loss"}">
+                ${trendDirection}
+            </span>
         </div>
         <div class="stock-card-metrics">
-            <span>PE: --</span>
-            <span>ROE: --</span>
+            <span>PE: <strong data-card-pe>${formatCardMetric(stock.pe)}</strong></span>
+            <span>ROE: <strong data-card-roe>${formatCardMetric(stock.roe, "%")}</strong></span>
+            <span>Open: <strong>${formatCompactPrice(stock.open)}</strong></span>
+            <span>Close: <strong>${formatCompactPrice(stock.close)}</strong></span>
         </div>
     `;
 
     return card;
 }
 
+function hydrateVisibleCardMetrics(stocks) {
+    stocks.slice(0, 24).forEach(stock => hydrateCardMetrics(stock.symbol));
+}
+
+function hydrateCardMetrics(symbol) {
+    const baseSymbol = symbol.replace(".NS", "");
+
+    if (!baseSymbol || pendingCardMetricSymbols.has(baseSymbol)) {
+        return;
+    }
+
+    if (cardMetricCache.has(baseSymbol)) {
+        applyCardMetrics(symbol, cardMetricCache.get(baseSymbol));
+        return;
+    }
+
+    pendingCardMetricSymbols.add(baseSymbol);
+    cardMetricQueue = cardMetricQueue
+        .then(async () => {
+            try {
+                const res = await fetch(`${API_BASE}/financials/${encodeURIComponent(baseSymbol)}`);
+                if (!res.ok) {
+                    return;
+                }
+
+                const data = await res.json();
+                const info = data.info || {};
+                const valuation = data.valuation || {};
+                const metrics = {
+                    pe: info.stockPe || valuation.peTrailing,
+                    roe: info.roe || valuation.roe
+                };
+
+                cardMetricCache.set(baseSymbol, metrics);
+                applyCardMetrics(symbol, metrics);
+            } catch (error) {
+                // Card metrics are supplemental; keep price cards usable if financials are unavailable.
+            } finally {
+                pendingCardMetricSymbols.delete(baseSymbol);
+            }
+        });
+}
+
+function applyCardMetrics(symbol, metrics) {
+    document.querySelectorAll(".stock-card").forEach(card => {
+        if (card.dataset.symbol !== symbol) {
+            return;
+        }
+
+        const peNode = card.querySelector("[data-card-pe]");
+        const roeNode = card.querySelector("[data-card-roe]");
+        if (peNode) {
+            peNode.textContent = formatCardMetric(metrics.pe);
+        }
+        if (roeNode) {
+            roeNode.textContent = formatCardMetric(metrics.roe, "%");
+        }
+    });
+}
+
 function getCardSize(index) {
     const isMobile = window.innerWidth <= 640;
 
     if (isMobile) {
-        return index === 0 ? "large" : "small";
+        if (index === 0) return "large";
+        return "small";
     }
 
-    if (index === 0) {
-        return "large";
-    }
-
-    if (index < 4) {
-        return "medium";
-    }
-
-    return "small";
+    if (index === 0) return "large";      // Top stock
+    if (index <= 2) return "medium";      // Top 3
+    if (index <= 6) return "medium";      // Top 7
+    return "small";                       // Rest
 }
 
 function getStockInsight(stock) {
@@ -1135,9 +1197,34 @@ function formatPrice(value) {
 }
 
 function formatCompactPrice(value) {
+    if (value === null || value === undefined || value === "") {
+        return "--";
+    }
+
+    const number = Number(value);
+    if (Number.isNaN(number)) {
+        return escapeHtml(String(value));
+    }
+
     return Number(value || 0).toLocaleString("en-IN", {
         maximumFractionDigits: 2
     });
+}
+
+function formatCardMetric(value, suffix = "") {
+    if (value === null || value === undefined || value === "") {
+        return "--";
+    }
+
+    const cleaned = String(value).replace(/[,xX%\s]/g, "");
+    const number = Number(cleaned);
+    if (Number.isNaN(number)) {
+        return escapeHtml(String(value));
+    }
+
+    return `${number.toLocaleString("en-IN", {
+        maximumFractionDigits: 1
+    })}${suffix}`;
 }
 
 function formatNetChange(value) {

@@ -72,6 +72,48 @@ def to_nse_symbol(symbol):
     base_symbol = to_nse_base_symbol(symbol)
     return f"{base_symbol}.NS" if base_symbol else ""
 
+def parse_metric_number(value):
+    if value is None:
+        return None
+
+    cleaned = re.sub(r"[,%xX\s]+", "", str(value))
+    if not cleaned or cleaned == "--":
+        return None
+
+    try:
+        return round(float(cleaned), 2)
+    except ValueError:
+        return None
+
+def load_card_metrics():
+    cache = load_json_cache(FINANCIALS_CACHE_PATH)
+    metrics = {}
+
+    for entry in cache.values():
+        payload = entry.get("payload") if isinstance(entry, dict) else None
+        if not isinstance(payload, dict):
+            continue
+
+        symbol = to_nse_base_symbol(payload.get("symbol"))
+        if not symbol:
+            continue
+
+        info = payload.get("info") or {}
+        valuation = payload.get("valuation") or {}
+        metrics[symbol] = {
+            "pe": parse_metric_number(info.get("stockPe") or valuation.get("peTrailing")),
+            "roe": parse_metric_number(info.get("roe") or valuation.get("roe")),
+            "marketCap": parse_metric_number(info.get("marketCap") or valuation.get("marketCap"))
+        }
+
+    return metrics
+
+def sort_by_change_desc(stocks):
+    return sorted(stocks, key=lambda stock: float(stock.get("change") or 0), reverse=True)
+
+def sort_by_abs_change_desc(stocks):
+    return sorted(stocks, key=lambda stock: abs(float(stock.get("change") or 0)), reverse=True)
+
 def get_upstox_config():
     return {
         "client_id": os.environ.get("UPSTOX_CLIENT_ID", "").strip(),
@@ -267,21 +309,61 @@ def admin_page_head(title):
 # SECTOR GROUPS
 # =========================
 SECTOR_GROUPS = {
-    "it": ["TCS", "INFY", "HCLTECH", "WIPRO", "TECHM", "NAUKRI"],
+    "it": [
+        "TCS", "INFY", "HCLTECH", "WIPRO", "TECHM", "NAUKRI", "COFORGE", "MPHASIS",
+        "PERSISTENT", "LTIM", "OFSS", "CYIENT", "KPITTECH", "SONATSOFTW", "ZENSARTECH",
+        "BIRLASOFT", "TANLA", "ROUTE", "HAPPSTMNDS", "INTELLECT", "ECLERX", "NEWGEN",
+        "DATAPATTNS", "INDIAMART", "JUSTDIAL"
+    ],
     "bank": [
         "HDFCBANK", "ICICIBANK", "SBIN", "KOTAKBANK", "AXISBANK",
         "INDUSINDBK", "BANKBARODA", "PNB", "IDFCFIRSTB", "FEDERALBNK",
-        "CANBK", "YESBANK", "BANDHANBNK"
+        "CANBK", "YESBANK", "BANDHANBNK", "AUBANK", "MAHABANK", "UCOBANK",
+        "INDIANB", "CENTRALBK", "UNIONBANK", "IOB", "PSB", "SOUTHBANK",
+        "RBLBANK", "CSBBANK", "DCBBANK", "KARURVYSYA", "CITYUNION", "J&KBANK",
+        "EQUITASBNK", "UJJIVANSFB"
     ],
-    "finance": ["BAJFINANCE", "BAJAJFINSV", "HDFCLIFE", "SBILIFE", "LICI", "PEL", "IRFC"],
-    "auto": ["MARUTI", "EICHERMOT", "HEROMOTOCO", "TATAMOTORS", "M&M", "ASHOKLEY", "TVSMOTOR", "BAJAJ-AUTO", "BOSCHLTD"],
-    "pharma": ["SUNPHARMA", "DRREDDY", "CIPLA", "DIVISLAB", "TORNTPHARM", "LUPIN", "AUROPHARMA", "BIOCON", "ALKEM", "APOLLOHOSP"],
+    "finance": [
+        "BAJFINANCE", "BAJAJFINSV", "HDFCLIFE", "SBILIFE", "LICI", "PEL", "IRFC",
+        "TATAINVEST", "BAJAJHLDNG", "LICHSGFIN", "PFC", "RECLTD", "HUDCO", "IREDA",
+        "MUTHOOTFIN", "MANAPPURAM", "CHOLAFIN", "SHRIRAMFIN", "LTF", "ICICIPRULI",
+        "ICICIGI", "SBICARD", "ABCAPITAL", "ANGELONE", "CAMS", "CDSL", "BSE",
+        "MCX", "IEX", "KFINTECH", "POLICYBZR"
+    ],
+    "auto": [
+        "MARUTI", "EICHERMOT", "HEROMOTOCO", "TATAMOTORS", "M&M", "ASHOKLEY",
+        "TVSMOTOR", "BAJAJ-AUTO", "BOSCHLTD", "ESCORTS", "ESCORTSKUBOTA",
+        "VSTTILLERS", "SKFINDIA", "SCHAEFFLER", "TIMKEN", "NRBBEARING",
+        "EXIDEIND", "AMARAJABAT", "HBLENGINE", "APOLLOTYRE", "MRF", "CEATLTD",
+        "JKTYRE", "BALKRISIND", "MOTHERSON", "SONACOMS", "UNOMINDA", "ENDURANCE"
+    ],
+    "pharma": [
+        "SUNPHARMA", "DRREDDY", "CIPLA", "DIVISLAB", "TORNTPHARM", "LUPIN",
+        "AUROPHARMA", "BIOCON", "ALKEM", "APOLLOHOSP", "MAXHEALTH", "FORTIS",
+        "RAINBOW", "KIMS", "ASTERDM", "NARAYANA", "METROPOLIS", "LALPATHLAB",
+        "THYROCARE", "ERIS", "GLENMARK", "ZYDUSLIFE", "IPCALAB", "LAURUSLABS",
+        "GRANULES", "AJANTPHARM", "NATCOPHARM", "STRIDES", "WOCKPHARMA",
+        "PFIZER", "GLAXO", "SANOFI", "ABBOTINDIA", "CAPLIPOINT", "SUVENPHAR",
+        "ASTRAZEN"
+    ],
     "fmcg": ["ITC", "HINDUNILVR", "NESTLEIND", "BRITANNIA", "DABUR", "COLPAL", "GODREJCP", "MCDOWELL-N", "TATACONSUM"],
     "metal": ["JSWSTEEL", "TATASTEEL", "VEDL", "HINDALCO", "JINDALSTEL", "NMDC", "SAIL"],
-    "energy": ["RELIANCE", "ONGC", "BPCL", "IOC", "GAIL", "NTPC", "POWERGRID", "COALINDIA", "ADANIGREEN", "NHPC"],
+    "energy": [
+        "RELIANCE", "ONGC", "BPCL", "IOC", "GAIL", "NTPC", "POWERGRID",
+        "COALINDIA", "ADANIGREEN", "NHPC", "ADANIPOWER", "ATGL", "IGL",
+        "MGL", "PETRONET", "GUJGASLTD", "SJVN", "OIL", "TATAPOWER", "JSWENERGY",
+        "TORNTPOWER", "CESC"
+    ],
     "cement": ["ULTRACEMCO", "SHREECEM", "AMBUJACEM", "ACC", "GRASIM"],
     "consumer": ["ASIANPAINT", "TITAN", "PIDILITIND", "HAVELLS", "PAGEIND", "BERGEPAINT", "DMART", "ZOMATO", "PAYTM", "IRCTC"],
-    "infra": ["LT", "ADANIPORTS", "ADANIENT", "ADANITRANS", "SIEMENS", "ABB", "RVNL"]
+    "infra": [
+        "LT", "ADANIPORTS", "ADANIENT", "ADANITRANS", "SIEMENS", "ABB", "RVNL",
+        "IRB", "PNCINFRA", "HGINFRA", "KNRCON", "ASHOKA", "NBCC", "ENGINEERSIN",
+        "IRCON", "RITES", "CONCOR", "BLUEDART", "TCIEXP", "ALLCARGO", "MAHLOG",
+        "VRLLOG", "INDIGO", "SPICEJET", "GMRINFRA", "JSWINFRA", "TITAGARH", "JWL",
+        "TEXRAIL", "BEML", "BEL", "HAL", "BDL", "COCHINSHIP", "GRSE", "MAZDOCK",
+        "MIDHANI"
+    ]
 }
 
 STOCK_NAMES = {
@@ -484,6 +566,7 @@ def get_stocks():
 
     instrument_map = load_instrument_map()
     instrument_keys = list(instrument_map.values())
+    card_metrics = load_card_metrics()
 
     url = "https://api.upstox.com/v2/market-quote/quotes"
     params = {"instrument_key": ",".join(instrument_keys)}
@@ -502,6 +585,7 @@ def get_stocks():
         ltp = val.get("last_price", 0)
         change = val.get("net_change", 0)
         ohlc = val.get("ohlc", {}) or {}
+        metrics = card_metrics.get(symbol, {})
 
         previous_close = ltp - change
         day_open = ohlc.get("open", previous_close)
@@ -520,7 +604,10 @@ def get_stocks():
             "high": round(high_value, 2),
             "low": round(low_value, 2),
             "change": round(percent, 2),
-            "netChange": round(change, 2)
+            "netChange": round(change, 2),
+            "pe": metrics.get("pe"),
+            "roe": metrics.get("roe"),
+            "marketCap": metrics.get("marketCap")
         })
 
     # =========================
@@ -531,8 +618,7 @@ def get_stocks():
 
     gainers = sorted(positive, key=lambda x: x["change"], reverse=True)[:10]
     losers = sorted(negative, key=lambda x: x["change"])[:10]
-    movers = gainers + losers
-    random.shuffle(movers)
+    movers = sort_by_abs_change_desc(gainers + losers)
 
     sector_stocks = {sector: [] for sector in SECTOR_GROUPS}
     grouped_symbols = set()
@@ -546,14 +632,18 @@ def get_stocks():
                 grouped_symbols.add(sym)
 
     others = [s for s in stocks_data if s["symbol"].replace(".NS", "") not in grouped_symbols]
+    sector_stocks = {
+        sector: sort_by_change_desc(stocks)
+        for sector, stocks in sector_stocks.items()
+    }
 
     return jsonify({
         "movers": movers,
-        "all": stocks_data,
+        "all": sort_by_change_desc(stocks_data),
         "gainers": gainers,
         "losers": losers,
         **sector_stocks,
-        "others": others
+        "others": sort_by_change_desc(others)
     })
 
 def yahoo_raw_value(value):

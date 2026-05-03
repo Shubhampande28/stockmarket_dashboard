@@ -8,8 +8,10 @@ export type StockCardProps = {
   price: number;
   change: number;
   rank: number;
-  pe: number;
-  roe: number;
+  pe?: number | string | null;
+  roe?: number | string | null;
+  open?: number | string | null;
+  close?: number | string | null;
   insight: string;
   size?: "large" | "medium" | "small";
 };
@@ -18,10 +20,16 @@ type StockCardGridProps = {
   stocks: StockCardProps[];
 };
 
-function formatNumber(value: number, maximumFractionDigits = 2) {
-  return Number.isFinite(value)
-    ? value.toLocaleString("en-IN", { maximumFractionDigits })
+function formatNumber(value: number | string | null | undefined, maximumFractionDigits = 2) {
+  const number = Number(String(value ?? "").replace(/[,xX%\s]/g, ""));
+  return Number.isFinite(number)
+    ? number.toLocaleString("en-IN", { maximumFractionDigits })
     : "--";
+}
+
+function formatMetric(value: number | string | null | undefined, suffix = "") {
+  const formatted = formatNumber(value, 1);
+  return formatted === "--" ? formatted : `${formatted}${suffix}`;
 }
 
 function getStockPath(name: string) {
@@ -41,6 +49,8 @@ export default function StockCard({
   rank,
   pe,
   roe,
+  open,
+  close,
   insight,
   size = "small",
 }: StockCardProps) {
@@ -119,9 +129,11 @@ export default function StockCard({
         </strong>
       </div>
 
-      <div className="mt-2 flex justify-between gap-2 text-xs text-gray-500">
-        <span>PE: {formatNumber(pe, 1)}</span>
-        <span>ROE: {formatNumber(roe, 1)}%</span>
+      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-500">
+        <span>PE: <strong className="font-semibold text-gray-900">{formatMetric(pe)}</strong></span>
+        <span>ROE: <strong className="font-semibold text-gray-900">{formatMetric(roe, "%")}</strong></span>
+        <span>Open: <strong className="font-semibold text-gray-900">{formatNumber(open)}</strong></span>
+        <span>Close: <strong className="font-semibold text-gray-900">{formatNumber(close)}</strong></span>
       </div>
     </div>
   );
