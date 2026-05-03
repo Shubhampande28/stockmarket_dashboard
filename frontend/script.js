@@ -383,13 +383,8 @@ function createStockCard(stock, index) {
     const isPositive = Number(stock.change || 0) >= 0;
     const symbol = stock.symbol.replace(".NS", "");
     const cardSize = getCardSize(index);
-    const trend = [
-        toFiniteNumber(stock.open),
-        toFiniteNumber(stock.low),
-        toFiniteNumber(stock.close),
-        toFiniteNumber(stock.high),
-        toFiniteNumber(stock.price)
-    ].filter(value => value !== null);
+    const insight = getStockInsight(stock);
+    const trendDirection = isPositive ? "Uptrend ↑" : "Downtrend ↓";
 
     card.className = `stock-card ${isPositive ? "positive" : "negative"} ${cardSize}`;
     card.tabIndex = 0;
@@ -410,23 +405,14 @@ function createStockCard(stock, index) {
                 ${formatChange(stock.change)}
             </span>
         </div>
-        <svg class="stock-card-sparkline" viewBox="0 0 100 32" preserveAspectRatio="none" role="img" aria-label="${escapeAttribute(symbol)} trend sparkline">
-            <polyline
-                points="${getSparklinePoints(trend)}"
-                fill="none"
-                stroke="${isPositive ? "#16a34a" : "#dc2626"}"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                vector-effect="non-scaling-stroke"
-            ></polyline>
-        </svg>
+        <div class="stock-card-insight-block">
+            <span>${escapeHtml(insight)}</span>
+            <strong class="${isPositive ? "gain" : "loss"}">${trendDirection}</strong>
+        </div>
         <div class="stock-card-metrics">
             <span>PE: --</span>
             <span>ROE: --</span>
-            <span>Vol: --</span>
         </div>
-        <span class="stock-card-insight">${escapeHtml(getStockInsight(stock))}</span>
     `;
 
     return card;
@@ -448,22 +434,6 @@ function getCardSize(index) {
     }
 
     return "small";
-}
-
-function getSparklinePoints(values) {
-    const width = 100;
-    const height = 32;
-    const safeValues = values.length ? values : [0, 0];
-    const min = Math.min(...safeValues);
-    const max = Math.max(...safeValues);
-    const range = max - min || 1;
-    const step = width / Math.max(safeValues.length - 1, 1);
-
-    return safeValues.map((value, index) => {
-        const x = index * step;
-        const y = height - ((value - min) / range) * (height - 4) - 2;
-        return `${x.toFixed(2)},${y.toFixed(2)}`;
-    }).join(" ");
 }
 
 function getStockInsight(stock) {

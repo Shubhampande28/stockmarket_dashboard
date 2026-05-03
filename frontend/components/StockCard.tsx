@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 export type StockCardProps = {
@@ -10,8 +10,6 @@ export type StockCardProps = {
   rank: number;
   pe: number;
   roe: number;
-  volume: string;
-  trend: number[];
   insight: string;
   size?: "large" | "medium" | "small";
 };
@@ -36,24 +34,6 @@ function getStockPath(name: string) {
   return `/stock/${encodeURIComponent(slug || name)}`;
 }
 
-function getSparklinePoints(values: number[]) {
-  const width = 100;
-  const height = 32;
-  const safeValues = values.length ? values : [0, 0];
-  const min = Math.min(...safeValues);
-  const max = Math.max(...safeValues);
-  const range = max - min || 1;
-  const step = width / Math.max(safeValues.length - 1, 1);
-
-  return safeValues
-    .map((value, index) => {
-      const x = index * step;
-      const y = height - ((value - min) / range) * (height - 4) - 2;
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(" ");
-}
-
 export default function StockCard({
   name,
   price,
@@ -61,15 +41,13 @@ export default function StockCard({
   rank,
   pe,
   roe,
-  volume,
-  trend,
   insight,
   size = "small",
 }: StockCardProps) {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const isPositive = change >= 0;
-  const sparklinePoints = useMemo(() => getSparklinePoints(trend), [trend]);
+  const trendDirection = isPositive ? "Uptrend ↑" : "Downtrend ↓";
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsMounted(true));
@@ -127,32 +105,23 @@ export default function StockCard({
         </span>
       </div>
 
-      <svg
-        className={size === "large" ? "mt-3 h-12 w-full" : "mt-3 h-8 w-full"}
-        viewBox="0 0 100 32"
-        preserveAspectRatio="none"
-        role="img"
-        aria-label={`${name} trend sparkline`}
-      >
-        <polyline
-          points={sparklinePoints}
-          fill="none"
-          stroke={isPositive ? "#16a34a" : "#dc2626"}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
+      <div className="mt-3 rounded-lg border border-gray-200 bg-slate-50 p-2.5">
+        <span className="block truncate text-xs font-semibold text-slate-800">
+          {insight}
+        </span>
+        <strong
+          className={[
+            "mt-1 block text-xs font-bold",
+            isPositive ? "text-[#16a34a]" : "text-[#dc2626]",
+          ].join(" ")}
+        >
+          {trendDirection}
+        </strong>
+      </div>
 
       <div className="mt-2 flex justify-between gap-2 text-xs text-gray-500">
         <span>PE: {formatNumber(pe, 1)}</span>
         <span>ROE: {formatNumber(roe, 1)}%</span>
-        <span>{volume}</span>
-      </div>
-
-      <div className="mt-2 inline-block rounded-md bg-[#f1f5f9] px-2 py-1 text-xs text-slate-700">
-        {insight}
       </div>
     </div>
   );

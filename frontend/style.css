@@ -3084,21 +3084,50 @@ body::before {
     color: #dc2626;
 }
 
-.stock-card-sparkline {
-    display: block;
-    width: 100%;
-    height: 32px;
-    margin-top: 8px;
+.stock-card-insight-block {
+    display: grid;
+    gap: 4px;
+    margin-top: 12px;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f8fafc;
 }
 
-.stock-card.large .stock-card-sparkline {
-    height: 48px;
-    margin-top: 14px;
+.stock-card-insight-block span {
+    overflow: hidden;
+    color: #1f2937;
+    font-size: 13px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.stock-card.medium .stock-card-sparkline {
-    height: 40px;
-    margin-top: 11px;
+.stock-card-insight-block strong {
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.stock-card-insight-block strong.gain {
+    color: #16a34a;
+}
+
+.stock-card-insight-block strong.loss {
+    color: #dc2626;
+}
+
+.stock-card.large .stock-card-insight-block {
+    gap: 6px;
+    margin-top: 16px;
+    padding: 12px;
+}
+
+.stock-card.large .stock-card-insight-block span {
+    font-size: 15px;
+}
+
+.stock-card.medium .stock-card-insight-block {
+    margin-top: 13px;
 }
 
 .stock-card-metrics {
@@ -3112,21 +3141,6 @@ body::before {
 
 .stock-card-metrics span {
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.stock-card-insight {
-    display: inline-block;
-    max-width: 100%;
-    margin-top: 8px;
-    padding: 4px 8px;
-    overflow: hidden;
-    border-radius: 6px;
-    background: #f1f5f9;
-    color: #334155;
-    font-size: 12px;
-    font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -3189,23 +3203,19 @@ body::before {
         font-size: 17px;
     }
 
-    .stock-card.large .stock-card-sparkline {
-        height: 42px;
-    }
-
-    .stock-card.medium .stock-card-sparkline,
-    .stock-card.small .stock-card-sparkline {
-        height: 28px;
-    }
-
     .stock-card-metrics {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 3px;
+        align-items: center;
+        flex-direction: row;
+        gap: 6px;
         font-size: 11px;
     }
 
-    .stock-card-insight {
+    .stock-card-insight-block {
+        padding: 8px;
+    }
+
+    .stock-card-insight-block span,
+    .stock-card-insight-block strong {
         font-size: 11px;
     }
 }
