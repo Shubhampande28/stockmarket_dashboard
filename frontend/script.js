@@ -24,6 +24,8 @@ let resizeTimer;
 let activeStatementType = "news";
 let activeFinancials = null;
 let activeStock = null;
+let standaloneStockRendered = false;
+let tradingViewScriptPromise = null;
 const API_BASE = "";
 
 const statementLabels = {
@@ -97,6 +99,7 @@ async function loadHeatmap() {
         renderGrid();
         setStatus("ready", "Live data loaded");
         setLastFetched();
+        openRequestedStockDetail();
     } catch (error) {
         fullData = {};
         renderGrid();
@@ -516,7 +519,12 @@ async function openFinancialStatements(stock) {
     showStatementMessage("Loading statements...");
     statementContent.innerHTML = "";
     statementModal.hidden = false;
-    document.body.classList.add("modal-open");
+    if (isStockDetailPage()) {
+        document.body.classList.add("stock-detail-page");
+        document.title = `${stock.symbol.replace(".NS", "")} - Stock details`;
+    } else {
+        document.body.classList.add("modal-open");
+    }
     renderPriceChart(stock);
     renderStockInfo(stock);
 
@@ -658,6 +666,19 @@ function renderPriceChart(stock) {
         return;
     }
 
+    const cleanSymbol = stock.symbol.replace(".NS", "");
+    const tvSymbol = `NSE:${cleanSymbol}`;
+    const containerId = `tradingview-${cleanSymbol.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+    chartMeta.textContent = `${cleanSymbol} TradingView price chart`;
+    priceChart.innerHTML = `
+        <div class="tradingview-chart-shell">
+            <div id="${escapeAttribute(containerId)}" class="tradingview-chart"></div>
+        </div>
+        <p class="chart-source-note">Chart source: TradingView symbol <a href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tvSymbol)}" target="_blank" rel="noopener noreferrer">${escapeHtml(tvSymbol)}</a>.</p>
+    `;
+    loadTradingViewChart(tvSymbol, containerId);
+    return;
+
     const points = [
         { label: "Open", value: toFiniteNumber(stock.open) },
         { label: "High", value: toFiniteNumber(stock.high) },
@@ -732,163 +753,25 @@ function renderPriceChart(stock) {
 }
 
 function openChartPage(stock) {
-    openStockPage(stock);
-}
-
-function openStockPage(stock) {
     if (!stock) {
         return;
     }
 
-    const page = window.open("", "_blank");
-    if (!page) {
-        return;
-    }
-    page.opener = null;
+    activeStatementType = "chart";
+    renderActiveStatement();
+}
 
-    const cleanSymbol = stock.symbol.replace(".NS", "");
-    const tvSymbol = `NSE:${cleanSymbol}`;
-    const title = `${cleanSymbol} Stock Detail`;
-    const isGain = Number(stock.change || 0) >= 0;
+function loadTradingViewChart(symbol, containerId) {
+    const renderWidget = () => {
+        const container = document.getElementById(containerId);
+        if (!container || !window.TradingView) {
+            return;
+        }
 
-    page.document.write(`<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escapeHtml(title)}</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            min-height: 100vh;
-            margin: 0;
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f7f8fa;
-            color: #17212f;
-        }
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            min-height: 72px;
-            padding: 18px clamp(16px, 4vw, 44px);
-            background: #121c27;
-            color: #ffffff;
-        }
-        h1 { margin: 0; font-size: clamp(20px, 4vw, 30px); line-height: 1.1; }
-        header span { color: rgba(255,255,255,.68); font-size: 13px; font-weight: 800; }
-        main {
-            display: grid;
-            gap: 18px;
-            width: min(1180px, calc(100% - 28px));
-            margin: 28px auto;
-        }
-        .panel {
-            padding: clamp(16px, 3vw, 24px);
-            border: 1px solid #e7ebf0;
-            border-radius: 14px;
-            background: #ffffff;
-            box-shadow: 0 18px 42px rgba(18, 28, 39, 0.08);
-        }
-        .summary {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .price { font-size: 28px; font-weight: 950; }
-        .change {
-            padding: 6px 9px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 900;
-        }
-        .gain .change { background: #e8f7ef; color: #087443; }
-        .loss .change { background: #fff0f1; color: #c2414b; }
-        .metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-            gap: 10px;
-            margin-top: 16px;
-        }
-        .metrics span {
-            display: grid;
-            gap: 4px;
-            padding: 12px;
-            border: 1px solid #e7ebf0;
-            border-radius: 10px;
-            color: #667085;
-            font-size: 12px;
-            font-weight: 850;
-        }
-        .metrics strong { color: #17212f; font-size: 16px; }
-        .chart-shell {
-            height: min(620px, calc(100svh - 260px));
-            min-height: 430px;
-            overflow: hidden;
-        }
-        #tradingviewChart {
-            height: 100%;
-        }
-        .chart-note {
-            margin: 10px 0 0;
-            color: #667085;
-            font-size: 12px;
-        }
-        .chart-note a {
-            color: #1473e6;
-            text-decoration: none;
-            font-weight: 850;
-        }
-        @media (max-width: 640px) {
-            header {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-            main {
-                margin-top: 14px;
-            }
-            .chart-shell {
-                min-height: 420px;
-                height: 64svh;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div>
-            <h1>${escapeHtml(stock.name || cleanSymbol)}</h1>
-            <span>${escapeHtml(cleanSymbol)} stock detail</span>
-        </div>
-    </header>
-    <main>
-        <section class="panel ${isGain ? "gain" : "loss"}">
-        <div class="summary">
-            <strong class="price">${formatPrice(stock.price)}</strong>
-            <span class="change">${formatChange(stock.change)}</span>
-        </div>
-            <div class="metrics">
-                <span>Open <strong>${formatCompactPrice(stock.open)}</strong></span>
-                <span>High <strong>${formatCompactPrice(stock.high)}</strong></span>
-                <span>Low <strong>${formatCompactPrice(stock.low)}</strong></span>
-                <span>Close <strong>${formatCompactPrice(stock.close)}</strong></span>
-                <span>Net change <strong>${formatNetChange(stock.netChange)}</strong></span>
-            </div>
-        </section>
-        <section class="panel">
-            <div class="chart-shell">
-                <div id="tradingviewChart"></div>
-            </div>
-            <p class="chart-note">Chart source: TradingView symbol <a href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tvSymbol)}" target="_blank" rel="noopener noreferrer">${escapeHtml(tvSymbol)}</a>.</p>
-        </section>
-    </main>
-    <script src="https://s3.tradingview.com/tv.js"><\/script>
-    <script>
-        new TradingView.widget({
+        container.innerHTML = "";
+        new window.TradingView.widget({
             autosize: true,
-            symbol: ${JSON.stringify(tvSymbol)},
+            symbol,
             interval: "15",
             timezone: "Asia/Kolkata",
             theme: "light",
@@ -897,12 +780,42 @@ function openStockPage(stock) {
             toolbar_bg: "#ffffff",
             enable_publishing: false,
             allow_symbol_change: true,
-            container_id: "tradingviewChart"
+            container_id: containerId
         });
-    <\/script>
-</body>
-</html>`);
-    page.document.close();
+    };
+
+    if (window.TradingView) {
+        renderWidget();
+        return;
+    }
+
+    if (!tradingViewScriptPromise) {
+        tradingViewScriptPromise = new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://s3.tradingview.com/tv.js";
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    tradingViewScriptPromise.then(renderWidget).catch(() => {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `<div class="chart-empty">Unable to load TradingView chart.</div>`;
+        }
+    });
+}
+
+function openStockPage(stock) {
+    if (!stock) {
+        return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("stock", stock.symbol);
+    window.open(url.toString(), "_blank");
 }
 
 function renderStockInfo(stock, data = activeFinancials) {
@@ -978,8 +891,48 @@ function toFiniteNumber(value) {
 }
 
 function closeFinancialStatements() {
+    if (isStockDetailPage()) {
+        window.close();
+        window.location.href = window.location.pathname;
+        return;
+    }
+
     statementModal.hidden = true;
     document.body.classList.remove("modal-open");
+}
+
+function getRequestedStockSymbol() {
+    return new URLSearchParams(window.location.search).get("stock");
+}
+
+function isStockDetailPage() {
+    return Boolean(getRequestedStockSymbol());
+}
+
+function prepareStockDetailPage() {
+    if (isStockDetailPage()) {
+        document.body.classList.add("stock-detail-page");
+    }
+}
+
+function openRequestedStockDetail() {
+    const requestedSymbol = getRequestedStockSymbol();
+    if (!requestedSymbol || standaloneStockRendered) {
+        return;
+    }
+
+    const normalizedSymbol = requestedSymbol.toUpperCase();
+    const stock = Object.values(fullData)
+        .flat()
+        .find(item => item.symbol.toUpperCase() === normalizedSymbol || item.symbol.replace(".NS", "").toUpperCase() === normalizedSymbol.replace(".NS", ""));
+
+    if (!stock) {
+        showMessage(`Unable to find ${requestedSymbol}.`, "error");
+        return;
+    }
+
+    standaloneStockRendered = true;
+    openFinancialStatements(stock);
 }
 
 function setStatementTabs() {
@@ -1481,11 +1434,6 @@ document.querySelectorAll("[data-close-statements]").forEach(element => {
 
 document.querySelectorAll(".statement-tab").forEach(button => {
     button.addEventListener("click", () => {
-        if (button.dataset.statement === "chart") {
-            openChartPage(activeStock);
-            return;
-        }
-
         activeStatementType = button.dataset.statement;
         if (activeFinancials || activeStatementType === "info" || activeStatementType === "chart") {
             renderActiveStatement();
@@ -1515,5 +1463,6 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("load", () => {
+    prepareStockDetailPage();
     loadHeatmap();
 });
