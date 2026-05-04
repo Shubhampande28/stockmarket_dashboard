@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote_plus, urlencode
+from nifty50 import NIFTY50
 from token_manager import get_access_token, is_expired, load_token, save_token
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -366,6 +367,36 @@ SECTOR_GROUPS = {
     ]
 }
 
+INDEX_GROUPS = {
+    "nifty50": NIFTY50,
+    "banknifty": [
+        "HDFCBANK", "ICICIBANK", "SBIN", "KOTAKBANK", "AXISBANK", "INDUSINDBK",
+        "BANKBARODA", "PNB", "IDFCFIRSTB", "FEDERALBNK", "AUBANK", "BANDHANBNK"
+    ],
+    "finnifty": [
+        "HDFCBANK", "ICICIBANK", "KOTAKBANK", "AXISBANK", "SBIN", "BAJFINANCE",
+        "BAJAJFINSV", "HDFCLIFE", "SBILIFE", "ICICIPRULI", "ICICIGI", "CHOLAFIN",
+        "SHRIRAMFIN", "MUTHOOTFIN", "PFC", "RECLTD", "LICHSGFIN", "SBICARD",
+        "ABCAPITAL", "LICI"
+    ],
+    "sensex": [
+        "RELIANCE", "TCS", "HDFCBANK", "ICICIBANK", "INFY", "ITC", "LT", "SBIN",
+        "BHARTIARTL", "AXISBANK", "KOTAKBANK", "HINDUNILVR", "ASIANPAINT",
+        "MARUTI", "SUNPHARMA", "TITAN", "ULTRACEMCO", "NESTLEIND", "BAJFINANCE",
+        "HCLTECH", "POWERGRID", "NTPC", "TATASTEEL", "TECHM", "JSWSTEEL",
+        "M&M", "TATAMOTORS", "BAJAJFINSV", "ADANIPORTS", "INDUSINDBK"
+    ],
+    "midcpnifty": [
+        "COFORGE", "MPHASIS", "PERSISTENT", "LTIM", "OFSS", "AUBANK", "FEDERALBNK",
+        "IDFCFIRSTB", "BANDHANBNK", "PNB", "BANKBARODA", "CANBK", "LICI", "IRFC",
+        "PFC", "RECLTD", "HUDCO", "MUTHOOTFIN", "CHOLAFIN", "SHRIRAMFIN",
+        "AUROPHARMA", "LUPIN", "ALKEM", "BIOCON", "TORNTPHARM", "TVSMOTOR",
+        "ASHOKLEY", "BOSCHLTD", "INDIGO", "CONCOR", "ABB", "SIEMENS",
+        "HAVELLS", "PIDILITIND", "DABUR", "COLPAL", "GODREJCP", "PAGEIND",
+        "BERGEPAINT", "DMART", "ZOMATO"
+    ]
+}
+
 STOCK_NAMES = {
     "RELIANCE": "Reliance Industries",
     "TCS": "Tata Consultancy",
@@ -636,6 +667,13 @@ def get_stocks():
         sector: sort_by_change_desc(stocks)
         for sector, stocks in sector_stocks.items()
     }
+    index_stocks = {
+        index: sort_by_change_desc([
+            s for s in stocks_data
+            if s["symbol"].replace(".NS", "") in set(symbols)
+        ])
+        for index, symbols in INDEX_GROUPS.items()
+    }
 
     return jsonify({
         "movers": movers,
@@ -643,6 +681,7 @@ def get_stocks():
         "gainers": gainers,
         "losers": losers,
         **sector_stocks,
+        **index_stocks,
         "others": sort_by_change_desc(others)
     })
 

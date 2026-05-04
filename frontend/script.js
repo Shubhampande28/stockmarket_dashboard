@@ -3,6 +3,11 @@ const viewLabels = {
     all: "All stocks",
     gainers: "Top gainers",
     losers: "Top losers",
+    nifty50: "NIFTY 50 stocks",
+    banknifty: "BANK NIFTY stocks",
+    finnifty: "FIN NIFTY stocks",
+    sensex: "SENSEX stocks",
+    midcpnifty: "MIDCPNIFTY stocks",
     it: "IT",
     bank: "Banking",
     finance: "Finance",
@@ -205,6 +210,14 @@ function loadView(type) {
     currentView = type;
     const sectorViews = ["it", "bank", "finance", "auto", "pharma", "fmcg", "metal", "energy", "cement", "consumer", "infra"];
     const sectorTrigger = document.querySelector(".sector-trigger");
+    searchTerm = "";
+    if (searchInput) {
+        searchInput.value = "";
+    }
+    if (drawerStockSearch) {
+        drawerStockSearch.value = "";
+    }
+    closeSearchSuggestions();
 
     if (heatmap) {
         heatmap.classList.add("is-switching");
@@ -223,7 +236,11 @@ function loadView(type) {
     document.querySelectorAll("[data-drawer-view]").forEach(button => {
         button.classList.toggle("active", button.dataset.drawerView === type);
     });
-    if (viewSelect) {
+    document.querySelectorAll("[data-index-view]").forEach(button => {
+        button.classList.toggle("active", button.dataset.indexView === type);
+        button.setAttribute("aria-pressed", button.dataset.indexView === type ? "true" : "false");
+    });
+    if (viewSelect && Array.from(viewSelect.options).some(option => option.value === type)) {
         viewSelect.value = type;
     }
     renderGrid();
@@ -1684,6 +1701,10 @@ function getGrowthSpace(mosaic, bloomScale, layout) {
 
 document.querySelectorAll(".tab-button").forEach(button => {
     button.addEventListener("click", () => loadView(button.dataset.view));
+});
+
+document.querySelectorAll("[data-index-view]").forEach(button => {
+    button.addEventListener("click", () => loadView(button.dataset.indexView));
 });
 
 document.querySelectorAll(".sector-trigger").forEach(button => {

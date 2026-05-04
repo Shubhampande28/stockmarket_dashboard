@@ -2539,6 +2539,9 @@ body::before {
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.92);
     box-shadow: 0 12px 28px rgba(32, 45, 64, 0.06);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
 }
 
 .index-card span {
@@ -4573,4 +4576,11 @@ body {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         font-size: 12px;
     }
+}
+
+.index-card.active,
+.index-card:focus-visible {
+    border-color: rgba(37, 99, 235, 0.72) !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.28) !important;
+    outline: none;
 }
