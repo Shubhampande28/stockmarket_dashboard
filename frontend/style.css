@@ -970,7 +970,7 @@ h1 {
 
 .snapshot-metrics {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(140px, 1fr));
     gap: 1px;
     overflow: hidden;
     box-shadow: var(--shadow-soft);
@@ -1018,8 +1018,8 @@ h1 {
 .snapshot-metrics strong {
     color: #0f172a;
     font-size: 14px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
 .news-panel {
