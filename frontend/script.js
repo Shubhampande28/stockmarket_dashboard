@@ -1497,10 +1497,11 @@ function formatCardMetric(value, suffix = "") {
         return "--";
     }
 
-    const cleaned = String(value).replace(/[,xX%\s]/g, "");
+    const normalizedValue = dedupeRepeatedMetricText(value);
+    const cleaned = String(normalizedValue).replace(/[,xX%\s]/g, "");
     const number = Number(cleaned);
     if (Number.isNaN(number)) {
-        return escapeHtml(String(value));
+        return escapeHtml(String(normalizedValue));
     }
 
     return `${number.toLocaleString("en-IN", {
