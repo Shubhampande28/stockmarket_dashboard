@@ -871,6 +871,25 @@ function dedupeRepeatedMetricText(rawValue) {
         return [repeatedNumberWithUnit[1], repeatedNumberWithUnit[2]].filter(Boolean).join(" ");
     }
 
+    const numberMatches = [...text.matchAll(/[\d,]+(?:\.\d+)?/g)];
+    if (numberMatches.length > 1 && numberMatches.length % 2 === 0) {
+        const mid = numberMatches.length / 2;
+        const firstNumbers = numberMatches.slice(0, mid).map(match => match[0].replace(/,/g, ""));
+        const secondNumbers = numberMatches.slice(mid).map(match => match[0].replace(/,/g, ""));
+
+        if (firstNumbers.every((number, index) => number === secondNumbers[index])) {
+            const keepEnd = numberMatches[mid - 1].index + numberMatches[mid - 1][0].length;
+            const trailingUnit = text.match(/\s*(Cr\.?|%|x)\s*$/i)?.[1]?.replace(/\.$/, "") || "";
+            const keptText = text.slice(0, keepEnd).trim();
+
+            if (trailingUnit && !/(Cr\.?|%|x)$/i.test(keptText)) {
+                return `${keptText} ${trailingUnit}`;
+            }
+
+            return keptText;
+        }
+    }
+
     const parts = text.split(" ");
     if (parts.length % 2 === 0) {
         const mid = parts.length / 2;
