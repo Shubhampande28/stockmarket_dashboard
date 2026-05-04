@@ -866,6 +866,11 @@ function dedupeRepeatedMetricText(rawValue) {
         return rawValue;
     }
 
+    const repeatedNumberWithUnit = text.match(/^([\d,]+(?:\.\d+)?)\s*[.\-/|]\s*\1\s*([A-Za-z%]+)?$/i);
+    if (repeatedNumberWithUnit) {
+        return [repeatedNumberWithUnit[1], repeatedNumberWithUnit[2]].filter(Boolean).join(" ");
+    }
+
     const parts = text.split(" ");
     if (parts.length % 2 === 0) {
         const mid = parts.length / 2;
@@ -1538,9 +1543,17 @@ function formatMarketCap(value) {
         return "--";
     }
 
-    const number = Number(value);
+    const cleanedValue = dedupeRepeatedMetricText(value);
+    const text = String(cleanedValue || "").replace(/\s+/g, " ").trim();
+    const number = Number(text.replace(/,/g, "").replace(/\bCr\.?\b/gi, "").trim());
     if (Number.isNaN(number)) {
-        return escapeHtml(String(value));
+        return escapeHtml(text);
+    }
+
+    if (/cr\.?/i.test(text)) {
+        return `${number.toLocaleString("en-IN", {
+            maximumFractionDigits: 2
+        })} Cr`;
     }
 
     if (Math.abs(number) >= 10000000) {
