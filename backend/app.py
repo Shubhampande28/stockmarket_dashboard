@@ -370,14 +370,15 @@ SECTOR_GROUPS = {
 INDEX_GROUPS = {
     "nifty50": NIFTY50,
     "banknifty": [
-        "HDFCBANK", "ICICIBANK", "SBIN", "KOTAKBANK", "AXISBANK", "INDUSINDBK",
-        "BANKBARODA", "PNB", "IDFCFIRSTB", "FEDERALBNK", "AUBANK", "BANDHANBNK"
+        "KOTAKBANK", "HDFCBANK", "ICICIBANK", "AXISBANK", "SBIN", "PNB",
+        "UNIONBANK", "INDUSINDBK", "BANKBARODA", "CANBK", "FEDERALBNK",
+        "IDFCFIRSTB", "YESBANK", "AUBANK"
     ],
     "finnifty": [
-        "HDFCBANK", "ICICIBANK", "KOTAKBANK", "AXISBANK", "SBIN", "BAJFINANCE",
-        "BAJAJFINSV", "HDFCLIFE", "SBILIFE", "ICICIPRULI", "ICICIGI", "CHOLAFIN",
-        "SHRIRAMFIN", "MUTHOOTFIN", "PFC", "RECLTD", "LICHSGFIN", "SBICARD",
-        "ABCAPITAL", "LICI"
+        "KOTAKBANK", "BSE", "HDFCBANK", "ICICIBANK", "AXISBANK", "SBIN",
+        "BAJFINANCE", "CHOLAFIN", "SHRIRAMFIN", "SBILIFE", "JIOFIN",
+        "BAJAJFINSV", "PFC", "RECLTD", "ICICIGI", "MUTHOOTFIN", "HDFCLIFE",
+        "MFSL", "SBICARD", "LICHSGFIN"
     ],
     "sensex": [
         "RELIANCE", "TCS", "HDFCBANK", "ICICIBANK", "INFY", "ITC", "LT", "SBIN",
@@ -387,13 +388,11 @@ INDEX_GROUPS = {
         "M&M", "TATAMOTORS", "BAJAJFINSV", "ADANIPORTS", "INDUSINDBK"
     ],
     "midcpnifty": [
-        "COFORGE", "MPHASIS", "PERSISTENT", "LTIM", "OFSS", "AUBANK", "FEDERALBNK",
-        "IDFCFIRSTB", "BANDHANBNK", "PNB", "BANKBARODA", "CANBK", "LICI", "IRFC",
-        "PFC", "RECLTD", "HUDCO", "MUTHOOTFIN", "CHOLAFIN", "SHRIRAMFIN",
-        "AUROPHARMA", "LUPIN", "ALKEM", "BIOCON", "TORNTPHARM", "TVSMOTOR",
-        "ASHOKLEY", "BOSCHLTD", "INDIGO", "CONCOR", "ABB", "SIEMENS",
-        "HAVELLS", "PIDILITIND", "DABUR", "COLPAL", "GODREJCP", "PAGEIND",
-        "BERGEPAINT", "DMART", "ZOMATO"
+        "BSE", "BHEL", "INDUSTOWER", "SUZLON", "DIXON", "HEROMOTOCO",
+        "ASHOKLEY", "POLYCAB", "HINDPETRO", "INDUSINDBK", "PERSISTENT",
+        "SWIGGY", "INDIANB", "LUPIN", "FORTIS", "BHARATFORG", "PAYTM",
+        "YESBANK", "LICI", "AUBANK", "NAUKRI", "AUROPHARMA", "POLICYBZR",
+        "SRF", "MARICO"
     ]
 }
 
@@ -426,6 +425,7 @@ STOCK_NAMES = {
     "JSWSTEEL": "JSW Steel",
     "TATASTEEL": "Tata Steel",
     "ADANIPORTS": "Adani Ports",
+    "ETERNAL": "Eternal",
     "COALINDIA": "Coal India",
     "GRASIM": "Grasim Industries",
     "INDUSINDBK": "IndusInd Bank",
@@ -489,10 +489,32 @@ STOCK_NAMES = {
     "JINDALSTEL": "Jindal Steel",
     "NMDC": "NMDC",
     "TATAMOTORS": "Tata Motors",
+    "TMPV": "Tata Motors Passenger Vehicles",
     "M&M": "Mahindra & Mahindra",
     "ASHOKLEY": "Ashok Leyland",
     "TVSMOTOR": "TVS Motor",
-    "BAJAJ-AUTO": "Bajaj Auto"
+    "BAJAJ-AUTO": "Bajaj Auto",
+    "AUBANK": "AU Small Finance Bank",
+    "BEL": "Bharat Electronics",
+    "BHARATFORG": "Bharat Forge",
+    "BHEL": "BHEL",
+    "BSE": "BSE",
+    "DIXON": "Dixon Technologies",
+    "FORTIS": "Fortis Healthcare",
+    "HINDPETRO": "Hindustan Petroleum",
+    "ICICIGI": "ICICI Lombard General Insurance",
+    "INDIGO": "InterGlobe Aviation",
+    "INDUSTOWER": "Indus Towers",
+    "JIOFIN": "Jio Financial Services",
+    "MARICO": "Marico",
+    "MAXHEALTH": "Max Healthcare",
+    "MFSL": "Max Financial Services",
+    "POLYCAB": "Polycab India",
+    "SBICARD": "SBI Cards",
+    "SHRIRAMFIN": "Shriram Finance",
+    "SUZLON": "Suzlon Energy",
+    "SWIGGY": "Swiggy",
+    "TRENT": "Trent"
 }
 
 FINANCIAL_MODULES = {
