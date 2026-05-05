@@ -154,10 +154,16 @@ def build_index_quote_payload(index_quotes):
     for key, quote in index_quotes.items():
         instrument_key = quote.get("instrument_key") or key
         by_instrument_key[instrument_key] = quote
+        by_instrument_key[key] = quote
+        by_instrument_key[instrument_key.replace("|", ":")] = quote
 
     payload = {}
     for index, config in INDEX_QUOTE_CONFIG.items():
-        quote = by_instrument_key.get(config["instrumentKey"], {})
+        quote = (
+                by_instrument_key.get(config["instrumentKey"])
+                or by_instrument_key.get(config["instrumentKey"].replace("|", ":"))
+                or {}
+                )
         ltp = quote.get("last_price")
         net_change = quote.get("net_change")
         if ltp is None or net_change is None:
