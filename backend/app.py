@@ -115,6 +115,64 @@ def sort_by_change_desc(stocks):
 def sort_by_abs_change_desc(stocks):
     return sorted(stocks, key=lambda stock: abs(float(stock.get("change") or 0)), reverse=True)
 
+def unique_values(values):
+    return list(dict.fromkeys(value for value in values if value))
+
+def quote_percent_change(ltp, net_change):
+    previous_close = ltp - net_change
+    return (net_change / previous_close) * 100 if previous_close else 0
+
+def index_member_aliases(symbol):
+    base_symbol = to_nse_base_symbol(symbol)
+    return SYMBOL_ALIASES.get(base_symbol, {base_symbol})
+
+def matches_index_symbol(stock, index_symbol):
+    stock_symbol = to_nse_base_symbol(stock.get("symbol"))
+    return stock_symbol in index_member_aliases(index_symbol)
+
+def fetch_upstox_quotes(headers, instrument_keys):
+    if not instrument_keys:
+        return {}
+
+    url = "https://api.upstox.com/v2/market-quote/quotes"
+    params = {"instrument_key": ",".join(unique_values(instrument_keys))}
+    res = requests.get(url, headers=headers, params=params, timeout=15)
+    res.raise_for_status()
+    return res.json().get("data", {}) or {}
+
+def fetch_index_quotes(headers):
+    quotes = {}
+    for config in INDEX_QUOTE_CONFIG.values():
+        try:
+            quotes.update(fetch_upstox_quotes(headers, [config["instrumentKey"]]))
+        except requests.RequestException:
+            continue
+    return quotes
+
+def build_index_quote_payload(index_quotes):
+    by_instrument_key = {}
+    for key, quote in index_quotes.items():
+        instrument_key = quote.get("instrument_key") or key
+        by_instrument_key[instrument_key] = quote
+
+    payload = {}
+    for index, config in INDEX_QUOTE_CONFIG.items():
+        quote = by_instrument_key.get(config["instrumentKey"], {})
+        ltp = quote.get("last_price")
+        net_change = quote.get("net_change")
+        if ltp is None or net_change is None:
+            payload[index] = {"label": config["label"]}
+            continue
+
+        payload[index] = {
+            "label": config["label"],
+            "price": round(float(ltp), 2),
+            "netChange": round(float(net_change), 2),
+            "change": round(quote_percent_change(float(ltp), float(net_change)), 2)
+        }
+
+    return payload
+
 def get_upstox_config():
     return {
         "client_id": os.environ.get("UPSTOX_CLIENT_ID", "").strip(),
@@ -396,6 +454,36 @@ INDEX_GROUPS = {
     ]
 }
 
+INDEX_QUOTE_CONFIG = {
+    "nifty50": {
+        "label": "NIFTY 50",
+        "instrumentKey": "NSE_INDEX|Nifty 50"
+    },
+    "banknifty": {
+        "label": "BANK NIFTY",
+        "instrumentKey": "NSE_INDEX|Nifty Bank"
+    },
+    "finnifty": {
+        "label": "FIN NIFTY",
+        "instrumentKey": "NSE_INDEX|Nifty Fin Service"
+    },
+    "sensex": {
+        "label": "SENSEX",
+        "instrumentKey": "BSE_INDEX|SENSEX"
+    },
+    "midcpnifty": {
+        "label": "MIDCPNIFTY",
+        "instrumentKey": "NSE_INDEX|Nifty Midcap Select"
+    }
+}
+
+SYMBOL_ALIASES = {
+    "ETERNAL": {"ETERNAL", "ZOMATO"},
+    "ZOMATO": {"ETERNAL", "ZOMATO"},
+    "TMPV": {"TMPV", "TATAMOTORS"},
+    "TATAMOTORS": {"TMPV", "TATAMOTORS"}
+}
+
 STOCK_NAMES = {
     "RELIANCE": "Reliance Industries",
     "TCS": "Tata Consultancy",
@@ -618,18 +706,15 @@ def get_stocks():
     }
 
     instrument_map = load_instrument_map()
-    instrument_keys = list(instrument_map.values())
+    instrument_keys = unique_values(instrument_map.values())
     card_metrics = load_card_metrics()
 
-    url = "https://api.upstox.com/v2/market-quote/quotes"
-    params = {"instrument_key": ",".join(instrument_keys)}
-
-    res = requests.get(url, headers=headers, params=params)
-
-    if res.status_code != 200:
+    try:
+        data = fetch_upstox_quotes(headers, instrument_keys)
+    except requests.RequestException:
         return jsonify({"all": [], "gainers": [], "losers": []})
 
-    data = res.json().get("data", {})
+    index_quote_data = fetch_index_quotes(headers)
 
     stocks_data = []
 
@@ -692,7 +777,7 @@ def get_stocks():
     index_stocks = {
         index: sort_by_change_desc([
             s for s in stocks_data
-            if s["symbol"].replace(".NS", "") in set(symbols)
+            if any(matches_index_symbol(s, symbol) for symbol in symbols)
         ])
         for index, symbols in INDEX_GROUPS.items()
     }
@@ -704,6 +789,7 @@ def get_stocks():
         "losers": losers,
         **sector_stocks,
         **index_stocks,
+        "indexQuotes": build_index_quote_payload(index_quote_data),
         "others": sort_by_change_desc(others)
     })
 

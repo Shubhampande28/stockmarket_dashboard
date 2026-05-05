@@ -25,6 +25,7 @@ const viewLabels = {
 let currentView = "movers";
 let fullData = {};
 let fullUniverse = [];
+let indexQuotes = {};
 let visibleStocks = [];
 let searchTerm = "";
 let resizeTimer;
@@ -93,7 +94,7 @@ async function loadHeatmap() {
     setLoading(true);
 
     try {
-        const res = await fetch(`${API_BASE}/stocks`);
+        const res = await fetch(`${API_BASE}/stocks`, { cache: "no-store" });
 
         if (!res.ok) {
             throw new Error("Unable to reach market service.");
@@ -106,7 +107,9 @@ async function loadHeatmap() {
         }
 
         fullData = normalizePayload(data);
+        indexQuotes = data.indexQuotes || {};
         fullUniverse = buildFullUniverse(fullData);
+        updateIndexCards();
         updateSummary();
         renderGrid();
         setStatus("ready", "Live data loaded");
@@ -114,6 +117,8 @@ async function loadHeatmap() {
         openRequestedStockDetail();
     } catch (error) {
         fullData = {};
+        indexQuotes = {};
+        updateIndexCards();
         renderGrid();
         showMessage(error.message || "Something went wrong while loading market data.", "error");
         setStatus("error", "Offline");
@@ -204,6 +209,28 @@ function updateSummary() {
     gainerCount.textContent = gainers.length || "--";
     loserCount.textContent = losers.length || "--";
     avgChange.textContent = stocks.length ? formatChange(average) : "--";
+}
+
+function updateIndexCards() {
+    document.querySelectorAll("[data-index-view]").forEach(button => {
+        const quote = indexQuotes[button.dataset.indexView] || {};
+        const priceNode = button.querySelector("strong");
+        const changeNode = button.querySelector("em");
+
+        if (priceNode) {
+            priceNode.textContent = quote.price === null || quote.price === undefined
+                ? "--"
+                : formatPrice(quote.price);
+        }
+
+        if (changeNode) {
+            changeNode.textContent = quote.netChange === null || quote.netChange === undefined
+                ? "Live quote unavailable"
+                : `${formatNetChange(quote.netChange)} (${formatChange(quote.change)})`;
+            changeNode.classList.toggle("gain", Number(quote.change || 0) >= 0 && quote.netChange !== undefined);
+            changeNode.classList.toggle("loss", Number(quote.change || 0) < 0);
+        }
+    });
 }
 
 function loadView(type) {
