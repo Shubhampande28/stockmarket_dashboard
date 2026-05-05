@@ -1871,6 +1871,16 @@ def set_token():
     save_token(data)
     return jsonify({"status": "saved"})
 
+def fetch_index_quotes(headers):
+    quotes = {}
+    for index, config in INDEX_QUOTE_CONFIG.items():
+        try:
+            result = fetch_upstox_quotes(headers, [config["instrumentKey"]])
+            print("INDEX", index, config["instrumentKey"], result)
+            quotes.update(result)
+        except requests.RequestException as e:
+            print("INDEX FETCH FAILED", index, config["instrumentKey"], e)
+    return quotes
 # =========================
 # RUN
 # =========================
