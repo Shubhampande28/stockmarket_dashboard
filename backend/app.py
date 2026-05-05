@@ -783,6 +783,7 @@ def get_stocks():
     }
 
     return jsonify({
+        "debug_index_quotes": index_quote_data,
         "movers": movers,
         "all": sort_by_change_desc(stocks_data),
         "gainers": gainers,
