@@ -787,17 +787,17 @@ def get_stocks():
         ])
         for index, symbols in INDEX_GROUPS.items()
     }
-
+    print("INDEX DATA =", build_index_quote_payload(index_quote_data))
     return jsonify({
-        "debug_index_quotes": index_quote_data,
-        "movers": movers,
-        "all": sort_by_change_desc(stocks_data),
-        "gainers": gainers,
-        "losers": losers,
-        **sector_stocks,
-        **index_stocks,
-        "indexQuotes": build_index_quote_payload(index_quote_data),
-        "others": sort_by_change_desc(others)
+    "debug_index_quotes": index_quote_data,
+    "movers": movers,
+    "all": sort_by_change_desc(stocks_data),
+    "gainers": gainers,
+    "losers": losers,
+    **sector_stocks,
+    **index_stocks,
+    "indexQuotes": build_index_quote_payload(index_quote_data),
+    "others": sort_by_change_desc(others)
     })
 
 def yahoo_raw_value(value):
@@ -1877,6 +1877,33 @@ def set_token():
     data = request.json
     save_token(data)
     return jsonify({"status": "saved"})
+def fetch_upstox_quotes(headers, instrument_keys):
+    ...
+    return res.json().get("data", {}) or {}
+
+
+INDEX_QUOTE_CONFIG = {
+    "nifty50": {
+        "label": "NIFTY 50",
+        "instrumentKey": "NSE_INDEX|Nifty 50"
+    },
+    "banknifty": {
+        "label": "BANK NIFTY",
+        "instrumentKey": "NSE_INDEX|Nifty Bank"
+    },
+    "finnifty": {
+        "label": "FIN NIFTY",
+        "instrumentKey": "NSE_INDEX|Nifty Fin Service"
+    },
+    "sensex": {
+        "label": "SENSEX",
+        "instrumentKey": "BSE_INDEX|SENSEX"
+    },
+    "midcpnifty": {
+        "label": "MIDCPNIFTY",
+        "instrumentKey": "NSE_INDEX|Nifty Mid Select"
+    }
+}
 
 def fetch_index_quotes(headers):
     quotes = {}
