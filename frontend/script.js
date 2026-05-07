@@ -662,7 +662,7 @@ function renderSearchSuggestions() {
             <button class="search-suggestion" type="button" data-symbol="${escapeAttribute(stock.symbol)}" role="option">
                 <span>
                     <strong>${escapeHtml(symbol)}</strong>
-                    <small>${escapeHtml(symbol)}</small>
+                    <small>${escapeHtml(stock.name || symbol)}</small>
                 </span>
                 <span class="suggestion-price">
                     <strong>₹${formatPrice(stock.price)}</strong>
