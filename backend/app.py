@@ -718,13 +718,16 @@ def get_stocks():
     try:
         data = fetch_upstox_quotes(headers, instrument_keys)
     except Exception as e:
-        print("STOCK FETCH ERROR =", e)
+        import traceback
+        traceback.print_exc()
+        print("STOCK FETCH ERROR =", str(e))
         data = {}
 
     try:
         index_quote_data = fetch_index_quotes(headers)
     except Exception as e:
-        print("INDEX FETCH ERROR =", e)
+        traceback.print_exc()
+        print("INDEX FETCH ERROR =", str(e))
         index_quote_data = {}
 
     stocks_data = []
