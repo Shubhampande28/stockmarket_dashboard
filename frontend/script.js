@@ -505,7 +505,6 @@ function createStockCard(stock, index) {
     card.innerHTML = `
         ${index === 0 ? `<div class="top-signal-label">${escapeHtml(getTopSignalLabel(stock))}</div>` : ""}
         <div class="stock-card-header">
-            // <span class="stock-card-name">${escapeHtml(stock.name || symbol)}</span>
             <span class="stock-card-name">${escapeHtml(symbol)}</span>
             <span class="stock-card-rank">#${index + 1}</span>
         </div>
@@ -663,7 +662,6 @@ function renderSearchSuggestions() {
             <button class="search-suggestion" type="button" data-symbol="${escapeAttribute(stock.symbol)}" role="option">
                 <span>
                     <strong>${escapeHtml(symbol)}</strong>
-                    // <small>${escapeHtml(stock.name || symbol)}</small>
                     <small>${escapeHtml(symbol)}</small>
                 </span>
                 <span class="suggestion-price">
@@ -741,7 +739,6 @@ function renderPhoneGrid(stocks, intensityMap) {
         tile.innerHTML = `
             <div class="mobile-tile-head">
                 <div class="mobile-tile-identity">
-                    // <strong>${escapeHtml(stock.name || stock.symbol.replace(".NS", ""))}</strong>
                     <strong>${escapeHtml(stock.symbol.replace(".NS", ""))}</strong>
                     <small>${escapeHtml(stock.symbol.replace(".NS", ""))}</small>
                 </div>
