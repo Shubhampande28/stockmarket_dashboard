@@ -717,10 +717,15 @@ def get_stocks():
 
     try:
         data = fetch_upstox_quotes(headers, instrument_keys)
-    except requests.RequestException:
-        return jsonify({"all": [], "gainers": [], "losers": []})
+    except Exception as e:
+        print("STOCK FETCH ERROR =", e)
+        data = {}
 
-    index_quote_data = fetch_index_quotes(headers)
+    try:
+        index_quote_data = fetch_index_quotes(headers)
+    except Exception as e:
+        print("INDEX FETCH ERROR =", e)
+        index_quote_data = {}
 
     stocks_data = []
 
@@ -788,6 +793,9 @@ def get_stocks():
         for index, symbols in INDEX_GROUPS.items()
     }
     print("INDEX DATA =", build_index_quote_payload(index_quote_data))
+    print("INDEX QUOTE DATA =", index_quote_data)
+
+
     return jsonify({
     "debug_index_quotes": index_quote_data,
     "movers": movers,
