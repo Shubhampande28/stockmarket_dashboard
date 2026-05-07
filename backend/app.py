@@ -130,15 +130,53 @@ def matches_index_symbol(stock, index_symbol):
     stock_symbol = to_nse_base_symbol(stock.get("symbol"))
     return stock_symbol in index_member_aliases(index_symbol)
 
-def fetch_upstox_quotes(headers, instrument_keys):
-    if not instrument_keys:
-        return {}
+# def fetch_upstox_quotes(headers, instrument_keys):
+#     if not instrument_keys:
+#         return {}
 
+#     url = "https://api.upstox.com/v2/market-quote/quotes"
+#     params = {"instrument_key": ",".join(unique_values(instrument_keys))}
+#     res = requests.get(url, headers=headers, params=params, timeout=15)
+#     res.raise_for_status()
+#     return res.json().get("data", {}) or {}
+
+
+def fetch_upstox_quotes(headers, instrument_keys):
     url = "https://api.upstox.com/v2/market-quote/quotes"
-    params = {"instrument_key": ",".join(unique_values(instrument_keys))}
-    res = requests.get(url, headers=headers, params=params, timeout=15)
-    res.raise_for_status()
-    return res.json().get("data", {}) or {}
+
+    all_data = {}
+
+    # batch helper
+    def chunked(lst, size):
+        for i in range(0, len(lst), size):
+            yield lst[i:i + size]
+
+    # fetch in batches of 100
+    for batch in chunked(instrument_keys, 100):
+
+        params = {
+            "instrument_key": ",".join(batch)
+        }
+
+        try:
+            res = requests.get(
+                url,
+                headers=headers,
+                params=params,
+                timeout=20
+            )
+
+            res.raise_for_status()
+
+            data = res.json().get("data", {}) or {}
+
+            all_data.update(data)
+
+        except Exception as e:
+            print("BATCH FAILED =", str(e))
+            print("FAILED BATCH =", batch[:5])
+
+    return all_data
 
 def fetch_index_quotes(headers):
     quotes = {}
