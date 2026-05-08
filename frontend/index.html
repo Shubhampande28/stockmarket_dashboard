@@ -54,37 +54,66 @@
             </div>
         </div>
 
-        <div class="hero-visual" aria-label="Market analytics preview">
-            <div class="preview-glow"></div>
-            <div class="preview-panel">
-                <div class="preview-header">
-                    <span>Live Momentum</span>
-                    <strong id="heroMarketCount">-- stocks tracked</strong>
+        <div class="hero-visual" aria-label="Market Pulse visualization">
+            <div class="market-pulse-panel">
+                <div class="market-pulse-glow"></div>
+                <header class="market-pulse-head">
+                    <div>
+                        <span>MARKET PULSE</span>
+                        <strong id="heroMarketCount">Mock live movers</strong>
+                    </div>
+                    <em>Live-style preview</em>
+                </header>
+                <div class="market-pulse-field" id="marketPulseField" aria-label="Top moving stocks">
+                    <div class="pulse-orbit one"></div>
+                    <div class="pulse-orbit two"></div>
+                    <div class="pulse-tile positive" data-pulse-tile data-symbol="RELIANCE">
+                        <strong>RELIANCE</strong>
+                        <span>+1.8%</span>
+                    </div>
+                    <div class="pulse-tile positive" data-pulse-tile data-symbol="HDFCBANK">
+                        <strong>HDFCBANK</strong>
+                        <span>+0.9%</span>
+                    </div>
+                    <div class="pulse-tile negative" data-pulse-tile data-symbol="INFY">
+                        <strong>INFY</strong>
+                        <span>-1.1%</span>
+                    </div>
+                    <div class="pulse-tile positive" data-pulse-tile data-symbol="ICICIBANK">
+                        <strong>ICICIBANK</strong>
+                        <span>+1.4%</span>
+                    </div>
+                    <div class="pulse-tile negative" data-pulse-tile data-symbol="TCS">
+                        <strong>TCS</strong>
+                        <span>-0.7%</span>
+                    </div>
+                    <div class="pulse-tile positive" data-pulse-tile data-symbol="SBIN">
+                        <strong>SBIN</strong>
+                        <span>+2.2%</span>
+                    </div>
+                    <div class="pulse-tile positive" data-pulse-tile data-symbol="LT">
+                        <strong>LT</strong>
+                        <span>+0.6%</span>
+                    </div>
+                    <div class="pulse-tile negative" data-pulse-tile data-symbol="ITC">
+                        <strong>ITC</strong>
+                        <span>-0.4%</span>
+                    </div>
                 </div>
-                <div class="mini-heatmap" aria-hidden="true">
-                    <span class="heat up strong"></span>
-                    <span class="heat down"></span>
-                    <span class="heat up"></span>
-                    <span class="heat flat"></span>
-                    <span class="heat down strong"></span>
-                    <span class="heat up"></span>
-                    <span class="heat up strong"></span>
-                    <span class="heat down"></span>
-                    <span class="heat flat"></span>
-                    <span class="heat up"></span>
-                    <span class="heat down"></span>
-                    <span class="heat up strong"></span>
-                </div>
-                <div class="preview-chart" aria-hidden="true">
-                    <div class="chart-grid"></div>
-                    <div class="chart-line"></div>
-                    <span class="chart-dot"></span>
-                </div>
-                <div class="sentiment-card">
-                    <span>Market Sentiment</span>
-                    <strong id="heroSentiment">Scanning market</strong>
-                    <em id="heroBreadth">Breadth pending</em>
-                </div>
+                <footer class="market-pulse-summary">
+                    <div>
+                        <span>Market Breadth</span>
+                        <strong id="heroSentiment">Scanning market</strong>
+                    </div>
+                    <div>
+                        <span>Advancers vs Decliners</span>
+                        <strong id="heroBreadth">Breadth pending</strong>
+                    </div>
+                    <div>
+                        <span>Top Sector</span>
+                        <strong id="heroTopSector">--</strong>
+                    </div>
+                </footer>
             </div>
         </div>
     </section>
@@ -223,5 +252,6 @@
     </div>
 
     <script src="./script.js?v=20260505-index-refresh-mobile-scroll"></script>
+    <script type="module" src="./market-pulse.mjs?v=20260508-market-pulse"></script>
 </body>
 </html>

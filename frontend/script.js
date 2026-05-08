@@ -224,6 +224,7 @@ function updateTopExperience() {
     const heroMarketCount = document.getElementById("heroMarketCount");
     const heroSentiment = document.getElementById("heroSentiment");
     const heroBreadth = document.getElementById("heroBreadth");
+    const heroTopSector = document.getElementById("heroTopSector");
 
     if (heroMarketCount) {
         heroMarketCount.textContent = stocks.length ? `${stocks.length} stocks tracked` : "-- stocks tracked";
@@ -267,6 +268,9 @@ function updateTopExperience() {
         topSectorChange.textContent = topSector ? formatChange(topSector.average) : "Waiting for data";
         topSectorChange.classList.toggle("gain", Boolean(topSector) && topSector.average >= 0);
         topSectorChange.classList.toggle("loss", Boolean(topSector) && topSector.average < 0);
+    }
+    if (heroTopSector) {
+        heroTopSector.textContent = topSector ? `${viewLabels[topSector.key]} ${formatChange(topSector.average)}` : "--";
     }
 }
 
