@@ -195,6 +195,7 @@ function hideMessage() {
 
 function updateSummary() {
     if (!stockCount || !gainerCount || !loserCount || !avgChange) {
+        updateTopExperience();
         return;
     }
 
@@ -209,6 +210,64 @@ function updateSummary() {
     gainerCount.textContent = gainers.length || "--";
     loserCount.textContent = losers.length || "--";
     avgChange.textContent = stocks.length ? formatChange(average) : "--";
+    updateTopExperience();
+}
+
+function updateTopExperience() {
+    const stocks = fullData.all || [];
+    const gainers = stocks.filter(stock => Number(stock.change || 0) > 0);
+    const losers = stocks.filter(stock => Number(stock.change || 0) < 0);
+    const breadthValue = document.getElementById("marketBreadthValue");
+    const breadthChange = document.getElementById("marketBreadthChange");
+    const topSectorValue = document.getElementById("topSectorValue");
+    const topSectorChange = document.getElementById("topSectorChange");
+    const heroMarketCount = document.getElementById("heroMarketCount");
+    const heroSentiment = document.getElementById("heroSentiment");
+    const heroBreadth = document.getElementById("heroBreadth");
+
+    if (heroMarketCount) {
+        heroMarketCount.textContent = stocks.length ? `${stocks.length} stocks tracked` : "-- stocks tracked";
+    }
+
+    const breadthRatio = stocks.length ? (gainers.length / stocks.length) * 100 : 0;
+    const sentiment = breadthRatio >= 58 ? "Bullish momentum" : breadthRatio <= 42 ? "Defensive market" : "Mixed momentum";
+
+    if (heroSentiment) {
+        heroSentiment.textContent = stocks.length ? sentiment : "Scanning market";
+    }
+    if (heroBreadth) {
+        heroBreadth.textContent = stocks.length ? `${gainers.length} advancing / ${losers.length} declining` : "Breadth pending";
+    }
+    if (breadthValue) {
+        breadthValue.textContent = stocks.length ? `${gainers.length} / ${losers.length}` : "--";
+    }
+    if (breadthChange) {
+        breadthChange.textContent = stocks.length ? `${breadthRatio.toFixed(0)}% advancing` : "Waiting for data";
+        breadthChange.classList.toggle("gain", breadthRatio >= 50 && stocks.length > 0);
+        breadthChange.classList.toggle("loss", breadthRatio < 50 && stocks.length > 0);
+    }
+
+    const sectorViews = ["it", "bank", "finance", "auto", "pharma", "fmcg", "metal", "energy", "cement", "consumer", "infra"];
+    const rankedSectors = sectorViews
+        .map(key => {
+            const sectorStocks = fullData[key] || [];
+            const average = sectorStocks.length
+                ? sectorStocks.reduce((total, stock) => total + Number(stock.change || 0), 0) / sectorStocks.length
+                : null;
+            return { key, average };
+        })
+        .filter(sector => sector.average !== null)
+        .sort((a, b) => b.average - a.average);
+    const topSector = rankedSectors[0];
+
+    if (topSectorValue) {
+        topSectorValue.textContent = topSector ? viewLabels[topSector.key] : "--";
+    }
+    if (topSectorChange) {
+        topSectorChange.textContent = topSector ? formatChange(topSector.average) : "Waiting for data";
+        topSectorChange.classList.toggle("gain", Boolean(topSector) && topSector.average >= 0);
+        topSectorChange.classList.toggle("loss", Boolean(topSector) && topSector.average < 0);
+    }
 }
 
 function updateIndexCards() {
@@ -1733,6 +1792,15 @@ document.querySelectorAll(".tab-button").forEach(button => {
 
 document.querySelectorAll("[data-index-view]").forEach(button => {
     button.addEventListener("click", () => loadView(button.dataset.indexView));
+});
+
+document.querySelectorAll("[data-hero-action]").forEach(button => {
+    button.addEventListener("click", () => {
+        if (button.dataset.heroAction === "trends") {
+            loadView("movers");
+        }
+        document.getElementById("heatmapPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
 });
 
 document.querySelectorAll(".sector-trigger").forEach(button => {

@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Market Heatmap</title>
+    <title>Equilytics | Market Intelligence Platform</title>
     <link rel="stylesheet" href="./style.css?v=20260505-index-refresh-mobile-scroll">
 </head>
 <body>
     <header class="site-header" aria-label="Primary navigation">
         <div class="header-inner">
-            <a class="brand-logo" href="#" aria-label="Stock Heatmap home">
-                <span class="brand-mark">SH</span>
-                <span>Stock Heatmap</span>
+            <a class="brand-logo" href="#" aria-label="Equilytics home">
+                <span class="brand-mark">EQ</span>
+                <span class="brand-copy">
+                    <strong>Equilytics</strong>
+                    <small>Market Intelligence Platform</small>
+                </span>
             </a>
 
             <nav class="main-nav" aria-label="Main menu">
-                <a class="active" href="#">Home</a>
-                <a href="#">Heatmap</a>
+                <a class="active" href="#">Markets</a>
+                <a href="#heatmapPanel">Heatmap</a>
                 <a href="#">Screeners</a>
-                <a href="#">Insights</a>
                 <div class="sector-menu nav-sector-menu">
                     <button class="sector-trigger" type="button" aria-haspopup="true" aria-expanded="false">Sectors</button>
                     <div class="sector-dropdown" role="menu" aria-label="Sector filters">
@@ -35,10 +37,57 @@
                         <button class="tab-button" type="button" data-view="infra" role="menuitem">Infra</button>
                     </div>
                 </div>
+                <a href="#">Insights</a>
             </nav>
 
         </div>
     </header>
+
+    <section class="hero-section" aria-labelledby="heroTitle">
+        <div class="hero-copy">
+            <p class="hero-kicker">Real-time market intelligence</p>
+            <h1 id="heroTitle">Visualize Market Momentum in Real Time</h1>
+            <p class="hero-subtitle">Track NIFTY 50 performance, sector strength, market movers, and stock trends through a clean interactive analytics platform.</p>
+            <div class="hero-actions">
+                <button class="hero-button primary" type="button" data-hero-action="heatmap">Explore Heatmap</button>
+                <button class="hero-button secondary" type="button" data-hero-action="trends">View Market Trends</button>
+            </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Market analytics preview">
+            <div class="preview-glow"></div>
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <span>Live Momentum</span>
+                    <strong id="heroMarketCount">-- stocks tracked</strong>
+                </div>
+                <div class="mini-heatmap" aria-hidden="true">
+                    <span class="heat up strong"></span>
+                    <span class="heat down"></span>
+                    <span class="heat up"></span>
+                    <span class="heat flat"></span>
+                    <span class="heat down strong"></span>
+                    <span class="heat up"></span>
+                    <span class="heat up strong"></span>
+                    <span class="heat down"></span>
+                    <span class="heat flat"></span>
+                    <span class="heat up"></span>
+                    <span class="heat down"></span>
+                    <span class="heat up strong"></span>
+                </div>
+                <div class="preview-chart" aria-hidden="true">
+                    <div class="chart-grid"></div>
+                    <div class="chart-line"></div>
+                    <span class="chart-dot"></span>
+                </div>
+                <div class="sentiment-card">
+                    <span>Market Sentiment</span>
+                    <strong id="heroSentiment">Scanning market</strong>
+                    <em id="heroBreadth">Breadth pending</em>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <section class="filter-bar-wrap" aria-label="Market filters">
         <div class="index-strip" aria-label="Market index deltas">
@@ -67,6 +116,16 @@
                 <strong>--</strong>
                 <em>Loading quote</em>
             </button>
+            <button class="index-card market-overview-card" type="button" data-view="all">
+                <span>Market Breadth</span>
+                <strong id="marketBreadthValue">--</strong>
+                <em id="marketBreadthChange">Waiting for data</em>
+            </button>
+            <button class="index-card market-overview-card" type="button" data-view="sectors">
+                <span>Top Sector</span>
+                <strong id="topSectorValue">--</strong>
+                <em id="topSectorChange">Waiting for data</em>
+            </button>
         </div>
 
         <div class="filter-bar">
@@ -86,7 +145,7 @@
     </section>
 
     <main class="app-shell">
-        <section class="heatmap-panel">
+        <section class="heatmap-panel" id="heatmapPanel">
             <header class="panel-heading">
                 <div>
                     <h2 id="viewTitle">Top 10 gainers and losers</h2>
