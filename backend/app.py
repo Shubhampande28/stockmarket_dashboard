@@ -7,6 +7,7 @@ import random
 import re
 import secrets
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import wraps
 from html import escape
 import xml.etree.ElementTree as ET
@@ -154,9 +155,7 @@ def fetch_upstox_quotes(headers, instrument_keys):
         for i in range(0, len(lst), size):
             yield lst[i:i + size]
 
-    # fetch in batches of 100
-    for batch in chunked(instrument_keys, 100):
-
+    def fetch_batch(batch):
         params = {
             "instrument_key": ",".join(batch)
         }
@@ -173,11 +172,21 @@ def fetch_upstox_quotes(headers, instrument_keys):
 
             data = res.json().get("data", {}) or {}
 
-            all_data.update(data)
+            return data
 
         except Exception as e:
             print("BATCH FAILED =", str(e))
             print("FAILED BATCH =", batch[:5])
+            return {}
+
+    batches = list(chunked(instrument_keys, 100))
+    if len(batches) <= 1:
+        return fetch_batch(batches[0]) if batches else {}
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(fetch_batch, batch) for batch in batches]
+        for future in as_completed(futures):
+            all_data.update(future.result())
 
     return all_data
 
@@ -1894,13 +1903,11 @@ def set_token():
 
 def fetch_index_quotes(headers):
     quotes = {}
-    for index, config in INDEX_QUOTE_CONFIG.items():
-        try:
-            result = fetch_upstox_quotes(headers, [config["instrumentKey"]])
-            print("INDEX", index, config["instrumentKey"], result)
-            quotes.update(result)
-        except requests.RequestException as e:
-            print("INDEX FETCH FAILED", index, config["instrumentKey"], e)
+    instrument_keys = [config["instrumentKey"] for config in INDEX_QUOTE_CONFIG.values()]
+    try:
+        quotes.update(fetch_upstox_quotes(headers, instrument_keys))
+    except requests.RequestException as e:
+        print("INDEX FETCH FAILED", e)
     return quotes
 # =========================
 # RUN
