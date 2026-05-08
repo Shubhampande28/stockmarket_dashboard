@@ -22,7 +22,7 @@ const viewLabels = {
     others: "Others"
 };
 
-let currentView = "movers";
+let currentView = "nifty50";
 let fullData = {};
 let fullUniverse = [];
 let indexQuotes = {};
@@ -32,6 +32,8 @@ let resizeTimer;
 let activeStatementType = "news";
 let activeFinancials = null;
 let activeStock = null;
+let selectedWorkspaceStock = null;
+let activeTrendTab = "gainers";
 let standaloneStockRendered = false;
 let tradingViewScriptPromise = null;
 const API_BASE = "";
@@ -89,6 +91,14 @@ const financialTitle = document.getElementById("financialTitle");
 const financialMeta = document.getElementById("financialMeta");
 const statementMessage = document.getElementById("statementMessage");
 const statementContent = document.getElementById("statementContent");
+const platform = document.getElementById("platform");
+const heatmapPanel = document.getElementById("heatmapPanel");
+const trendsPanel = document.getElementById("trendsPanel");
+let intelligencePanel = document.getElementById("intelligencePanel");
+let sectorPerformanceList = document.getElementById("sectorPerformanceList");
+let trendHeroGrid = document.getElementById("trendHeroGrid");
+let sectorMomentumGrid = document.getElementById("sectorMomentumGrid");
+let trendMoversList = document.getElementById("trendMoversList");
 
 async function loadHeatmap() {
     setLoading(true);
@@ -124,6 +134,118 @@ async function loadHeatmap() {
         setStatus("error", "Offline");
     } finally {
         setLoading(false);
+    }
+}
+
+function setupPremiumExperience() {
+    if (!platform || !heatmapPanel || platform.classList.contains("premium-ready")) {
+        return;
+    }
+
+    platform.classList.add("premium-ready");
+
+    const legacyFilterBar = document.querySelector(".filter-bar");
+    const toolbar = document.createElement("div");
+    toolbar.className = "workspace-toolbar";
+    toolbar.innerHTML = `
+        <button class="toolbar-select" type="button" data-index-view="nifty50">NIFTY50</button>
+        <div class="timeframe-group" aria-label="Timeframe">
+            <button class="timeframe active" type="button">1D</button>
+            <button class="timeframe" type="button">1W</button>
+            <button class="timeframe" type="button">1M</button>
+            <button class="timeframe" type="button">1Y</button>
+        </div>
+        <div class="sector-menu toolbar-sector-menu">
+            <button class="toolbar-select sector-trigger" type="button" aria-haspopup="true" aria-expanded="false">All Sectors</button>
+            <div class="sector-dropdown" role="menu" aria-label="Sector filters">
+                <button class="tab-button" type="button" data-view="all" role="menuitem">All Sectors</button>
+                <button class="tab-button" type="button" data-view="it" role="menuitem">Technology</button>
+                <button class="tab-button" type="button" data-view="bank" role="menuitem">Banking</button>
+                <button class="tab-button" type="button" data-view="energy" role="menuitem">Energy</button>
+                <button class="tab-button" type="button" data-view="auto" role="menuitem">Auto</button>
+                <button class="tab-button" type="button" data-view="pharma" role="menuitem">Pharma</button>
+            </div>
+        </div>
+    `;
+    if (legacyFilterBar) {
+        toolbar.appendChild(legacyFilterBar);
+    }
+    heatmapPanel.prepend(toolbar);
+
+    const workspaceGrid = document.createElement("div");
+    workspaceGrid.className = "workspace-grid";
+    const sectorSidebar = document.createElement("aside");
+    sectorSidebar.className = "sector-sidebar";
+    sectorSidebar.setAttribute("aria-label", "Sector intelligence");
+    sectorSidebar.innerHTML = `
+        <section>
+            <p class="workspace-eyebrow">Sector Intelligence</p>
+            <div class="sector-performance-list" id="sectorPerformanceList"></div>
+        </section>
+        <section>
+            <p class="workspace-eyebrow">Market Filters</p>
+            <div class="filter-pill-grid">
+                <button class="filter-pill active" type="button">Large Cap</button>
+                <button class="filter-pill" type="button">Mid Cap</button>
+                <button class="filter-pill" type="button">Small Cap</button>
+                <button class="filter-pill" type="button">Momentum</button>
+                <button class="filter-pill" type="button">Breakouts</button>
+                <button class="filter-pill" type="button">Volume Shock</button>
+            </div>
+        </section>
+    `;
+
+    const heatmapStage = document.createElement("section");
+    heatmapStage.className = "heatmap-stage";
+    while (heatmapPanel.childNodes.length) {
+        heatmapStage.appendChild(heatmapPanel.childNodes[0]);
+    }
+
+    intelligencePanel = document.createElement("aside");
+    intelligencePanel.className = "intelligence-panel";
+    intelligencePanel.id = "intelligencePanel";
+    intelligencePanel.setAttribute("aria-label", "Market intelligence");
+
+    workspaceGrid.append(sectorSidebar, heatmapStage, intelligencePanel);
+    heatmapPanel.appendChild(workspaceGrid);
+    sectorPerformanceList = document.getElementById("sectorPerformanceList");
+
+    if (trendsPanel && !trendsPanel.innerHTML.trim()) {
+        trendsPanel.innerHTML = `
+            <div class="trend-hero-grid" id="trendHeroGrid"></div>
+            <section class="trend-section trend-timeline-section">
+                <p class="workspace-eyebrow">Intraday Timeline</p>
+                <div class="trend-timeline">
+                    <button type="button"><span>09:15</span><strong>Banking weak opening</strong></button>
+                    <button type="button"><span>10:20</span><strong>IT momentum pickup</strong></button>
+                    <button type="button"><span>11:05</span><strong>Reliance breakout</strong></button>
+                    <button type="button"><span>12:10</span><strong>Pharma reversal</strong></button>
+                </div>
+            </section>
+            <section class="trend-section">
+                <p class="workspace-eyebrow">Sector Momentum</p>
+                <div class="sector-momentum-grid" id="sectorMomentumGrid"></div>
+            </section>
+            <section class="trend-section">
+                <div class="trend-section-head">
+                    <p class="workspace-eyebrow">Top Movers</p>
+                    <div class="trend-tabs" role="tablist" aria-label="Top movers">
+                        <button class="trend-tab active" type="button" data-trend-tab="gainers">Top Gainers</button>
+                        <button class="trend-tab" type="button" data-trend-tab="losers">Top Losers</button>
+                        <button class="trend-tab" type="button" data-trend-tab="active">Most Active</button>
+                        <button class="trend-tab" type="button" data-trend-tab="breakouts">Breakouts</button>
+                    </div>
+                </div>
+                <div class="trend-movers-list" id="trendMoversList"></div>
+            </section>
+            <section class="ai-summary-card">
+                <p class="workspace-eyebrow">AI Market Summary</p>
+                <blockquote id="aiMarketSummary">Financials and Energy are leading today's market strength while IT remains under pressure. Breadth remains neutral with selective midcap participation.</blockquote>
+            </section>
+        `;
+        trendHeroGrid = document.getElementById("trendHeroGrid");
+        sectorMomentumGrid = document.getElementById("sectorMomentumGrid");
+        trendMoversList = document.getElementById("trendMoversList");
     }
 }
 
@@ -272,6 +394,197 @@ function updateTopExperience() {
     if (heroTopSector) {
         heroTopSector.textContent = topSector ? `${viewLabels[topSector.key]} ${formatChange(topSector.average)}` : "--";
     }
+    renderSectorPerformance(rankedSectors);
+    renderIntelligencePanel();
+    renderTrendsExperience();
+}
+
+function renderSectorPerformance(rankedSectors = getSectorRankings()) {
+    if (!sectorPerformanceList) {
+        return;
+    }
+
+    const fallback = [
+        { key: "it", average: 2.3 },
+        { key: "bank", average: -0.8 },
+        { key: "energy", average: 1.2 },
+        { key: "auto", average: 0.5 },
+        { key: "pharma", average: -1.1 }
+    ];
+    const sectors = (rankedSectors.length ? rankedSectors : fallback).slice(0, 5);
+    sectorPerformanceList.innerHTML = sectors.map(sector => {
+        const positive = Number(sector.average || 0) >= 0;
+        return `
+            <button class="sector-row ${positive ? "positive" : "negative"}" type="button" data-view="${escapeAttribute(sector.key)}">
+                <span>${escapeHtml(viewLabels[sector.key] || sector.key)}</span>
+                <strong>${formatChange(sector.average)}</strong>
+            </button>
+        `;
+    }).join("");
+}
+
+function getSectorRankings() {
+    const sectorViews = ["it", "bank", "finance", "auto", "pharma", "fmcg", "metal", "energy", "cement", "consumer", "infra"];
+    return sectorViews
+        .map(key => {
+            const sectorStocks = fullData[key] || [];
+            const average = sectorStocks.length
+                ? sectorStocks.reduce((total, stock) => total + Number(stock.change || 0), 0) / sectorStocks.length
+                : null;
+            const leader = [...sectorStocks].sort((a, b) => Number(b.change || 0) - Number(a.change || 0))[0];
+            return { key, average, leader };
+        })
+        .filter(sector => sector.average !== null)
+        .sort((a, b) => b.average - a.average);
+}
+
+function renderIntelligencePanel(stock = selectedWorkspaceStock) {
+    if (!intelligencePanel) {
+        return;
+    }
+
+    if (stock) {
+        const sector = getStockSector(stock);
+        const rs = getRelativeStrength(stock);
+        const moveClass = Number(stock.change || 0) >= 0 ? "gain" : "loss";
+        intelligencePanel.innerHTML = `
+            <p class="workspace-eyebrow">Selected Stock</p>
+            <div class="selected-stock-card">
+                <span>${escapeHtml(sector)}</span>
+                <h3>${escapeHtml(stock.symbol.replace(".NS", ""))}</h3>
+                <strong class="${moveClass}">${formatChange(stock.change)}</strong>
+            </div>
+            <div class="intel-metric-list">
+                <span>Daily Move <strong class="${moveClass}">${formatChange(stock.change)}</strong></span>
+                <span>Volume <strong>${formatVolume(stock.volume)}</strong></span>
+                <span>Sector <strong>${escapeHtml(sector)}</strong></span>
+                <span>Relative Strength <strong>${rs}</strong></span>
+                <span>Momentum Status <strong>${escapeHtml(getStockInsight(stock))}</strong></span>
+            </div>
+            <button class="open-trend-button" type="button" data-open-trend-analysis>Open Trend Analysis -></button>
+        `;
+        return;
+    }
+
+    const stocks = fullData.all?.length ? fullData.all : visibleStocks;
+    const gainers = getRankedGainers([...stocks]).slice(0, 5);
+    const losers = getRankedLosers([...stocks]).slice(0, 5);
+    const breadth = stocks.length
+        ? `${gainers.length} gainers / ${losers.length} losers`
+        : "Waiting for live breadth";
+
+    intelligencePanel.innerHTML = `
+        <p class="workspace-eyebrow">Market Intelligence</p>
+        ${renderIntelList("Top Gainers", gainers)}
+        ${renderIntelList("Top Losers", losers)}
+        <section class="intel-section">
+            <h3>Market Breadth</h3>
+            <p>${escapeHtml(breadth)}</p>
+        </section>
+    `;
+}
+
+function renderIntelList(title, stocks) {
+    return `
+        <section class="intel-section">
+            <h3>${escapeHtml(title)}</h3>
+            <div class="intel-stock-list">
+                ${stocks.map(stock => `
+                    <button type="button" data-symbol="${escapeAttribute(stock.symbol)}">
+                        <span>${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
+                        <strong class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</strong>
+                    </button>
+                `).join("") || "<p>Waiting for data</p>"}
+            </div>
+        </section>
+    `;
+}
+
+function renderTrendsExperience() {
+    if (!trendHeroGrid || !sectorMomentumGrid || !trendMoversList) {
+        return;
+    }
+
+    const stocks = fullData.all || [];
+    const gainers = getRankedGainers([...stocks]);
+    const losers = getRankedLosers([...stocks]);
+    const sectors = getSectorRankings();
+    const topSector = sectors[0];
+    const mostActive = [...stocks].sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0))[0] || gainers[0];
+    const sentiment = stocks.length && gainers.length / stocks.length >= 0.55 ? "Constructive" : "Selective";
+
+    trendHeroGrid.innerHTML = [
+        ["Market Sentiment", sentiment, `${gainers.length}/${losers.length} breadth`],
+        ["Top Sector", topSector ? viewLabels[topSector.key] : "--", topSector ? formatChange(topSector.average) : "Waiting"],
+        ["Most Active Stock", mostActive ? mostActive.symbol.replace(".NS", "") : "--", mostActive ? formatPrice(mostActive.price) : "Waiting"],
+        ["Volatility", losers.length > gainers.length ? "Elevated" : "Moderate", "Intraday range"]
+    ].map(item => `
+        <article class="trend-hero-card">
+            <span>${escapeHtml(item[0])}</span>
+            <strong>${escapeHtml(item[1])}</strong>
+            <small>${escapeHtml(item[2])}</small>
+        </article>
+    `).join("");
+
+    sectorMomentumGrid.innerHTML = (sectors.length ? sectors : [
+        { key: "bank", average: 0.82, leader: { symbol: "HDFCBANK" } },
+        { key: "energy", average: 0.68, leader: { symbol: "RELIANCE" } },
+        { key: "it", average: -0.38, leader: { symbol: "INFY" } },
+        { key: "pharma", average: -0.22, leader: { symbol: "SUNPHARMA" } }
+    ]).slice(0, 6).map(sector => {
+        const score = Math.min(99, Math.max(40, Math.round(62 + Number(sector.average || 0) * 8)));
+        const bullish = Number(sector.average || 0) >= 0;
+        return `
+            <article class="sector-momentum-card">
+                <span>${escapeHtml(viewLabels[sector.key] || sector.key)}</span>
+                <strong>Strength ${score}</strong>
+                <em class="${bullish ? "gain" : "loss"}">${bullish ? "Up Bullish" : "Down Defensive"}</em>
+                <small>Leader: ${escapeHtml(sector.leader?.symbol?.replace(".NS", "") || "--")}</small>
+            </article>
+        `;
+    }).join("");
+
+    renderTrendMovers();
+}
+
+function renderTrendMovers() {
+    if (!trendMoversList) {
+        return;
+    }
+
+    const stocks = fullData.all || [];
+    const source = activeTrendTab === "losers"
+        ? getRankedLosers([...stocks])
+        : activeTrendTab === "active"
+            ? [...stocks].sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0))
+            : getRankedGainers([...stocks]);
+
+    trendMoversList.innerHTML = source.slice(0, 6).map(stock => `
+        <button class="trend-mover-row" type="button" data-symbol="${escapeAttribute(stock.symbol)}">
+            <span>${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
+            <strong>₹${formatPrice(stock.price)}</strong>
+            <em class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</em>
+        </button>
+    `).join("") || "<p>Waiting for market data</p>";
+}
+
+function showExperience(type) {
+    const showTrends = type === "trends";
+    document.body.classList.add("experience-open");
+    document.body.classList.toggle("trends-open", showTrends);
+    document.body.classList.toggle("heatmap-open", !showTrends);
+    if (heatmapPanel) {
+        heatmapPanel.hidden = showTrends;
+    }
+    if (trendsPanel) {
+        trendsPanel.hidden = !showTrends;
+    }
+    if (showTrends) {
+        renderTrendsExperience();
+        trendsPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+    }
+    heatmapPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function updateIndexCards() {
@@ -461,7 +774,7 @@ function getFilteredStocks() {
     }
 
     // ❌ REMOVE shuffle
-    return sortedStocks.slice(0, 100);
+    return sortedStocks.slice(0, 50);
 }
 
 function sortStocksForView(stocks) {
@@ -510,7 +823,7 @@ function renderGrid() {
     visibleStocks = stocks;
 
     heatmap.innerHTML = "";
-    heatmap.className = "stock-card-grid";
+    heatmap.className = "stock-card-grid premium-treemap";
     viewTitle.textContent = searchTerm ? "Search results" : viewLabels[currentView];
     viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown`;
 
@@ -527,6 +840,8 @@ function renderGrid() {
         heatmap.appendChild(createStockCard(stock, index));
     });
     hydrateVisibleCardMetrics(stocks);
+    renderIntelligencePanel();
+    renderTrendsExperience();
 }
 
 function createStockCard(stock, index) {
@@ -562,14 +877,13 @@ function createStockCard(stock, index) {
     card.style.setProperty("--card-flow", isPositive ? `rgba(34, 197, 94, ${flowOpacity.toFixed(3)})` : `rgba(248, 113, 113, ${flowOpacity.toFixed(3)})`);
     card.style.setProperty("--card-direction-tint", isPositive ? `rgba(34, 197, 94, ${(tintOpacity * 1.1).toFixed(3)})` : `rgba(248, 113, 113, ${(tintOpacity * 1.1).toFixed(3)})`);
     card.style.setProperty("--card-shadow", isPositive ? `rgba(22, 163, 74, ${shadowOpacity.toFixed(3)})` : `rgba(220, 38, 38, ${shadowOpacity.toFixed(3)})`);
-    card.setAttribute("aria-label", `Open ${stock.name || symbol} stock details`);
+    card.setAttribute("aria-label", `Select ${stock.name || symbol}`);
     card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
     card.innerHTML = `
         ${index === 0 ? `<div class="top-signal-label">${escapeHtml(getTopSignalLabel(stock))}</div>` : ""}
         <div class="stock-card-header">
             <span class="stock-card-name">${escapeHtml(symbol)}</span>
-            <span class="stock-card-rank">#${index + 1}</span>
         </div>
         <div class="stock-card-price-row">
             <strong>₹${formatPrice(stock.price)}</strong>
@@ -586,10 +900,10 @@ function createStockCard(stock, index) {
             </span>
         </div>
         <div class="stock-card-metrics">
-            <span>PE: <strong data-card-pe>${formatCardMetric(stock.pe)}</strong></span>
-            <span>ROE: <strong data-card-roe>${formatCardMetric(stock.roe, "%")}</strong></span>
-            <span>Open: <strong>${formatCompactPrice(stock.open)}</strong></span>
-            <span>Close: <strong>${formatCompactPrice(stock.close)}</strong></span>
+            <span>Volume <strong>${formatVolume(stock.volume)}</strong></span>
+            <span>Market Cap <strong>${formatMarketCap(stock.marketCap)}</strong></span>
+            <span>Relative Strength <strong>${getRelativeStrength(stock)}</strong></span>
+            <span>Momentum <strong>${escapeHtml(insight)}</strong></span>
         </div>
     `;
 
@@ -776,6 +1090,35 @@ function getStockInsight(stock) {
         return "Weak Trend";
     }
     return "Watchlist";
+}
+
+function getStockSector(stock) {
+    const symbol = stock.symbol;
+    const sector = getSectorRankings().find(item => (fullData[item.key] || []).some(sectorStock => sectorStock.symbol === symbol));
+    return sector ? viewLabels[sector.key] : "NIFTY 50";
+}
+
+function getRelativeStrength(stock) {
+    const stocks = fullData.all || visibleStocks || [];
+    if (!stocks.length) {
+        return "--";
+    }
+    const stronger = stocks.filter(item => Number(item.change || 0) <= Number(stock.change || 0)).length;
+    return Math.round((stronger / stocks.length) * 100);
+}
+
+function formatVolume(value) {
+    const number = Number(value || 0);
+    if (!number) {
+        return "--";
+    }
+    if (number >= 10000000) {
+        return `${(number / 10000000).toFixed(1)}Cr`;
+    }
+    if (number >= 100000) {
+        return `${(number / 100000).toFixed(1)}L`;
+    }
+    return number.toLocaleString("en-IN");
 }
 
 function isPhoneViewport() {
@@ -1800,10 +2143,14 @@ document.querySelectorAll("[data-index-view]").forEach(button => {
 
 document.querySelectorAll("[data-hero-action]").forEach(button => {
     button.addEventListener("click", () => {
-        if (button.dataset.heroAction === "trends") {
-            loadView("movers");
-        }
-        document.getElementById("heatmapPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        showExperience(button.dataset.heroAction);
+    });
+});
+
+document.querySelectorAll("[data-nav-action]").forEach(link => {
+    link.addEventListener("click", event => {
+        event.preventDefault();
+        showExperience(link.dataset.navAction);
     });
 });
 
@@ -1817,6 +2164,45 @@ document.querySelectorAll(".sector-trigger").forEach(button => {
 });
 
 document.addEventListener("click", event => {
+    const dynamicSectorTrigger = event.target.closest(".toolbar-sector-menu .sector-trigger");
+    if (dynamicSectorTrigger) {
+        const menu = dynamicSectorTrigger.closest(".sector-menu");
+        const isOpen = menu?.classList.toggle("open");
+        dynamicSectorTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        event.stopPropagation();
+        return;
+    }
+
+    const sectorRow = event.target.closest(".sector-row, .toolbar-select[data-view], .toolbar-sector-menu .tab-button");
+    if (sectorRow?.dataset.view) {
+        loadView(sectorRow.dataset.view);
+    }
+
+    const trendTab = event.target.closest(".trend-tab");
+    if (trendTab?.dataset.trendTab) {
+        activeTrendTab = trendTab.dataset.trendTab;
+        document.querySelectorAll(".trend-tab").forEach(button => {
+            button.classList.toggle("active", button.dataset.trendTab === activeTrendTab);
+        });
+        renderTrendMovers();
+    }
+
+    const intelStock = event.target.closest("[data-symbol]");
+    if (intelStock && intelStock.closest(".intelligence-panel, .trend-movers-list")) {
+        const stock = getStockBySymbol(intelStock.dataset.symbol);
+        if (stock) {
+            selectedWorkspaceStock = stock;
+            renderIntelligencePanel(stock);
+            document.querySelectorAll(".stock-card").forEach(card => {
+                card.classList.toggle("selected", card.dataset.symbol === stock.symbol);
+            });
+        }
+    }
+
+    if (event.target.closest("[data-open-trend-analysis]")) {
+        showExperience("trends");
+    }
+
     document.querySelectorAll(".sector-menu.open").forEach(menu => {
         if (menu.contains(event.target)) {
             return;
@@ -1854,7 +2240,8 @@ if (searchSuggestions) {
         const stock = getStockBySymbol(option.dataset.symbol);
         if (stock) {
             closeSearchSuggestions();
-            openStockPage(stock);
+            selectedWorkspaceStock = stock;
+            renderIntelligencePanel(stock);
         }
     });
 }
@@ -1923,7 +2310,11 @@ heatmap.addEventListener("click", event => {
 
     const stock = getStockBySymbol(tile.dataset.symbol);
     if (stock) {
-        openStockPage(stock);
+        selectedWorkspaceStock = stock;
+        renderIntelligencePanel(stock);
+        document.querySelectorAll(".stock-card").forEach(card => {
+            card.classList.toggle("selected", card.dataset.symbol === stock.symbol);
+        });
     }
 });
 
@@ -1940,7 +2331,11 @@ heatmap.addEventListener("keydown", event => {
     event.preventDefault();
     const stock = getStockBySymbol(tile.dataset.symbol);
     if (stock) {
-        openStockPage(stock);
+        selectedWorkspaceStock = stock;
+        renderIntelligencePanel(stock);
+        document.querySelectorAll(".stock-card").forEach(card => {
+            card.classList.toggle("selected", card.dataset.symbol === stock.symbol);
+        });
     }
 });
 
@@ -1986,6 +2381,7 @@ function updateMobileHeaderState() {
 window.addEventListener("scroll", updateMobileHeaderState, { passive: true });
 
 window.addEventListener("load", () => {
+    setupPremiumExperience();
     prepareStockDetailPage();
     updateMobileHeaderState();
     loadHeatmap();
