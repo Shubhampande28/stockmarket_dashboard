@@ -13,7 +13,6 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote_plus, urlencode
-from nifty50 import NIFTY50
 from token_manager import get_access_token, is_expired, load_token, save_token
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -52,6 +51,10 @@ def static_files(path):
 # =========================
 def load_instrument_map():
     with open(BASE_DIR / "instruments.json", "r") as f:
+        return json.load(f)
+
+def load_index_constituents():
+    with open(BASE_DIR / "index_constituents.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
 def load_json_cache(path):
@@ -469,34 +472,7 @@ SECTOR_GROUPS = {
     ]
 }
 
-INDEX_GROUPS = {
-    "nifty50": NIFTY50,
-    "banknifty": [
-        "KOTAKBANK", "HDFCBANK", "ICICIBANK", "AXISBANK", "SBIN", "PNB",
-        "UNIONBANK", "INDUSINDBK", "BANKBARODA", "CANBK", "FEDERALBNK",
-        "IDFCFIRSTB", "YESBANK", "AUBANK"
-    ],
-    "finnifty": [
-        "KOTAKBANK", "BSE", "HDFCBANK", "ICICIBANK", "AXISBANK", "SBIN",
-        "BAJFINANCE", "CHOLAFIN", "SHRIRAMFIN", "SBILIFE", "JIOFIN",
-        "BAJAJFINSV", "PFC", "RECLTD", "ICICIGI", "MUTHOOTFIN", "HDFCLIFE",
-        "MFSL", "SBICARD", "LICHSGFIN"
-    ],
-    "sensex": [
-        "RELIANCE", "TCS", "HDFCBANK", "ICICIBANK", "INFY", "ITC", "LT", "SBIN",
-        "BHARTIARTL", "AXISBANK", "KOTAKBANK", "HINDUNILVR", "ASIANPAINT",
-        "MARUTI", "SUNPHARMA", "TITAN", "ULTRACEMCO", "NESTLEIND", "BAJFINANCE",
-        "HCLTECH", "POWERGRID", "NTPC", "TATASTEEL", "TECHM", "JSWSTEEL",
-        "M&M", "TATAMOTORS", "BAJAJFINSV", "ADANIPORTS", "INDUSINDBK"
-    ],
-    "midcpnifty": [
-        "BSE", "BHEL", "INDUSTOWER", "SUZLON", "DIXON", "HEROMOTOCO",
-        "ASHOKLEY", "POLYCAB", "HINDPETRO", "INDUSINDBK", "PERSISTENT",
-        "SWIGGY", "INDIANB", "LUPIN", "FORTIS", "BHARATFORG", "PAYTM",
-        "YESBANK", "LICI", "AUBANK", "NAUKRI", "AUROPHARMA", "POLICYBZR",
-        "SRF", "MARICO"
-    ]
-}
+INDEX_GROUPS = load_index_constituents()
 
 INDEX_QUOTE_CONFIG = {
     "nifty50": {
