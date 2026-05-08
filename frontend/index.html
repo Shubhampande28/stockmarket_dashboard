@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Equilytics | Market Intelligence Platform</title>
-    <link rel="stylesheet" href="./style.css?v=20260505-index-refresh-mobile-scroll">
+    <link rel="stylesheet" href="./style.css?v=20260508-simplified-premium">
 </head>
 <body>
     <header class="site-header" aria-label="Primary navigation">
@@ -20,25 +20,11 @@
             <nav class="main-nav" aria-label="Main menu">
                 <a class="active" href="#home">Markets</a>
                 <a href="#heatmapPanel" data-nav-action="heatmap">Heatmap</a>
-                <a href="#">Screeners</a>
-                <div class="sector-menu nav-sector-menu">
-                    <button class="sector-trigger" type="button" aria-haspopup="true" aria-expanded="false">Sectors</button>
-                    <div class="sector-dropdown" role="menu" aria-label="Sector filters">
-                        <button class="tab-button" type="button" data-view="it" role="menuitem">IT</button>
-                        <button class="tab-button" type="button" data-view="bank" role="menuitem">Banking</button>
-                        <button class="tab-button" type="button" data-view="finance" role="menuitem">Finance</button>
-                        <button class="tab-button" type="button" data-view="auto" role="menuitem">Auto</button>
-                        <button class="tab-button" type="button" data-view="pharma" role="menuitem">Pharma</button>
-                        <button class="tab-button" type="button" data-view="fmcg" role="menuitem">FMCG</button>
-                        <button class="tab-button" type="button" data-view="metal" role="menuitem">Metal</button>
-                        <button class="tab-button" type="button" data-view="energy" role="menuitem">Energy</button>
-                        <button class="tab-button" type="button" data-view="cement" role="menuitem">Cement</button>
-                        <button class="tab-button" type="button" data-view="consumer" role="menuitem">Consumer</button>
-                        <button class="tab-button" type="button" data-view="infra" role="menuitem">Infra</button>
-                    </div>
-                </div>
+                <a href="#financialStatementsPage" data-nav-action="financials">Financial Statements</a>
                 <a href="#trendsPanel" data-nav-action="trends">Insights</a>
             </nav>
+
+            <button class="home-button" type="button" data-nav-action="home">Home</button>
 
         </div>
     </header>
@@ -199,6 +185,7 @@
     </main>
 
     <section class="trends-panel premium-trends" id="trendsPanel" hidden></section>
+    <section class="financial-page premium-financials" id="financialStatementsPage" hidden></section>
 
     <div class="statement-modal" id="statementModal" hidden>
         <div class="modal-backdrop" data-close-statements></div>
@@ -253,7 +240,7 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260505-index-refresh-mobile-scroll"></script>
+    <script src="./script.js?v=20260508-simplified-premium"></script>
     <script type="module" src="./market-pulse.mjs?v=20260508-market-pulse"></script>
 </body>
 </html>

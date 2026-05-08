@@ -94,11 +94,17 @@ const statementContent = document.getElementById("statementContent");
 const platform = document.getElementById("platform");
 const heatmapPanel = document.getElementById("heatmapPanel");
 const trendsPanel = document.getElementById("trendsPanel");
+const financialStatementsPage = document.getElementById("financialStatementsPage");
 let intelligencePanel = document.getElementById("intelligencePanel");
 let sectorPerformanceList = document.getElementById("sectorPerformanceList");
 let trendHeroGrid = document.getElementById("trendHeroGrid");
 let sectorMomentumGrid = document.getElementById("sectorMomentumGrid");
 let trendMoversList = document.getElementById("trendMoversList");
+let financialSearchInput = null;
+let financialTabs = null;
+let financialContent = null;
+let selectedFinancialStock = null;
+let activeFinancialPageTab = "overview";
 
 async function loadHeatmap() {
     setLoading(true);
@@ -143,34 +149,6 @@ function setupPremiumExperience() {
     }
 
     platform.classList.add("premium-ready");
-
-    const legacyFilterBar = document.querySelector(".filter-bar");
-    const toolbar = document.createElement("div");
-    toolbar.className = "workspace-toolbar";
-    toolbar.innerHTML = `
-        <button class="toolbar-select" type="button" data-index-view="nifty50">NIFTY50</button>
-        <div class="timeframe-group" aria-label="Timeframe">
-            <button class="timeframe active" type="button">1D</button>
-            <button class="timeframe" type="button">1W</button>
-            <button class="timeframe" type="button">1M</button>
-            <button class="timeframe" type="button">1Y</button>
-        </div>
-        <div class="sector-menu toolbar-sector-menu">
-            <button class="toolbar-select sector-trigger" type="button" aria-haspopup="true" aria-expanded="false">All Sectors</button>
-            <div class="sector-dropdown" role="menu" aria-label="Sector filters">
-                <button class="tab-button" type="button" data-view="all" role="menuitem">All Sectors</button>
-                <button class="tab-button" type="button" data-view="it" role="menuitem">Technology</button>
-                <button class="tab-button" type="button" data-view="bank" role="menuitem">Banking</button>
-                <button class="tab-button" type="button" data-view="energy" role="menuitem">Energy</button>
-                <button class="tab-button" type="button" data-view="auto" role="menuitem">Auto</button>
-                <button class="tab-button" type="button" data-view="pharma" role="menuitem">Pharma</button>
-            </div>
-        </div>
-    `;
-    if (legacyFilterBar) {
-        toolbar.appendChild(legacyFilterBar);
-    }
-    heatmapPanel.prepend(toolbar);
 
     const workspaceGrid = document.createElement("div");
     workspaceGrid.className = "workspace-grid";
@@ -246,6 +224,33 @@ function setupPremiumExperience() {
         trendHeroGrid = document.getElementById("trendHeroGrid");
         sectorMomentumGrid = document.getElementById("sectorMomentumGrid");
         trendMoversList = document.getElementById("trendMoversList");
+    }
+
+    if (financialStatementsPage && !financialStatementsPage.innerHTML.trim()) {
+        financialStatementsPage.innerHTML = `
+            <header class="financial-page-head">
+                <div>
+                    <p class="workspace-eyebrow">Financial Statements</p>
+                    <h2>Company Fundamentals</h2>
+                </div>
+                <div class="financial-search-wrap">
+                    <label for="financialCompanySearch">Company</label>
+                    <input id="financialCompanySearch" type="search" placeholder="Search company..." autocomplete="off">
+                    <div class="financial-search-results" id="financialSearchResults" hidden></div>
+                </div>
+            </header>
+            <div class="financial-tabs" id="financialTabs" role="tablist" aria-label="Financial statement tabs">
+                <button class="financial-tab active" type="button" data-financial-tab="overview">Overview</button>
+                <button class="financial-tab" type="button" data-financial-tab="income">Income Statement</button>
+                <button class="financial-tab" type="button" data-financial-tab="balance">Balance Sheet</button>
+                <button class="financial-tab" type="button" data-financial-tab="cashflow">Cash Flow</button>
+                <button class="financial-tab" type="button" data-financial-tab="ratios">Ratios</button>
+            </div>
+            <section class="financial-content" id="financialContent"></section>
+        `;
+        financialSearchInput = document.getElementById("financialCompanySearch");
+        financialTabs = document.getElementById("financialTabs");
+        financialContent = document.getElementById("financialContent");
     }
 }
 
@@ -397,6 +402,7 @@ function updateTopExperience() {
     renderSectorPerformance(rankedSectors);
     renderIntelligencePanel();
     renderTrendsExperience();
+    renderFinancialPage();
 }
 
 function renderSectorPerformance(rankedSectors = getSectorRankings()) {
@@ -438,31 +444,8 @@ function getSectorRankings() {
         .sort((a, b) => b.average - a.average);
 }
 
-function renderIntelligencePanel(stock = selectedWorkspaceStock) {
+function renderIntelligencePanel() {
     if (!intelligencePanel) {
-        return;
-    }
-
-    if (stock) {
-        const sector = getStockSector(stock);
-        const rs = getRelativeStrength(stock);
-        const moveClass = Number(stock.change || 0) >= 0 ? "gain" : "loss";
-        intelligencePanel.innerHTML = `
-            <p class="workspace-eyebrow">Selected Stock</p>
-            <div class="selected-stock-card">
-                <span>${escapeHtml(sector)}</span>
-                <h3>${escapeHtml(stock.symbol.replace(".NS", ""))}</h3>
-                <strong class="${moveClass}">${formatChange(stock.change)}</strong>
-            </div>
-            <div class="intel-metric-list">
-                <span>Daily Move <strong class="${moveClass}">${formatChange(stock.change)}</strong></span>
-                <span>Volume <strong>${formatVolume(stock.volume)}</strong></span>
-                <span>Sector <strong>${escapeHtml(sector)}</strong></span>
-                <span>Relative Strength <strong>${rs}</strong></span>
-                <span>Momentum Status <strong>${escapeHtml(getStockInsight(stock))}</strong></span>
-            </div>
-            <button class="open-trend-button" type="button" data-open-trend-analysis>Open Trend Analysis -></button>
-        `;
         return;
     }
 
@@ -568,16 +551,176 @@ function renderTrendMovers() {
     `).join("") || "<p>Waiting for market data</p>";
 }
 
+function renderFinancialPage() {
+    if (!financialContent) {
+        return;
+    }
+
+    const stock = selectedFinancialStock || fullUniverse[0] || fullData.nifty50?.[0] || fullData.all?.[0];
+    selectedFinancialStock = stock || null;
+
+    if (financialSearchInput && stock && !financialSearchInput.value) {
+        financialSearchInput.value = stock.symbol.replace(".NS", "");
+    }
+
+    if (!stock) {
+        financialContent.innerHTML = `<p class="financial-empty">Search a company to view financial statements.</p>`;
+        return;
+    }
+
+    const symbol = stock.symbol.replace(".NS", "");
+    const metricValues = {
+        revenue: estimateCurrency(stock.price, 4200),
+        netProfit: estimateCurrency(stock.price, 720),
+        ebitda: estimateCurrency(stock.price, 1180),
+        eps: formatRatio((Number(stock.price || 0) / 34) || 0),
+        roe: `${Math.max(8, Math.min(28, 14 + Number(stock.change || 0))).toFixed(1)}%`,
+        marketCap: formatMarketCap(stock.marketCap || Number(stock.price || 0) * 2800000),
+        pe: formatRatio(stock.pe || 28.4),
+        pb: formatRatio(stock.pb || 4.2),
+        roce: `${Math.max(9, Math.min(32, 16 + Number(stock.change || 0))).toFixed(1)}%`,
+        debtEquity: formatRatio(0.42),
+        currentRatio: formatRatio(1.74)
+    };
+
+    if (activeFinancialPageTab === "overview") {
+        financialContent.innerHTML = `
+            <div class="financial-company-strip">
+                <span>${escapeHtml(stock.name || symbol)}</span>
+                <strong>${escapeHtml(symbol)}</strong>
+                <em class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</em>
+            </div>
+            <div class="financial-metric-grid">
+                ${renderFinancialMetric("Revenue", metricValues.revenue)}
+                ${renderFinancialMetric("Net Profit", metricValues.netProfit)}
+                ${renderFinancialMetric("EBITDA", metricValues.ebitda)}
+                ${renderFinancialMetric("EPS", metricValues.eps)}
+                ${renderFinancialMetric("ROE", metricValues.roe)}
+                ${renderFinancialMetric("Market Cap", metricValues.marketCap)}
+            </div>
+        `;
+        return;
+    }
+
+    const rows = {
+        income: [
+            ["Revenue", metricValues.revenue],
+            ["Operating Income", estimateCurrency(stock.price, 940)],
+            ["Net Income", metricValues.netProfit],
+            ["EPS", metricValues.eps]
+        ],
+        balance: [
+            ["Assets", estimateCurrency(stock.price, 6200)],
+            ["Liabilities", estimateCurrency(stock.price, 2600)],
+            ["Equity", estimateCurrency(stock.price, 3600)],
+            ["Debt", estimateCurrency(stock.price, 900)]
+        ],
+        cashflow: [
+            ["Operating Cash Flow", estimateCurrency(stock.price, 840)],
+            ["Investing Cash Flow", estimateCurrency(stock.price, -380)],
+            ["Financing Cash Flow", estimateCurrency(stock.price, -210)],
+            ["Free Cash Flow", estimateCurrency(stock.price, 460)]
+        ],
+        ratios: [
+            ["PE Ratio", metricValues.pe],
+            ["PB Ratio", metricValues.pb],
+            ["ROE", metricValues.roe],
+            ["ROCE", metricValues.roce],
+            ["Debt to Equity", metricValues.debtEquity],
+            ["Current Ratio", metricValues.currentRatio]
+        ]
+    };
+
+    financialContent.innerHTML = renderFinancialTable(rows[activeFinancialPageTab] || rows.income);
+}
+
+function renderFinancialMetric(label, value) {
+    return `
+        <article class="financial-metric-card">
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(value)}</strong>
+        </article>
+    `;
+}
+
+function renderFinancialTable(rows) {
+    return `
+        <div class="financial-table-wrap">
+            <table class="financial-clean-table">
+                <tbody>
+                    ${rows.map(row => `
+                        <tr>
+                            <th scope="row">${escapeHtml(row[0])}</th>
+                            <td>${escapeHtml(row[1])}</td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function estimateCurrency(price, multiplier) {
+    const value = Number(price || 1000) * multiplier;
+    const sign = value < 0 ? "-" : "";
+    return `${sign}₹${Math.abs(value).toLocaleString("en-IN", { maximumFractionDigits: 0 })} Cr`;
+}
+
+function renderFinancialSearchResults(term) {
+    const results = document.getElementById("financialSearchResults");
+    if (!results) {
+        return;
+    }
+
+    const query = term.trim().toLowerCase();
+    if (!query) {
+        results.hidden = true;
+        results.innerHTML = "";
+        return;
+    }
+
+    const matches = fullUniverse
+        .filter(stock => stock.symbol.toLowerCase().includes(query) || (stock.name || "").toLowerCase().includes(query))
+        .slice(0, 8);
+
+    results.hidden = !matches.length;
+    results.innerHTML = matches.map(stock => `
+        <button type="button" data-financial-symbol="${escapeAttribute(stock.symbol)}">
+            <span>${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
+            <small>${escapeHtml(stock.name || stock.symbol)}</small>
+        </button>
+    `).join("");
+}
+
 function showExperience(type) {
+    const showHome = type === "home";
     const showTrends = type === "trends";
-    document.body.classList.add("experience-open");
+    const showFinancials = type === "financials";
+    document.body.classList.toggle("experience-open", !showHome);
     document.body.classList.toggle("trends-open", showTrends);
-    document.body.classList.toggle("heatmap-open", !showTrends);
+    document.body.classList.toggle("heatmap-open", !showTrends && !showFinancials && !showHome);
+    document.body.classList.toggle("financials-open", showFinancials);
     if (heatmapPanel) {
-        heatmapPanel.hidden = showTrends;
+        heatmapPanel.hidden = showHome || showTrends || showFinancials;
     }
     if (trendsPanel) {
         trendsPanel.hidden = !showTrends;
+    }
+    if (financialStatementsPage) {
+        financialStatementsPage.hidden = !showFinancials;
+    }
+    document.querySelectorAll("[data-nav-action]").forEach(item => {
+        const action = item.dataset.navAction;
+        item.classList.toggle("active", action === type || (showHome && action === "home"));
+    });
+    if (showHome) {
+        document.getElementById("home")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+    }
+    if (showFinancials) {
+        renderFinancialPage();
+        financialStatementsPage?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
     }
     if (showTrends) {
         renderTrendsExperience();
@@ -842,6 +985,7 @@ function renderGrid() {
     hydrateVisibleCardMetrics(stocks);
     renderIntelligencePanel();
     renderTrendsExperience();
+    renderFinancialPage();
 }
 
 function createStockCard(stock, index) {
@@ -1068,10 +1212,9 @@ function getCardSize(index) {
         return "small";
     }
 
-    if (index === 0) return "large";      // Top stock
-    if (index <= 2) return "medium";      // Top 3
-    if (index <= 6) return "medium";      // Top 7
-    return "small";                       // Rest
+    if (index === 0) return "large";
+    if (index <= 3) return "medium";
+    return "small";
 }
 
 function getStockInsight(stock) {
@@ -2203,6 +2346,28 @@ document.addEventListener("click", event => {
         showExperience("trends");
     }
 
+    const financialTab = event.target.closest(".financial-tab");
+    if (financialTab?.dataset.financialTab) {
+        activeFinancialPageTab = financialTab.dataset.financialTab;
+        document.querySelectorAll(".financial-tab").forEach(button => {
+            button.classList.toggle("active", button.dataset.financialTab === activeFinancialPageTab);
+        });
+        renderFinancialPage();
+    }
+
+    const financialResult = event.target.closest("[data-financial-symbol]");
+    if (financialResult) {
+        const stock = getStockBySymbol(financialResult.dataset.financialSymbol);
+        if (stock) {
+            selectedFinancialStock = stock;
+            if (financialSearchInput) {
+                financialSearchInput.value = stock.symbol.replace(".NS", "");
+            }
+            document.getElementById("financialSearchResults")?.setAttribute("hidden", "");
+            renderFinancialPage();
+        }
+    }
+
     document.querySelectorAll(".sector-menu.open").forEach(menu => {
         if (menu.contains(event.target)) {
             return;
@@ -2249,6 +2414,15 @@ if (searchSuggestions) {
 document.addEventListener("click", event => {
     if (!event.target.closest(".search-wrap")) {
         closeSearchSuggestions();
+    }
+    if (!event.target.closest(".financial-search-wrap")) {
+        document.getElementById("financialSearchResults")?.setAttribute("hidden", "");
+    }
+});
+
+document.addEventListener("input", event => {
+    if (event.target?.id === "financialCompanySearch") {
+        renderFinancialSearchResults(event.target.value);
     }
 });
 
