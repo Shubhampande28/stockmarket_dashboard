@@ -6797,139 +6797,86 @@ body.experience-open .market-overview {
         padding: 18px !important;
     }
 }
-
-/* Home-page fit and compact index controls */
+/* Home spacing and composition refinement */
 .home-button {
     display: none !important;
 }
 
 body:not(.experience-open) {
-    min-height: 100svh;
-    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+body:not(.experience-open) .header-inner,
+body:not(.experience-open) .hero-section,
+body:not(.experience-open) .market-overview .index-strip {
+    width: min(1440px, 100%) !important;
+    max-width: 1440px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 48px !important;
+    padding-right: 48px !important;
 }
 
 body:not(.experience-open) .hero-section {
     grid-template-columns: minmax(0, 760px) !important;
+    justify-content: center !important;
     min-height: auto !important;
-    padding: clamp(20px, 4.5svh, 44px) 0 clamp(14px, 2svh, 22px) !important;
+    height: auto !important;
+    padding-top: 88px !important;
+    padding-bottom: 40px !important;
     text-align: center;
 }
 
 body:not(.experience-open) .hero-copy {
-    margin: 0 auto;
+    margin: 0 auto !important;
 }
 
 body:not(.experience-open) .hero-section h1 {
-    font-size: clamp(42px, 5.8vw, 76px) !important;
-    line-height: 0.98 !important;
+    margin-bottom: 20px !important;
 }
 
 body:not(.experience-open) .hero-subtitle {
-    margin-inline: auto;
+    margin: 16px auto 28px !important;
 }
 
 body:not(.experience-open) .hero-actions {
-    justify-content: center;
+    justify-content: center !important;
+    margin-top: 24px !important;
+    margin-bottom: 40px !important;
 }
 
 body:not(.experience-open) .market-overview {
-    padding: 0 0 22px !important;
+    margin-top: 0 !important;
+    padding-bottom: 40px !important;
 }
 
 body:not(.experience-open) .market-overview .index-strip {
-    width: min(1040px, calc(100% - 48px)) !important;
     display: grid !important;
     grid-template-columns: repeat(5, minmax(132px, 1fr)) !important;
     gap: 12px !important;
-    margin: 0 auto !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }
 
 body:not(.experience-open) .market-overview .index-card {
     display: grid !important;
-    min-height: 74px !important;
-    padding: 13px 15px !important;
-    border-radius: 12px !important;
-    align-content: center !important;
-    gap: 5px !important;
 }
 
 body:not(.experience-open) .market-overview .index-card:nth-child(n+6) {
     display: none !important;
 }
 
-body:not(.experience-open) .index-card span {
-    font-size: 10px !important;
-}
-
-body:not(.experience-open) .index-card strong {
-    font-size: 16px !important;
-}
-
-body:not(.experience-open) .index-card em {
-    font-size: 11px !important;
-}
-
 @media (max-width: 760px) {
-    body:not(.experience-open) {
-        height: auto;
-        overflow-y: auto !important;
+    body:not(.experience-open) .header-inner,
+    body:not(.experience-open) .hero-section,
+    body:not(.experience-open) .market-overview .index-strip {
+        width: 100% !important;
+        padding-left: 24px !important;
+        padding-right: 24px !important;
     }
 
     body:not(.experience-open) .hero-section {
-        padding-top: 28px !important;
-    }
-
-    body:not(.experience-open) .market-overview .index-strip {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        width: calc(100% - 24px) !important;
-    }
-}
-
-/* Final home scroll lock */
-html.home-view,
-html.home-view body {
-    height: 100svh !important;
-    min-height: 100svh !important;
-    overflow: hidden !important;
-}
-
-html.home-view .app-shell {
-    display: none !important;
-    margin: 0 !important;
-}
-
-html.home-view body:not(.experience-open) .market-overview {
-    padding: 0 !important;
-}
-
-@media (max-width: 760px) {
-    html.home-view,
-    html.home-view body {
-        height: auto !important;
-        overflow-y: auto !important;
-    }
-}
-
-/* Home viewport row layout */
-html.home-view body {
-    display: grid !important;
-    grid-template-rows: auto minmax(0, 1fr) auto !important;
-}
-
-html.home-view .hero-section {
-    align-self: stretch !important;
-    align-content: center !important;
-    padding-top: clamp(12px, 2.4svh, 28px) !important;
-    padding-bottom: clamp(12px, 2svh, 24px) !important;
-}
-
-html.home-view .market-overview {
-    align-self: end !important;
-    padding-bottom: clamp(14px, 2.2svh, 24px) !important;
-}
-
-@media (max-width: 760px) {
-    html.home-view body {
-        display: block !important;
+        padding-top: 56px !important;
+        padding-bottom: 28px !important;
     }
 }

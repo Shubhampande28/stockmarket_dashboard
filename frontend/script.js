@@ -696,7 +696,6 @@ function showExperience(type) {
     const showHome = type === "home";
     const showTrends = type === "trends";
     const showFinancials = type === "financials";
-    document.documentElement.classList.toggle("home-view", showHome);
     document.body.classList.toggle("experience-open", !showHome);
     document.body.classList.toggle("trends-open", showTrends);
     document.body.classList.toggle("heatmap-open", !showTrends && !showFinancials && !showHome);
@@ -2556,7 +2555,6 @@ function updateMobileHeaderState() {
 window.addEventListener("scroll", updateMobileHeaderState, { passive: true });
 
 window.addEventListener("load", () => {
-    document.documentElement.classList.add("home-view");
     setupPremiumExperience();
     prepareStockDetailPage();
     updateMobileHeaderState();
