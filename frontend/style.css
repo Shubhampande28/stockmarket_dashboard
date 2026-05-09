@@ -6811,7 +6811,7 @@ body:not(.experience-open) {
 body:not(.experience-open) .hero-section {
     grid-template-columns: minmax(0, 760px) !important;
     min-height: auto !important;
-    padding: clamp(30px, 7svh, 70px) 0 clamp(18px, 3svh, 30px) !important;
+    padding: clamp(20px, 4.5svh, 44px) 0 clamp(14px, 2svh, 22px) !important;
     text-align: center;
 }
 
@@ -6871,7 +6871,8 @@ body:not(.experience-open) .index-card em {
 
 @media (max-width: 760px) {
     body:not(.experience-open) {
-        overflow-y: auto;
+        height: auto;
+        overflow-y: auto !important;
     }
 
     body:not(.experience-open) .hero-section {
@@ -6881,5 +6882,54 @@ body:not(.experience-open) .index-card em {
     body:not(.experience-open) .market-overview .index-strip {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         width: calc(100% - 24px) !important;
+    }
+}
+
+/* Final home scroll lock */
+html.home-view,
+html.home-view body {
+    height: 100svh !important;
+    min-height: 100svh !important;
+    overflow: hidden !important;
+}
+
+html.home-view .app-shell {
+    display: none !important;
+    margin: 0 !important;
+}
+
+html.home-view body:not(.experience-open) .market-overview {
+    padding: 0 !important;
+}
+
+@media (max-width: 760px) {
+    html.home-view,
+    html.home-view body {
+        height: auto !important;
+        overflow-y: auto !important;
+    }
+}
+
+/* Home viewport row layout */
+html.home-view body {
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+}
+
+html.home-view .hero-section {
+    align-self: stretch !important;
+    align-content: center !important;
+    padding-top: clamp(12px, 2.4svh, 28px) !important;
+    padding-bottom: clamp(12px, 2svh, 24px) !important;
+}
+
+html.home-view .market-overview {
+    align-self: end !important;
+    padding-bottom: clamp(14px, 2.2svh, 24px) !important;
+}
+
+@media (max-width: 760px) {
+    html.home-view body {
+        display: block !important;
     }
 }
