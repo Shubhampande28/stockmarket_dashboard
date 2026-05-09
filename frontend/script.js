@@ -16,13 +16,19 @@ const viewLabels = {
     fmcg: "FMCG",
     metal: "Metal",
     energy: "Energy",
+    realty: "Realty",
+    telecom: "Telecom",
     cement: "Cement",
     consumer: "Consumer",
     infra: "Infrastructure",
+    psu: "PSU",
+    chemicals: "Chemicals",
+    media: "Media",
     others: "Others"
 };
 
 let currentView = "nifty50";
+let activeMarketFilter = "largecap";
 let fullData = {};
 let fullUniverse = [];
 let indexQuotes = {};
@@ -53,6 +59,33 @@ const routeConfig = {
 const pathRoutes = Object.fromEntries(
     Object.entries(routeConfig).map(([route, config]) => [config.path, route])
 );
+
+const sectorViewKeys = [
+    "bank",
+    "energy",
+    "metal",
+    "realty",
+    "telecom",
+    "infra",
+    "psu",
+    "finance",
+    "chemicals",
+    "media",
+    "it",
+    "pharma",
+    "fmcg",
+    "auto"
+];
+
+const marketFilterLabels = {
+    largecap: "Large Cap",
+    midcap: "Mid Cap",
+    smallcap: "Small Cap",
+    gainers: "Gainers",
+    losers: "Losers",
+    volume: "High Volume",
+    momentum: "High Momentum"
+};
 
 const statementLabels = {
     profitLoss: "P&L",
@@ -210,12 +243,13 @@ function setupPremiumExperience() {
         <section>
             <p class="workspace-eyebrow">Market Filters</p>
             <div class="filter-pill-grid">
-                <button class="filter-pill active" type="button">Large Cap</button>
-                <button class="filter-pill" type="button">Mid Cap</button>
-                <button class="filter-pill" type="button">Small Cap</button>
-                <button class="filter-pill" type="button">Momentum</button>
-                <button class="filter-pill" type="button">Breakouts</button>
-                <button class="filter-pill" type="button">Volume Shock</button>
+                <button class="filter-pill active" type="button" data-market-filter="largecap">Large Cap</button>
+                <button class="filter-pill" type="button" data-market-filter="midcap">Mid Cap</button>
+                <button class="filter-pill" type="button" data-market-filter="smallcap">Small Cap</button>
+                <button class="filter-pill" type="button" data-market-filter="gainers">Gainers</button>
+                <button class="filter-pill" type="button" data-market-filter="losers">Losers</button>
+                <button class="filter-pill" type="button" data-market-filter="volume">High Volume</button>
+                <button class="filter-pill" type="button" data-market-filter="momentum">High Momentum</button>
             </div>
         </section>
     `;
@@ -433,8 +467,7 @@ function updateTopExperience() {
         breadthChange.classList.toggle("loss", breadthRatio < 50 && stocks.length > 0);
     }
 
-    const sectorViews = ["it", "bank", "finance", "auto", "pharma", "fmcg", "metal", "energy", "cement", "consumer", "infra"];
-    const rankedSectors = sectorViews
+    const rankedSectors = sectorViewKeys
         .map(key => {
             const sectorStocks = fullData[key] || [];
             const average = sectorStocks.length
@@ -522,13 +555,23 @@ function renderSectorPerformance(rankedSectors = getSectorRankings()) {
     }
 
     const fallback = [
-        { key: "it", average: 2.3 },
         { key: "bank", average: -0.8 },
         { key: "energy", average: 1.2 },
-        { key: "auto", average: 0.5 },
-        { key: "pharma", average: -1.1 }
+        { key: "metal", average: 0.6 },
+        { key: "realty", average: 0.4 },
+        { key: "telecom", average: 0.2 },
+        { key: "infra", average: 0.5 },
+        { key: "psu", average: -0.2 },
+        { key: "finance", average: 0.9 },
+        { key: "chemicals", average: -0.3 },
+        { key: "media", average: 0.1 },
+        { key: "it", average: 2.3 },
+        { key: "pharma", average: -1.1 },
+        { key: "fmcg", average: 0.3 },
+        { key: "auto", average: 0.5 }
     ];
-    const sectors = (rankedSectors.length ? rankedSectors : fallback).slice(0, 5);
+    const rankedByKey = new Map(rankedSectors.map(sector => [sector.key, sector]));
+    const sectors = sectorViewKeys.map(key => rankedByKey.get(key) || fallback.find(sector => sector.key === key) || { key, average: 0 });
     sectorPerformanceList.innerHTML = sectors.map(sector => {
         const positive = Number(sector.average || 0) >= 0;
         return `
@@ -541,8 +584,7 @@ function renderSectorPerformance(rankedSectors = getSectorRankings()) {
 }
 
 function getSectorRankings() {
-    const sectorViews = ["it", "bank", "finance", "auto", "pharma", "fmcg", "metal", "energy", "cement", "consumer", "infra"];
-    return sectorViews
+    return sectorViewKeys
         .map(key => {
             const sectorStocks = fullData[key] || [];
             const average = sectorStocks.length
@@ -912,7 +954,6 @@ function updateIndexCards() {
 
 function loadView(type) {
     currentView = type;
-    const sectorViews = ["it", "bank", "finance", "auto", "pharma", "fmcg", "metal", "energy", "cement", "consumer", "infra"];
     const sectorTrigger = document.querySelector(".sector-trigger");
     searchTerm = "";
     if (searchInput) {
@@ -931,7 +972,7 @@ function loadView(type) {
         button.classList.toggle("active", button.dataset.view === type);
     });
     if (sectorTrigger) {
-        const isSectorView = sectorViews.includes(type);
+        const isSectorView = sectorViewKeys.includes(type);
         sectorTrigger.classList.toggle("active", isSectorView);
         sectorTrigger.textContent = isSectorView ? viewLabels[type] : "Sectors";
         sectorTrigger.setAttribute("aria-expanded", "false");
@@ -1064,7 +1105,7 @@ function shuffleArray(array) {
 function getFilteredStocks() {
     const sourceStocks = searchTerm ? fullUniverse : (fullData[currentView] || []);
     const stocks = [...sourceStocks];
-    let sortedStocks = sortStocksForView(stocks);
+    let sortedStocks = applyMarketFilter(sortStocksForView(stocks));
 
     if (searchTerm) {
         sortedStocks = sortedStocks.filter(stock => {
@@ -1076,6 +1117,70 @@ function getFilteredStocks() {
 
     // ❌ REMOVE shuffle
     return sortedStocks.slice(0, 50);
+}
+
+function applyMarketFilter(stocks) {
+    const filteredStocks = [...stocks];
+    const marketCapValues = filteredStocks
+        .map(stock => normalizeMarketCapValue(stock.marketCap))
+        .filter(value => value > 0)
+        .sort((a, b) => a - b);
+    const lowCap = marketCapValues[Math.floor(marketCapValues.length * 0.34)] || 0;
+    const highCap = marketCapValues[Math.floor(marketCapValues.length * 0.67)] || 0;
+
+    if (activeMarketFilter === "gainers") {
+        return filteredStocks.filter(stock => Number(stock.change || 0) >= 0).sort((a, b) => Number(b.change || 0) - Number(a.change || 0));
+    }
+
+    if (activeMarketFilter === "losers") {
+        return filteredStocks.filter(stock => Number(stock.change || 0) < 0).sort((a, b) => Number(a.change || 0) - Number(b.change || 0));
+    }
+
+    if (activeMarketFilter === "volume") {
+        return filteredStocks.sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0));
+    }
+
+    if (activeMarketFilter === "momentum") {
+        return filteredStocks.sort((a, b) => Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0)));
+    }
+
+    if (!marketCapValues.length) {
+        return filteredStocks;
+    }
+
+    if (activeMarketFilter === "largecap") {
+        return filteredStocks.filter(stock => normalizeMarketCapValue(stock.marketCap) >= highCap);
+    }
+
+    if (activeMarketFilter === "midcap") {
+        return filteredStocks.filter(stock => {
+            const marketCap = normalizeMarketCapValue(stock.marketCap);
+            return marketCap >= lowCap && marketCap < highCap;
+        });
+    }
+
+    if (activeMarketFilter === "smallcap") {
+        return filteredStocks.filter(stock => {
+            const marketCap = normalizeMarketCapValue(stock.marketCap);
+            return marketCap > 0 && marketCap < lowCap;
+        });
+    }
+
+    return filteredStocks;
+}
+
+function normalizeMarketCapValue(value) {
+    if (value === null || value === undefined || value === "") {
+        return 0;
+    }
+
+    const text = String(dedupeRepeatedMetricText(value)).replace(/,/g, "").trim();
+    const number = Number(text.replace(/\bCr\.?\b/gi, "").trim());
+    if (Number.isNaN(number)) {
+        return 0;
+    }
+
+    return /cr\.?/i.test(text) ? number : number / 10000000;
 }
 
 function sortStocksForView(stocks) {
@@ -1126,7 +1231,7 @@ function renderGrid() {
     heatmap.innerHTML = "";
     heatmap.className = "stock-card-grid premium-treemap";
     viewTitle.textContent = searchTerm ? "Search results" : viewLabels[currentView];
-    viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown`;
+    viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown - ${marketFilterLabels[activeMarketFilter] || "Market filter"}`;
 
     if (!stocks.length) {
         if (Object.keys(fullData).length) {
@@ -2478,6 +2583,17 @@ document.addEventListener("click", event => {
     const sectorRow = event.target.closest(".sector-row, .toolbar-select[data-view], .toolbar-sector-menu .tab-button");
     if (sectorRow?.dataset.view) {
         loadView(sectorRow.dataset.view);
+    }
+
+    const marketFilter = event.target.closest("[data-market-filter]");
+    if (marketFilter?.dataset.marketFilter) {
+        activeMarketFilter = marketFilter.dataset.marketFilter;
+        document.querySelectorAll("[data-market-filter]").forEach(button => {
+            const isActive = button.dataset.marketFilter === activeMarketFilter;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+        renderGrid();
     }
 
     const marketIndexRow = event.target.closest("#marketIndexSummary [data-index-view]");
