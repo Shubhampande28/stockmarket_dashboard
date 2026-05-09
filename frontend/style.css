@@ -8275,3 +8275,265 @@ body.heatmap-open .heatmap-panel {
         grid-auto-rows: minmax(7.25rem, auto) !important;
     }
 }
+
+/* Heatmap-specific responsive dashboard behavior */
+body.heatmap-open .app-shell {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: calc(100svh - clamp(4rem, 7vw, 5rem)) !important;
+    margin: 0 !important;
+    padding: clamp(0.75rem, 1.6vw, 1.25rem) !important;
+}
+
+body.heatmap-open .heatmap-panel {
+    width: 100% !important;
+    min-height: calc(100svh - clamp(5.5rem, 8vw, 6.75rem)) !important;
+    border-radius: clamp(0.875rem, 1.4vw, 1.25rem) !important;
+    overflow: hidden !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(241, 245, 249, 0.72)) !important;
+}
+
+body.heatmap-open .workspace-grid {
+    display: grid !important;
+    grid-template-columns: minmax(13rem, 0.18fr) minmax(0, 1fr) minmax(15rem, 0.22fr) !important;
+    gap: clamp(0.75rem, 1.2vw, 1rem) !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    min-height: inherit !important;
+}
+
+body.heatmap-open .heatmap-stage {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.heatmap-open .heatmap-stage .panel-heading {
+    position: sticky !important;
+    top: clamp(4rem, 7vw, 5rem) !important;
+    z-index: 12 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: clamp(0.75rem, 1.4vw, 1rem) !important;
+    padding: clamp(0.9rem, 1.8vw, 1.4rem) !important;
+    border-bottom: 1px solid rgba(203, 213, 225, 0.66) !important;
+    background: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(18px) saturate(1.18);
+    -webkit-backdrop-filter: blur(18px) saturate(1.18);
+}
+
+body.heatmap-open .panel-heading h2 {
+    font-size: clamp(1.2rem, 2vw, 1.75rem) !important;
+    line-height: 1.1 !important;
+}
+
+body.heatmap-open .panel-heading p,
+body.heatmap-open .market-status,
+body.heatmap-open .last-updated-card,
+body.heatmap-open .refresh-button {
+    font-size: clamp(0.76rem, 0.95vw, 0.9rem) !important;
+}
+
+body.heatmap-open .panel-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    gap: clamp(0.45rem, 1vw, 0.65rem) !important;
+    min-width: min(100%, 24rem) !important;
+}
+
+body.heatmap-open .sector-sidebar,
+body.heatmap-open .intelligence-panel {
+    min-width: 0 !important;
+    overflow: auto !important;
+    max-height: calc(100svh - clamp(6rem, 9vw, 7.5rem)) !important;
+}
+
+body.heatmap-open #heatmap.stock-card-grid,
+body.heatmap-open #heatmap.premium-treemap {
+    flex: 1 1 auto !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    grid-auto-rows: minmax(92px, auto) !important;
+    grid-auto-flow: dense !important;
+    align-content: start !important;
+    gap: clamp(0.55rem, 0.9vw, 0.85rem) !important;
+    width: 100% !important;
+    min-height: clamp(34rem, 72svh, 56rem) !important;
+    padding: clamp(0.65rem, 1vw, 1rem) !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+    background:
+        radial-gradient(circle at 20% 8%, rgba(37, 99, 235, 0.06), transparent 24rem),
+        rgba(248, 250, 252, 0.9) !important;
+}
+
+body.heatmap-open #heatmap.premium-treemap .stock-card,
+body.heatmap-open #heatmap.stock-card-grid .stock-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-width: 120px !important;
+    min-height: 92px !important;
+    padding: clamp(0.75rem, 1vw, 1rem) !important;
+    border: 1px solid rgba(226, 232, 240, 0.76) !important;
+    border-radius: 12px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(248, 250, 252, 0.66)),
+        var(--card-tint, rgba(255, 255, 255, 0.74)) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.82),
+        0 10px 26px rgba(15, 23, 42, 0.08) !important;
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease !important;
+}
+
+body.heatmap-open #heatmap.premium-treemap .stock-card:hover,
+body.heatmap-open #heatmap.stock-card-grid .stock-card:hover,
+body.heatmap-open #heatmap.premium-treemap .stock-card.selected,
+body.heatmap-open #heatmap.stock-card-grid .stock-card.selected {
+    z-index: 5 !important;
+    transform: translateY(-2px) scale(1.018) !important;
+    border-color: rgba(37, 99, 235, 0.34) !important;
+    filter: saturate(1.04) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 18px 44px rgba(37, 99, 235, 0.14) !important;
+}
+
+body.heatmap-open #heatmap.premium-treemap .stock-card.large,
+body.heatmap-open #heatmap.stock-card-grid .stock-card.large {
+    grid-column: span 3 !important;
+    grid-row: span 2 !important;
+}
+
+body.heatmap-open #heatmap.premium-treemap .stock-card.medium,
+body.heatmap-open #heatmap.stock-card-grid .stock-card.medium {
+    grid-column: span 2 !important;
+    grid-row: span 2 !important;
+}
+
+body.heatmap-open #heatmap.premium-treemap .stock-card.small,
+body.heatmap-open #heatmap.stock-card-grid .stock-card.small {
+    grid-column: span 1 !important;
+    grid-row: span 2 !important;
+}
+
+body.heatmap-open .stock-card-name,
+body.heatmap-open .stock-card-price-row strong,
+body.heatmap-open .stock-card-insight-block span,
+body.heatmap-open .stock-card-metrics strong {
+    color: #0b1220 !important;
+}
+
+body.heatmap-open .stock-card-name {
+    font-size: clamp(0.82rem, 1vw, 1rem) !important;
+    white-space: normal !important;
+}
+
+body.heatmap-open .stock-card-price-row strong {
+    font-size: clamp(1rem, 1.5vw, 1.55rem) !important;
+}
+
+body.heatmap-open .stock-card-change {
+    font-size: clamp(0.82rem, 1vw, 0.98rem) !important;
+}
+
+@media (min-width: 1500px) {
+    body.heatmap-open .workspace-grid {
+        grid-template-columns: minmax(14rem, 0.16fr) minmax(0, 1fr) minmax(17rem, 0.2fr) !important;
+    }
+
+    body.heatmap-open #heatmap.stock-card-grid,
+    body.heatmap-open #heatmap.premium-treemap {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+        grid-auto-rows: minmax(98px, auto) !important;
+    }
+}
+
+@media (max-width: 1180px) {
+    body.heatmap-open .workspace-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.32fr) !important;
+    }
+
+    body.heatmap-open .sector-sidebar {
+        display: none !important;
+    }
+
+    body.heatmap-open #heatmap.stock-card-grid,
+    body.heatmap-open #heatmap.premium-treemap {
+        grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)) !important;
+    }
+}
+
+@media (max-width: 860px) {
+    body.heatmap-open .app-shell {
+        padding: 0.75rem !important;
+    }
+
+    body.heatmap-open .workspace-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.heatmap-open .intelligence-panel {
+        max-height: none !important;
+    }
+
+    body.heatmap-open .heatmap-stage .panel-heading {
+        top: clamp(5.5rem, 14vw, 7.25rem) !important;
+    }
+
+    body.heatmap-open #heatmap.stock-card-grid,
+    body.heatmap-open #heatmap.premium-treemap {
+        grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)) !important;
+        grid-auto-rows: minmax(96px, auto) !important;
+        min-height: 70svh !important;
+    }
+
+    body.heatmap-open #heatmap.premium-treemap .stock-card.large,
+    body.heatmap-open #heatmap.stock-card-grid .stock-card.large,
+    body.heatmap-open #heatmap.premium-treemap .stock-card.medium,
+    body.heatmap-open #heatmap.stock-card-grid .stock-card.medium {
+        grid-column: span 2 !important;
+    }
+}
+
+@media (max-width: 560px) {
+    body.heatmap-open .heatmap-panel {
+        border-radius: 0.875rem !important;
+    }
+
+    body.heatmap-open .heatmap-stage .panel-heading {
+        position: relative !important;
+        top: auto !important;
+    }
+
+    body.heatmap-open .panel-actions {
+        justify-content: flex-start !important;
+        width: 100% !important;
+    }
+
+    body.heatmap-open #heatmap.stock-card-grid,
+    body.heatmap-open #heatmap.premium-treemap {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+        grid-auto-rows: minmax(104px, auto) !important;
+        gap: 0.6rem !important;
+        min-height: 68svh !important;
+    }
+
+    body.heatmap-open #heatmap.premium-treemap .stock-card,
+    body.heatmap-open #heatmap.stock-card-grid .stock-card,
+    body.heatmap-open #heatmap.premium-treemap .stock-card.large,
+    body.heatmap-open #heatmap.stock-card-grid .stock-card.large,
+    body.heatmap-open #heatmap.premium-treemap .stock-card.medium,
+    body.heatmap-open #heatmap.stock-card-grid .stock-card.medium,
+    body.heatmap-open #heatmap.premium-treemap .stock-card.small,
+    body.heatmap-open #heatmap.stock-card-grid .stock-card.small {
+        grid-column: span 1 !important;
+        grid-row: span 1 !important;
+        min-height: 104px !important;
+    }
+}
