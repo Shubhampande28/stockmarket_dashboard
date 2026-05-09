@@ -7817,3 +7817,461 @@ body.heatmap-open .heatmap-panel {
 .heatmap-stage .loss {
     color: #dc2626 !important;
 }
+
+/* Full responsive adaptation pass */
+:root {
+    --page-max: 1440px;
+    --page-pad: clamp(1rem, 4vw, 4rem);
+    --section-gap: clamp(1.5rem, 4vw, 4.5rem);
+    --hero-title-size: clamp(3rem, 7.2vw, 7rem);
+    --body-fluid: clamp(1rem, 1.35vw, 1.2rem);
+    --card-pad: clamp(1rem, 2vw, 1.5rem);
+}
+
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden !important;
+}
+
+body:not(.experience-open) .header-inner,
+body:not(.experience-open) .hero-section,
+body:not(.experience-open) .market-overview .index-strip,
+.header-inner,
+body.experience-open .app-shell,
+.premium-trends,
+.premium-financials {
+    width: 100% !important;
+    max-width: var(--page-max) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: var(--page-pad) !important;
+    padding-right: var(--page-pad) !important;
+}
+
+.site-header {
+    width: 100%;
+}
+
+.header-inner,
+body:not(.experience-open) .header-inner {
+    display: grid !important;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: clamp(1rem, 3vw, 2.5rem) !important;
+    min-height: clamp(4rem, 7vw, 5rem) !important;
+}
+
+.brand-logo {
+    min-width: 0 !important;
+}
+
+.brand-copy strong {
+    font-size: clamp(1rem, 1.35vw, 1.15rem) !important;
+}
+
+.brand-copy small {
+    font-size: clamp(0.68rem, 0.9vw, 0.78rem) !important;
+}
+
+.main-nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: clamp(0.75rem, 2.4vw, 2rem) !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    white-space: normal !important;
+}
+
+.main-nav a {
+    flex: 0 1 auto !important;
+    min-height: clamp(2.5rem, 5vw, 3.875rem) !important;
+    padding: 0 !important;
+    font-size: clamp(0.82rem, 1.05vw, 0.95rem) !important;
+    line-height: 1.15 !important;
+    white-space: nowrap;
+}
+
+body:not(.experience-open) .hero-section {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.04fr) minmax(18rem, 0.86fr) !important;
+    align-items: center !important;
+    gap: clamp(2rem, 6vw, 6rem) !important;
+    min-height: min(100svh, 860px) !important;
+    height: auto !important;
+    padding-top: clamp(3rem, 7vh, 5.75rem) !important;
+    padding-bottom: clamp(2rem, 5vh, 4rem) !important;
+    text-align: left !important;
+}
+
+body:not(.experience-open) .hero-copy {
+    width: min(100%, 48rem) !important;
+    max-width: 48rem !important;
+    margin: 0 !important;
+}
+
+body:not(.experience-open) .hero-section h1,
+body:not(.experience-open) .hero-copy h1 {
+    max-width: 11ch !important;
+    margin-bottom: clamp(1rem, 2.4vw, 1.5rem) !important;
+    font-size: var(--hero-title-size) !important;
+    line-height: 0.96 !important;
+    letter-spacing: 0 !important;
+    text-wrap: balance;
+}
+
+body:not(.experience-open) .hero-subtitle {
+    max-width: 38rem !important;
+    margin: 0 0 clamp(1.25rem, 3vw, 2rem) !important;
+    font-size: var(--body-fluid) !important;
+    line-height: 1.62 !important;
+}
+
+body:not(.experience-open) .hero-kicker {
+    margin-bottom: clamp(0.75rem, 2vw, 1.125rem) !important;
+    font-size: clamp(0.76rem, 1vw, 0.9rem) !important;
+}
+
+body:not(.experience-open) .hero-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: clamp(0.65rem, 1.4vw, 0.9rem) !important;
+    margin: clamp(1.25rem, 3vw, 2rem) 0 0 !important;
+}
+
+body:not(.experience-open) .hero-button {
+    min-height: clamp(2.75rem, 5vw, 3.25rem) !important;
+    padding: 0 clamp(1rem, 2vw, 1.25rem) !important;
+    border-radius: clamp(0.75rem, 1.2vw, 0.9rem) !important;
+    font-size: clamp(0.9rem, 1vw, 1rem) !important;
+}
+
+body:not(.experience-open) .hero-visual {
+    display: grid !important;
+    place-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    align-self: center !important;
+    overflow: visible !important;
+}
+
+body:not(.experience-open) .hero-visual::before {
+    inset: 8% 3% !important;
+    filter: blur(clamp(6px, 1vw, 10px)) !important;
+}
+
+.intelligence-motion {
+    width: min(42vw, 520px, 100%) !important;
+    min-width: min(16rem, 100%) !important;
+    max-width: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: clamp(1.4rem, 4vw, 2.75rem) !important;
+}
+
+body:not(.experience-open) .market-overview {
+    width: 100% !important;
+    padding-top: clamp(0.75rem, 2vw, 1.25rem) !important;
+    padding-bottom: clamp(1.75rem, 4vw, 3.25rem) !important;
+}
+
+body:not(.experience-open) .market-overview .index-strip,
+.index-strip {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(10.5rem, 100%), 1fr)) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: clamp(0.7rem, 1.5vw, 1rem) !important;
+    min-height: auto !important;
+    padding-top: clamp(0.75rem, 1.8vw, 1.125rem) !important;
+    padding-bottom: clamp(0.75rem, 1.8vw, 1.125rem) !important;
+    overflow: visible !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+body:not(.experience-open) .market-overview .index-card,
+.index-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: clamp(4.35rem, 7vw, 4.9rem) !important;
+    padding: clamp(0.8rem, 1.6vw, 1rem) !important;
+}
+
+.index-card span {
+    font-size: clamp(0.68rem, 0.85vw, 0.78rem) !important;
+}
+
+.index-card strong {
+    font-size: clamp(0.95rem, 1.2vw, 1.08rem) !important;
+}
+
+.index-card em {
+    font-size: clamp(0.72rem, 0.9vw, 0.82rem) !important;
+}
+
+body.experience-open .app-shell {
+    padding-top: clamp(1.25rem, 3vw, 2.125rem) !important;
+    padding-bottom: clamp(2rem, 5vw, 4.75rem) !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.route-page,
+.premium-trends,
+.premium-financials {
+    width: 100% !important;
+    max-width: min(var(--page-max), calc(100% - (var(--page-pad) * 2))) !important;
+    margin-top: clamp(1.25rem, 3vw, 2.125rem) !important;
+    margin-bottom: clamp(2.5rem, 6vw, 5rem) !important;
+    padding: clamp(1.125rem, 3vw, 2.25rem) !important;
+    gap: clamp(1rem, 2.5vw, 1.5rem) !important;
+}
+
+.route-page-head,
+.financial-page-head {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: clamp(1rem, 3vw, 1.5rem) !important;
+}
+
+.route-page-head h2,
+.financial-page-head h2 {
+    font-size: clamp(2rem, 4.8vw, 3.625rem) !important;
+    line-height: 1.04 !important;
+    text-wrap: balance;
+}
+
+.route-page-head p,
+.trend-section p,
+.route-panel p {
+    font-size: clamp(0.95rem, 1.15vw, 1.05rem) !important;
+}
+
+.market-overview-grid,
+.trend-hero-grid,
+.financial-metric-grid,
+.insight-research-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr)) !important;
+    gap: clamp(0.8rem, 1.6vw, 1rem) !important;
+}
+
+.route-content-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(min(20rem, 100%), 0.85fr) !important;
+    gap: clamp(0.9rem, 2vw, 1.25rem) !important;
+}
+
+.market-overview-card-lite,
+.trend-hero-card,
+.sector-momentum-card,
+.route-panel,
+.ai-summary-card,
+.trend-section,
+.financial-metric-card,
+.insight-research-grid article {
+    padding: var(--card-pad) !important;
+}
+
+.market-overview-card-lite {
+    min-height: clamp(7.5rem, 12vw, 8.5rem) !important;
+}
+
+.market-overview-card-lite strong,
+.financial-metric-card strong {
+    font-size: clamp(1.35rem, 2.3vw, 1.9rem) !important;
+}
+
+.workspace-grid {
+    grid-template-columns: minmax(12rem, 0.8fr) minmax(0, 1.65fr) minmax(14rem, 0.9fr) !important;
+    gap: clamp(0.875rem, 1.8vw, 1.375rem) !important;
+    min-height: min(78svh, 780px) !important;
+}
+
+.heatmap-panel,
+body.heatmap-open .heatmap-panel {
+    min-height: min(82svh, 820px) !important;
+}
+
+#heatmap.stock-card-grid,
+#heatmap.premium-treemap {
+    grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr)) !important;
+    grid-auto-rows: clamp(5.25rem, 8vw, 6rem) !important;
+    gap: clamp(0.625rem, 1.2vw, 1rem) !important;
+    padding: clamp(0.75rem, 1.5vw, 1rem) !important;
+}
+
+@media (min-width: 1600px) {
+    :root {
+        --page-max: 1520px;
+        --hero-title-size: clamp(4rem, 6vw, 7rem);
+    }
+
+    body:not(.experience-open) .hero-section {
+        grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.78fr) !important;
+    }
+}
+
+@media (max-width: 1180px) {
+    body:not(.experience-open) .hero-section {
+        grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.78fr) !important;
+        gap: clamp(1.5rem, 4vw, 3rem) !important;
+        min-height: auto !important;
+    }
+
+    .intelligence-motion {
+        width: min(38vw, 420px, 100%) !important;
+    }
+
+    .workspace-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.48fr) !important;
+    }
+
+    .sector-sidebar {
+        display: none !important;
+    }
+}
+
+@media (max-width: 900px) {
+    :root {
+        --hero-title-size: clamp(2.75rem, 9vw, 5rem);
+    }
+
+    .header-inner,
+    body:not(.experience-open) .header-inner {
+        grid-template-columns: 1fr !important;
+        justify-items: start !important;
+        gap: 0.25rem !important;
+        padding-top: 0.55rem !important;
+        padding-bottom: 0.65rem !important;
+    }
+
+    .main-nav {
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+        gap: 0.25rem clamp(0.85rem, 3vw, 1.25rem) !important;
+        width: 100% !important;
+    }
+
+    .main-nav a {
+        min-height: 2.25rem !important;
+        font-size: clamp(0.78rem, 2vw, 0.9rem) !important;
+    }
+
+    body:not(.experience-open) .hero-section {
+        grid-template-columns: 1fr !important;
+        justify-items: center !important;
+        text-align: center !important;
+        padding-top: clamp(2.25rem, 6vh, 3.5rem) !important;
+    }
+
+    body:not(.experience-open) .hero-copy {
+        max-width: 42rem !important;
+        margin-inline: auto !important;
+    }
+
+    body:not(.experience-open) .hero-section h1,
+    body:not(.experience-open) .hero-copy h1,
+    body:not(.experience-open) .hero-subtitle {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    body:not(.experience-open) .hero-actions {
+        justify-content: center !important;
+    }
+
+    .intelligence-motion {
+        width: min(58vw, 390px, 100%) !important;
+    }
+
+    .route-page-head,
+    .financial-page-head,
+    .route-content-grid,
+    .workspace-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 640px) {
+    :root {
+        --page-pad: clamp(0.875rem, 4vw, 1.25rem);
+        --hero-title-size: clamp(2.55rem, 13vw, 4.35rem);
+        --body-fluid: clamp(0.98rem, 4vw, 1.08rem);
+    }
+
+    .brand-copy small {
+        display: block !important;
+    }
+
+    .main-nav {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.35rem 0.75rem !important;
+    }
+
+    .main-nav a {
+        justify-content: start !important;
+        white-space: normal !important;
+    }
+
+    body:not(.experience-open) .hero-section {
+        gap: clamp(1.25rem, 6vw, 2rem) !important;
+        min-height: auto !important;
+        padding-bottom: clamp(1.5rem, 7vw, 2.5rem) !important;
+    }
+
+    body:not(.experience-open) .hero-section h1,
+    body:not(.experience-open) .hero-copy h1 {
+        max-width: 10ch !important;
+        line-height: 1 !important;
+    }
+
+    body:not(.experience-open) .hero-actions {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        width: min(100%, 22rem) !important;
+    }
+
+    body:not(.experience-open) .hero-button {
+        width: 100% !important;
+    }
+
+    .intelligence-motion {
+        width: min(78vw, 330px) !important;
+    }
+
+    body:not(.experience-open) .market-overview .index-strip,
+    .index-strip {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+        max-width: var(--page-max) !important;
+        overflow: visible !important;
+    }
+
+    .route-page,
+    .premium-trends,
+    .premium-financials {
+        max-width: calc(100% - (var(--page-pad) * 2)) !important;
+        border-radius: 1rem !important;
+    }
+
+    .market-trending-row,
+    .market-index-row,
+    .trend-mover-row {
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        gap: 0.45rem 0.75rem !important;
+    }
+
+    .market-trending-row em,
+    .market-index-row em,
+    .trend-mover-row em {
+        grid-column: 1 / -1 !important;
+    }
+
+    #heatmap.stock-card-grid,
+    #heatmap.premium-treemap {
+        grid-template-columns: 1fr !important;
+        grid-auto-rows: minmax(7.25rem, auto) !important;
+    }
+}
