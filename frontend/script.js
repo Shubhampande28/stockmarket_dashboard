@@ -27,8 +27,8 @@ const viewLabels = {
     others: "Others"
 };
 
-let currentView = "nifty50";
-let activeMarketFilter = "largecap";
+let currentView = "all";
+let activeMarketFilter = "all";
 let fullData = {};
 let fullUniverse = [];
 let indexQuotes = {};
@@ -78,6 +78,7 @@ const sectorViewKeys = [
 ];
 
 const marketFilterLabels = {
+    all: "All",
     largecap: "Large Cap",
     midcap: "Mid Cap",
     smallcap: "Small Cap",
@@ -175,7 +176,7 @@ async function loadHeatmap() {
         updateIndexCards();
         updateSummary();
         renderGrid();
-        setStatus("ready", "Live data loaded");
+        setStatus("ready", "Market ready");
         setLastFetched();
         openRequestedStockDetail();
     } catch (error) {
@@ -243,13 +244,15 @@ function setupPremiumExperience() {
         <section>
             <p class="workspace-eyebrow">Market Filters</p>
             <div class="filter-pill-grid">
-                <button class="filter-pill active" type="button" data-market-filter="largecap">Large Cap</button>
+                <button class="filter-pill active" type="button" data-market-filter="all">All</button>
                 <button class="filter-pill" type="button" data-market-filter="midcap">Mid Cap</button>
+                <button class="filter-pill" type="button" data-market-filter="largecap">Large Cap</button>
                 <button class="filter-pill" type="button" data-market-filter="smallcap">Small Cap</button>
                 <button class="filter-pill" type="button" data-market-filter="gainers">Gainers</button>
                 <button class="filter-pill" type="button" data-market-filter="losers">Losers</button>
                 <button class="filter-pill" type="button" data-market-filter="volume">High Volume</button>
                 <button class="filter-pill" type="button" data-market-filter="momentum">High Momentum</button>
+                <button class="filter-pill filter-clear" type="button" data-clear-heatmap-filters>Clear Filters</button>
             </div>
         </section>
     `;
@@ -995,6 +998,14 @@ function loadView(type) {
     }
 }
 
+function updateMarketFilterControls() {
+    document.querySelectorAll("[data-market-filter]").forEach(button => {
+        const isActive = button.dataset.marketFilter === activeMarketFilter;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+}
+
 function getTileColorBase(change, intensity = 0.3) {
     const value = Number(change) || 0;
     const strength = Math.min(Math.max(Math.abs(value) / 4, intensity * 0.72), 1);
@@ -1116,11 +1127,15 @@ function getFilteredStocks() {
     }
 
     // ❌ REMOVE shuffle
-    return sortedStocks.slice(0, 50);
+    return sortedStocks;
 }
 
 function applyMarketFilter(stocks) {
     const filteredStocks = [...stocks];
+    if (activeMarketFilter === "all") {
+        return filteredStocks;
+    }
+
     const marketCapValues = filteredStocks
         .map(stock => normalizeMarketCapValue(stock.marketCap))
         .filter(value => value > 0)
@@ -1205,7 +1220,7 @@ function sortStocksForView(stocks) {
         return stocks.sort((a, b) => Number(a.change || 0) - Number(b.change || 0));
     }
 
-    if (currentView === "movers") {
+    if (currentView === "movers" || currentView === "all" || sectorViewKeys.includes(currentView)) {
         return stocks.sort((a, b) => Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0)));
     }
 
@@ -1231,7 +1246,8 @@ function renderGrid() {
     heatmap.innerHTML = "";
     heatmap.className = "stock-card-grid premium-treemap";
     viewTitle.textContent = searchTerm ? "Search results" : viewLabels[currentView];
-    viewMeta.textContent = `${stocks.length} ${stocks.length === 1 ? "stock" : "stocks"} shown - ${marketFilterLabels[activeMarketFilter] || "Market filter"}`;
+    viewMeta.textContent = buildHeatmapMeta(stocks.length);
+    renderHeatmapDescription(stocks.length);
 
     if (!stocks.length) {
         if (Object.keys(fullData).length) {
@@ -1250,6 +1266,37 @@ function renderGrid() {
     renderMarketsPage();
     renderTrendsExperience();
     renderFinancialPage();
+}
+
+function buildHeatmapMeta(stockCount) {
+    const scope = currentView === "all" ? "All stocks" : viewLabels[currentView] || "Selected market";
+    const filter = activeMarketFilter === "all" ? "Top movers first" : `${marketFilterLabels[activeMarketFilter]} - top movers first`;
+    return `${stockCount} ${stockCount === 1 ? "stock" : "stocks"} shown - ${scope} - ${filter}`;
+}
+
+function renderHeatmapDescription(stockCount = visibleStocks.length) {
+    if (!viewMeta) {
+        return;
+    }
+
+    let description = document.getElementById("heatmapDescription");
+    if (!description) {
+        description = document.createElement("div");
+        description.id = "heatmapDescription";
+        description.className = "heatmap-description";
+        viewMeta.insertAdjacentElement("afterend", description);
+    }
+
+    const scope = currentView === "all" ? "the full market universe" : `${viewLabels[currentView] || currentView}`;
+    const filter = activeMarketFilter === "all" ? "No secondary filter is active." : `${marketFilterLabels[activeMarketFilter]} filter is active.`;
+    description.innerHTML = `
+        <p>Showing ${escapeHtml(scope)} ranked by absolute price movement so the strongest gainers and sharpest losers surface first. ${escapeHtml(filter)}</p>
+        <div class="active-filter-strip" aria-label="Active heatmap filters">
+            <span>${escapeHtml(currentView === "all" ? "All sectors" : viewLabels[currentView] || currentView)}</span>
+            <span>${escapeHtml(activeMarketFilter === "all" ? "All filters" : marketFilterLabels[activeMarketFilter])}</span>
+            <button type="button" data-clear-heatmap-filters>Clear filters</button>
+        </div>
+    `;
 }
 
 function createStockCard(stock, index) {
@@ -2582,18 +2629,23 @@ document.addEventListener("click", event => {
 
     const sectorRow = event.target.closest(".sector-row, .toolbar-select[data-view], .toolbar-sector-menu .tab-button");
     if (sectorRow?.dataset.view) {
+        activeMarketFilter = "all";
+        updateMarketFilterControls();
         loadView(sectorRow.dataset.view);
     }
 
     const marketFilter = event.target.closest("[data-market-filter]");
     if (marketFilter?.dataset.marketFilter) {
         activeMarketFilter = marketFilter.dataset.marketFilter;
-        document.querySelectorAll("[data-market-filter]").forEach(button => {
-            const isActive = button.dataset.marketFilter === activeMarketFilter;
-            button.classList.toggle("active", isActive);
-            button.setAttribute("aria-pressed", isActive ? "true" : "false");
-        });
+        updateMarketFilterControls();
         renderGrid();
+    }
+
+    if (event.target.closest("[data-clear-heatmap-filters]")) {
+        currentView = "all";
+        activeMarketFilter = "all";
+        updateMarketFilterControls();
+        loadView("all");
     }
 
     const marketIndexRow = event.target.closest("#marketIndexSummary [data-index-view]");

@@ -8501,6 +8501,71 @@ body.heatmap-open .stock-card-change {
     }
 }
 
+/* Heatmap header overlap and filter summary fixes */
+body.heatmap-open .heatmap-stage .panel-heading {
+    position: relative !important;
+    top: auto !important;
+    z-index: 2 !important;
+    margin: 0 !important;
+}
+
+body.heatmap-open .heatmap-stage {
+    overflow: hidden !important;
+}
+
+body.heatmap-open #heatmap.stock-card-grid,
+body.heatmap-open #heatmap.premium-treemap {
+    margin-top: 0 !important;
+    border-top: 1.5rem solid transparent !important;
+    background-clip: padding-box !important;
+}
+
+body.heatmap-open .heatmap-description {
+    display: grid;
+    gap: 0.65rem;
+    max-width: min(46rem, 100%);
+    margin-top: 0.65rem;
+}
+
+body.heatmap-open .heatmap-description p {
+    color: #475569 !important;
+    font-size: clamp(0.86rem, 1vw, 0.95rem) !important;
+    font-weight: 650 !important;
+    line-height: 1.5 !important;
+}
+
+body.heatmap-open .active-filter-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+body.heatmap-open .active-filter-strip span,
+body.heatmap-open .active-filter-strip button {
+    min-height: 1.9rem;
+    padding: 0 0.65rem;
+    border: 1px solid rgba(203, 213, 225, 0.78);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.74);
+    color: #0b1220;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+body.heatmap-open .active-filter-strip button,
+body.heatmap-open .filter-clear {
+    border-color: rgba(220, 38, 38, 0.18) !important;
+    color: #b91c1c !important;
+    cursor: pointer;
+}
+
+body.heatmap-open .active-filter-strip button:hover,
+body.heatmap-open .filter-clear:hover {
+    background: rgba(254, 242, 242, 0.92) !important;
+    border-color: rgba(220, 38, 38, 0.32) !important;
+}
+
 @media (max-width: 560px) {
     body.heatmap-open .heatmap-panel {
         border-radius: 0.875rem !important;
