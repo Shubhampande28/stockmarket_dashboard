@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Equilytics | Market Intelligence Platform</title>
-    <link rel="stylesheet" href="./style.css?v=20260509-color-refine">
+    <link rel="stylesheet" href="./style.css?v=20260509-routing-refine">
 </head>
 <body>
     <header class="site-header" aria-label="Primary navigation">
         <div class="header-inner">
-            <a class="brand-logo" href="#home" aria-label="Equilytics home" data-nav-action="home">
+            <a class="brand-logo" href="/" aria-label="Equilytics home" data-route="home">
                 <span class="brand-mark">EQ</span>
                 <span class="brand-copy">
                     <strong>Equilytics</strong>
@@ -18,10 +18,10 @@
             </a>
 
             <nav class="main-nav" aria-label="Main menu">
-                <a class="active" href="#home">Markets</a>
-                <a href="#heatmapPanel" data-nav-action="heatmap">Heatmap</a>
-                <a href="#financialStatementsPage" data-nav-action="financials">Financial Statements</a>
-                <a href="#trendsPanel" data-nav-action="trends">Insights</a>
+                <a href="/markets" data-route="markets">Markets</a>
+                <a href="/heatmap" data-route="heatmap">Heatmap</a>
+                <a href="/financials" data-route="financials">Financial Statements</a>
+                <a href="/insights" data-route="insights">Insights</a>
             </nav>
         </div>
     </header>
@@ -109,6 +109,7 @@
     </section>
 
     <main class="app-shell" id="platform">
+        <section class="markets-page premium-workspace route-page" id="marketsPage" hidden></section>
         <section class="heatmap-panel premium-workspace" id="heatmapPanel" hidden>
             <header class="panel-heading">
                 <div>
@@ -133,8 +134,8 @@
         </section>
     </main>
 
-    <section class="trends-panel premium-trends" id="trendsPanel" hidden></section>
-    <section class="financial-page premium-financials" id="financialStatementsPage" hidden></section>
+    <section class="trends-panel premium-trends route-page" id="trendsPanel" hidden></section>
+    <section class="financial-page premium-financials route-page" id="financialStatementsPage" hidden></section>
 
     <div class="statement-modal" id="statementModal" hidden>
         <div class="modal-backdrop" data-close-statements></div>
@@ -189,6 +190,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260509-spacing-refine"></script>
+    <script src="./script.js?v=20260509-routing-refine"></script>
 </body>
 </html>

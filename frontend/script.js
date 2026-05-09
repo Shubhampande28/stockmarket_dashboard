@@ -36,10 +36,23 @@ let selectedWorkspaceStock = null;
 let activeTrendTab = "gainers";
 let standaloneStockRendered = false;
 let tradingViewScriptPromise = null;
+let activeRoute = "home";
 const API_BASE = "";
 const cardMetricCache = new Map();
 const pendingCardMetricSymbols = new Set();
 let cardMetricQueue = Promise.resolve();
+
+const routeConfig = {
+    home: { path: "/", label: "Home" },
+    markets: { path: "/markets", label: "Markets" },
+    heatmap: { path: "/heatmap", label: "Heatmap" },
+    financials: { path: "/financials", label: "Financial Statements" },
+    insights: { path: "/insights", label: "Insights" }
+};
+
+const pathRoutes = Object.fromEntries(
+    Object.entries(routeConfig).map(([route, config]) => [config.path, route])
+);
 
 const statementLabels = {
     profitLoss: "P&L",
@@ -92,6 +105,7 @@ const financialMeta = document.getElementById("financialMeta");
 const statementMessage = document.getElementById("statementMessage");
 const statementContent = document.getElementById("statementContent");
 const platform = document.getElementById("platform");
+const marketsPage = document.getElementById("marketsPage");
 const heatmapPanel = document.getElementById("heatmapPanel");
 const trendsPanel = document.getElementById("trendsPanel");
 const financialStatementsPage = document.getElementById("financialStatementsPage");
@@ -149,6 +163,39 @@ function setupPremiumExperience() {
     }
 
     platform.classList.add("premium-ready");
+
+    if (marketsPage && !marketsPage.innerHTML.trim()) {
+        marketsPage.innerHTML = `
+            <header class="route-page-head markets-page-head">
+                <div>
+                    <p class="workspace-eyebrow">Markets</p>
+                    <h2>Market Overview</h2>
+                    <p>Track breadth, index momentum, sector leadership, and the stocks driving today's session.</p>
+                </div>
+                <div class="route-live-chip">
+                    <span class="status-dot"></span>
+                    <strong>Live market feel</strong>
+                </div>
+            </header>
+            <div class="market-overview-grid" id="marketOverviewGrid"></div>
+            <section class="route-content-grid">
+                <div class="route-panel">
+                    <div class="route-section-head">
+                        <p class="workspace-eyebrow">Trending Stocks</p>
+                        <h3>Momentum Leaders</h3>
+                    </div>
+                    <div class="market-trending-list" id="marketTrendingList"></div>
+                </div>
+                <div class="route-panel">
+                    <div class="route-section-head">
+                        <p class="workspace-eyebrow">Index Summaries</p>
+                        <h3>Major Benchmarks</h3>
+                    </div>
+                    <div class="market-index-summary" id="marketIndexSummary"></div>
+                </div>
+            </section>
+        `;
+    }
 
     const workspaceGrid = document.createElement("div");
     workspaceGrid.className = "workspace-grid";
@@ -219,6 +266,17 @@ function setupPremiumExperience() {
             <section class="ai-summary-card">
                 <p class="workspace-eyebrow">AI Market Summary</p>
                 <blockquote id="aiMarketSummary">Financials and Energy are leading today's market strength while IT remains under pressure. Breadth remains neutral with selective midcap participation.</blockquote>
+            </section>
+            <section class="trend-section">
+                <div class="trend-section-head">
+                    <p class="workspace-eyebrow">Research Desk</p>
+                    <h3>Research Cards</h3>
+                </div>
+                <div class="insight-research-grid">
+                    <article><span>Morning Note</span><strong>Large-cap breadth is improving while defensives stay selective.</strong></article>
+                    <article><span>AI Screen</span><strong>Volume expansion is clustered in banks, autos, and energy leaders.</strong></article>
+                    <article><span>Risk Watch</span><strong>Weak closes below VWAP remain concentrated in IT laggards.</strong></article>
+                </div>
             </section>
         `;
         trendHeroGrid = document.getElementById("trendHeroGrid");
@@ -401,8 +459,61 @@ function updateTopExperience() {
     }
     renderSectorPerformance(rankedSectors);
     renderIntelligencePanel();
+    renderMarketsPage();
     renderTrendsExperience();
     renderFinancialPage();
+}
+
+function renderMarketsPage() {
+    const overviewGrid = document.getElementById("marketOverviewGrid");
+    const trendingList = document.getElementById("marketTrendingList");
+    const indexSummary = document.getElementById("marketIndexSummary");
+
+    if (!overviewGrid || !trendingList || !indexSummary) {
+        return;
+    }
+
+    const stocks = fullData.all || [];
+    const gainers = getRankedGainers([...stocks]);
+    const losers = getRankedLosers([...stocks]);
+    const sectors = getSectorRankings();
+    const topSector = sectors[0];
+    const breadthRatio = stocks.length ? (gainers.length / stocks.length) * 100 : 0;
+    const mostActive = [...stocks].sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0))[0] || gainers[0];
+
+    overviewGrid.innerHTML = [
+        ["Market Breadth", stocks.length ? `${gainers.length} / ${losers.length}` : "--", stocks.length ? `${breadthRatio.toFixed(0)}% advancing` : "Waiting for data"],
+        ["Top Sector", topSector ? viewLabels[topSector.key] : "--", topSector ? formatChange(topSector.average) : "Waiting for data"],
+        ["Most Active", mostActive ? mostActive.symbol.replace(".NS", "") : "--", mostActive ? formatPrice(mostActive.price) : "Waiting for data"],
+        ["Tracked Universe", stocks.length ? `${stocks.length} stocks` : "--", "Real-time scan"]
+    ].map(item => `
+        <article class="market-overview-card-lite">
+            <span>${escapeHtml(item[0])}</span>
+            <strong>${escapeHtml(item[1])}</strong>
+            <small>${escapeHtml(item[2])}</small>
+        </article>
+    `).join("");
+
+    trendingList.innerHTML = (gainers.length ? gainers : visibleStocks).slice(0, 8).map(stock => `
+        <button class="market-trending-row" type="button" data-symbol="${escapeAttribute(stock.symbol)}">
+            <span>${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
+            <strong>${formatPrice(stock.price)}</strong>
+            <em class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</em>
+        </button>
+    `).join("") || "<p>Waiting for market data</p>";
+
+    const indexes = ["nifty50", "banknifty", "finnifty", "sensex", "midcpnifty"];
+    indexSummary.innerHTML = indexes.map(key => {
+        const quote = indexQuotes[key] || {};
+        const change = quote.change === null || quote.change === undefined ? null : Number(quote.change || 0);
+        return `
+            <button class="market-index-row" type="button" data-index-view="${escapeAttribute(key)}">
+                <span>${escapeHtml(viewLabels[key] || key)}</span>
+                <strong>${quote.price === null || quote.price === undefined ? "--" : formatPrice(quote.price)}</strong>
+                <em class="${change === null ? "" : change >= 0 ? "gain" : "loss"}">${change === null ? "Live quote unavailable" : formatChange(change)}</em>
+            </button>
+        `;
+    }).join("");
 }
 
 function renderSectorPerformance(rankedSectors = getSectorRankings()) {
@@ -692,16 +803,46 @@ function renderFinancialSearchResults(term) {
     `).join("");
 }
 
-function showExperience(type) {
-    const showHome = type === "home";
-    const showTrends = type === "trends";
-    const showFinancials = type === "financials";
+function getRouteFromPath(pathname = window.location.pathname) {
+    return pathRoutes[pathname.replace(/\/$/, "") || "/"] || "home";
+}
+
+function navigateTo(route, options = {}) {
+    const nextRoute = route === "trends" ? "insights" : route;
+    const config = routeConfig[nextRoute] || routeConfig.home;
+
+    if (!options.replace && window.location.pathname !== config.path) {
+        window.history.pushState({ route: nextRoute }, "", config.path);
+    } else if (options.replace && window.location.pathname !== config.path) {
+        window.history.replaceState({ route: nextRoute }, "", config.path);
+    }
+
+    showExperience(nextRoute, { scroll: options.scroll !== false });
+}
+
+function showExperience(type, options = {}) {
+    const route = type === "trends" ? "insights" : type;
+    const showHome = route === "home";
+    const showMarkets = route === "markets";
+    const showHeatmap = route === "heatmap";
+    const showTrends = route === "insights";
+    const showFinancials = route === "financials";
+    const shouldScroll = options.scroll !== false;
+    activeRoute = route;
+
     document.body.classList.toggle("experience-open", !showHome);
+    document.body.classList.toggle("markets-open", showMarkets);
     document.body.classList.toggle("trends-open", showTrends);
-    document.body.classList.toggle("heatmap-open", !showTrends && !showFinancials && !showHome);
+    document.body.classList.toggle("heatmap-open", showHeatmap);
     document.body.classList.toggle("financials-open", showFinancials);
+    document.body.classList.add("route-transitioning");
+    window.setTimeout(() => document.body.classList.remove("route-transitioning"), 260);
+
+    if (marketsPage) {
+        marketsPage.hidden = !showMarkets;
+    }
     if (heatmapPanel) {
-        heatmapPanel.hidden = showHome || showTrends || showFinancials;
+        heatmapPanel.hidden = !showHeatmap;
     }
     if (trendsPanel) {
         trendsPanel.hidden = !showTrends;
@@ -709,25 +850,42 @@ function showExperience(type) {
     if (financialStatementsPage) {
         financialStatementsPage.hidden = !showFinancials;
     }
-    document.querySelectorAll("[data-nav-action]").forEach(item => {
-        const action = item.dataset.navAction;
-        item.classList.toggle("active", action === type || (showHome && action === "home"));
+
+    document.querySelectorAll("[data-route]").forEach(item => {
+        item.classList.toggle("active", item.dataset.route === route);
+        if (item.dataset.route !== "home") {
+            if (item.dataset.route === route) {
+                item.setAttribute("aria-current", "page");
+            } else {
+                item.removeAttribute("aria-current");
+            }
+        }
     });
-    if (showHome) {
-        document.getElementById("home")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
+
+    if (showMarkets) {
+        renderMarketsPage();
     }
     if (showFinancials) {
         renderFinancialPage();
-        financialStatementsPage?.scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
     }
     if (showTrends) {
         renderTrendsExperience();
-        trendsPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (!shouldScroll) {
         return;
     }
-    heatmapPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    const target = showHome
+        ? document.getElementById("home")
+        : showMarkets
+            ? marketsPage
+            : showFinancials
+                ? financialStatementsPage
+                : showTrends
+                    ? trendsPanel
+                    : heatmapPanel;
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function updateIndexCards() {
@@ -984,6 +1142,7 @@ function renderGrid() {
     });
     hydrateVisibleCardMetrics(stocks);
     renderIntelligencePanel();
+    renderMarketsPage();
     renderTrendsExperience();
     renderFinancialPage();
 }
@@ -2286,14 +2445,14 @@ document.querySelectorAll("[data-index-view]").forEach(button => {
 
 document.querySelectorAll("[data-hero-action]").forEach(button => {
     button.addEventListener("click", () => {
-        showExperience(button.dataset.heroAction);
+        navigateTo(button.dataset.heroAction === "trends" ? "insights" : button.dataset.heroAction);
     });
 });
 
-document.querySelectorAll("[data-nav-action]").forEach(link => {
+document.querySelectorAll("[data-route]").forEach(link => {
     link.addEventListener("click", event => {
         event.preventDefault();
-        showExperience(link.dataset.navAction);
+        navigateTo(link.dataset.route);
     });
 });
 
@@ -2321,6 +2480,12 @@ document.addEventListener("click", event => {
         loadView(sectorRow.dataset.view);
     }
 
+    const marketIndexRow = event.target.closest("#marketIndexSummary [data-index-view]");
+    if (marketIndexRow?.dataset.indexView) {
+        loadView(marketIndexRow.dataset.indexView);
+        navigateTo("heatmap");
+    }
+
     const trendTab = event.target.closest(".trend-tab");
     if (trendTab?.dataset.trendTab) {
         activeTrendTab = trendTab.dataset.trendTab;
@@ -2343,7 +2508,7 @@ document.addEventListener("click", event => {
     }
 
     if (event.target.closest("[data-open-trend-analysis]")) {
-        showExperience("trends");
+        navigateTo("insights");
     }
 
     const financialTab = event.target.closest(".financial-tab");
@@ -2554,9 +2719,14 @@ function updateMobileHeaderState() {
 
 window.addEventListener("scroll", updateMobileHeaderState, { passive: true });
 
+window.addEventListener("popstate", () => {
+    showExperience(getRouteFromPath(), { scroll: true });
+});
+
 window.addEventListener("load", () => {
     setupPremiumExperience();
     prepareStockDetailPage();
     updateMobileHeaderState();
+    navigateTo(getRouteFromPath(), { replace: true, scroll: false });
     loadHeatmap();
 });

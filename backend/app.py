@@ -45,6 +45,8 @@ def home():
 
 @app.route("/<path:path>")
 def static_files(path):
+    if path in {"markets", "heatmap", "financials", "insights"}:
+        return send_from_directory(FRONTEND_DIR, "index.html")
     return send_from_directory(FRONTEND_DIR, path)
 
 # =========================

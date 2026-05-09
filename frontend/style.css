@@ -7249,3 +7249,571 @@ body:not(.experience-open) .index-card em.gain {
 body:not(.experience-open) .index-card em.loss {
     color: #ef4444 !important;
 }
+
+/* Route, homepage, and visibility refinements */
+:root {
+    --lux-bg: #f4f7fb;
+    --lux-text: #0b1220;
+    --lux-secondary: #475569;
+    --lux-soft: rgba(255, 255, 255, 0.72);
+    --lux-border: rgba(148, 163, 184, 0.22);
+    --lux-blue: #2563eb;
+}
+
+body,
+body.experience-open,
+body:not(.experience-open) {
+    background:
+        radial-gradient(circle at 18% 8%, rgba(37, 99, 235, 0.12), transparent 32rem),
+        radial-gradient(circle at 86% 10%, rgba(14, 165, 233, 0.09), transparent 30rem),
+        linear-gradient(180deg, #fbfdff 0%, var(--lux-bg) 48%, #eef3f8 100%) !important;
+    color: var(--lux-text) !important;
+}
+
+.site-header,
+body.experience-open .site-header,
+body:not(.experience-open) .site-header {
+    border-bottom: 1px solid rgba(203, 213, 225, 0.58) !important;
+    background: rgba(255, 255, 255, 0.78) !important;
+    color: var(--lux-text) !important;
+    box-shadow: 0 12px 34px rgba(15, 23, 42, 0.05) !important;
+    backdrop-filter: blur(20px) saturate(1.25) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.25) !important;
+}
+
+.brand-logo,
+body.experience-open .brand-logo,
+body:not(.experience-open) .brand-logo {
+    color: #0b1220 !important;
+    font-weight: 950 !important;
+}
+
+.brand-copy strong,
+body.experience-open .brand-copy strong,
+body:not(.experience-open) .brand-copy strong {
+    color: #0b1220 !important;
+    font-weight: 950 !important;
+}
+
+.brand-copy small,
+body.experience-open .brand-copy small,
+body:not(.experience-open) .brand-copy small {
+    color: #4b5563 !important;
+    font-weight: 760 !important;
+}
+
+.brand-mark,
+body.experience-open .brand-mark,
+body:not(.experience-open) .brand-mark {
+    border-color: rgba(37, 99, 235, 0.18) !important;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(232, 240, 255, 0.82)) !important;
+    color: #0b1220 !important;
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12) !important;
+}
+
+.main-nav a,
+body.experience-open .main-nav a,
+body:not(.experience-open) .main-nav a {
+    color: #475569 !important;
+}
+
+.main-nav a:hover,
+.main-nav a.active,
+body.experience-open .main-nav a:hover,
+body.experience-open .main-nav a.active,
+body:not(.experience-open) .main-nav a:hover,
+body:not(.experience-open) .main-nav a.active {
+    color: #0b1220 !important;
+}
+
+.main-nav a.active::after,
+body.experience-open .main-nav a.active::after,
+body:not(.experience-open) .main-nav a.active::after {
+    background: #2563eb !important;
+    opacity: 1 !important;
+    transform: scaleX(1) !important;
+}
+
+body:not(.experience-open) .hero-section {
+    align-items: center !important;
+    padding-top: clamp(58px, 7vw, 92px) !important;
+    padding-bottom: 34px !important;
+}
+
+body:not(.experience-open) .hero-section h1 {
+    color: #0b1220 !important;
+    letter-spacing: 0 !important;
+}
+
+body:not(.experience-open) .hero-subtitle {
+    color: #475569 !important;
+}
+
+body:not(.experience-open) .hero-visual {
+    align-self: center !important;
+    min-height: clamp(390px, 42vw, 540px) !important;
+}
+
+body:not(.experience-open) .hero-visual::before {
+    inset: 9% 4% 8%;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(147, 197, 253, 0.24), transparent 54%),
+        radial-gradient(circle at 44% 54%, rgba(37, 99, 235, 0.16), transparent 42%) !important;
+    filter: blur(10px) !important;
+}
+
+.intelligence-motion {
+    width: min(500px, 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    background:
+        radial-gradient(circle at 46% 42%, rgba(255, 255, 255, 0.92), transparent 16%),
+        radial-gradient(circle at 48% 48%, rgba(147, 197, 253, 0.42), transparent 38%),
+        radial-gradient(circle at 60% 62%, rgba(37, 99, 235, 0.22), transparent 36%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.76), rgba(238, 242, 255, 0.42)),
+        rgba(255, 255, 255, 0.68) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 24px 70px rgba(37, 99, 235, 0.16),
+        0 12px 34px rgba(15, 23, 42, 0.08);
+    animation: floatOrb 9s ease-in-out infinite;
+}
+
+.intelligence-motion::before,
+.intelligence-motion::after {
+    border-color: rgba(37, 99, 235, 0.28) !important;
+    box-shadow: 0 0 28px rgba(37, 99, 235, 0.08);
+}
+
+.motion-wave {
+    background: rgba(147, 197, 253, 0.34) !important;
+    filter: blur(9px) !important;
+}
+
+.wave-two {
+    background: rgba(37, 99, 235, 0.2) !important;
+    filter: blur(8px) !important;
+}
+
+.motion-path {
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.54), rgba(255, 255, 255, 0.82), transparent) !important;
+    box-shadow: 0 0 16px rgba(37, 99, 235, 0.18);
+}
+
+.motion-node {
+    width: 10px !important;
+    height: 10px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    box-shadow:
+        0 0 0 4px rgba(37, 99, 235, 0.1),
+        0 0 24px rgba(37, 99, 235, 0.42) !important;
+}
+
+body:not(.experience-open) .market-overview {
+    padding-top: 10px !important;
+    padding-bottom: 44px !important;
+}
+
+body:not(.experience-open) .market-overview .index-strip,
+.index-strip {
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 112px !important;
+    padding-top: 18px !important;
+    padding-bottom: 18px !important;
+}
+
+body:not(.experience-open) .market-overview .index-card,
+.index-card {
+    align-content: center !important;
+    gap: 6px !important;
+    min-height: 76px !important;
+    padding: 14px 16px !important;
+    border: 1px solid rgba(203, 213, 225, 0.72) !important;
+    border-radius: 12px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.78)) !important;
+    box-shadow:
+        0 16px 38px rgba(15, 23, 42, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
+}
+
+.index-card:hover {
+    border-color: rgba(37, 99, 235, 0.28) !important;
+    box-shadow:
+        0 18px 44px rgba(37, 99, 235, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+body.experience-open .app-shell {
+    display: block !important;
+    width: min(1440px, calc(100% - 48px)) !important;
+    margin: 34px auto 76px !important;
+}
+
+body:not(.experience-open) .app-shell {
+    display: none !important;
+}
+
+.route-page,
+.premium-workspace,
+.premium-trends,
+.premium-financials {
+    color: #0b1220 !important;
+}
+
+.route-page,
+.markets-page,
+.premium-trends,
+.premium-financials {
+    border: 1px solid rgba(203, 213, 225, 0.64) !important;
+    border-radius: 22px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 250, 252, 0.7)) !important;
+    box-shadow: 0 22px 60px rgba(15, 23, 42, 0.09) !important;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.route-page {
+    display: grid;
+    gap: 24px;
+    padding: clamp(22px, 3vw, 36px);
+    animation: routeFadeUp 260ms ease both;
+}
+
+.route-page[hidden],
+.premium-trends[hidden],
+.premium-financials[hidden] {
+    display: none !important;
+}
+
+.premium-trends,
+.premium-financials {
+    width: min(1220px, calc(100% - 48px)) !important;
+    margin: 34px auto 76px !important;
+    padding: clamp(22px, 3vw, 36px) !important;
+    animation: routeFadeUp 260ms ease both;
+}
+
+.route-page-head,
+.financial-page-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 24px;
+}
+
+.route-page-head h2,
+.financial-page-head h2,
+.trend-section-head h3,
+.route-section-head h3 {
+    color: #0b1220 !important;
+}
+
+.route-page-head h2,
+.financial-page-head h2 {
+    margin-top: 8px;
+    font-size: clamp(34px, 5vw, 58px) !important;
+    line-height: 1;
+}
+
+.route-page-head p,
+.route-section-head p,
+.trend-section p,
+.financial-company-strip,
+.financial-search-wrap label {
+    color: #475569 !important;
+}
+
+.route-live-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--lux-border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    color: #0b1220;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.market-overview-grid,
+.trend-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.market-overview-card-lite,
+.trend-hero-card,
+.sector-momentum-card,
+.route-panel,
+.ai-summary-card,
+.trend-section,
+.financial-metric-card,
+.insight-research-grid article {
+    border: 1px solid rgba(203, 213, 225, 0.62) !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.74) !important;
+    color: #0b1220 !important;
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.07) !important;
+}
+
+.market-overview-card-lite {
+    display: grid;
+    gap: 10px;
+    min-height: 136px;
+    padding: 22px;
+}
+
+.market-overview-card-lite span,
+.trend-hero-card span,
+.sector-momentum-card span,
+.financial-metric-card span,
+.insight-research-grid span {
+    color: #475569 !important;
+    font-size: 12px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.market-overview-card-lite strong,
+.trend-hero-card strong,
+.sector-momentum-card strong,
+.financial-metric-card strong,
+.financial-company-strip strong {
+    color: #0b1220 !important;
+}
+
+.market-overview-card-lite strong {
+    font-size: 30px;
+    line-height: 1;
+}
+
+.market-overview-card-lite small,
+.trend-hero-card small,
+.sector-momentum-card small {
+    color: #64748b !important;
+}
+
+.route-content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 18px;
+}
+
+.route-panel {
+    display: grid;
+    align-content: start;
+    gap: 18px;
+    padding: 22px;
+}
+
+.market-trending-list,
+.market-index-summary,
+.trend-movers-list {
+    display: grid;
+    gap: 10px;
+}
+
+.market-trending-row,
+.market-index-row,
+.trend-mover-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 14px;
+    min-height: 54px;
+    padding: 12px 14px !important;
+    border: 1px solid rgba(226, 232, 240, 0.88) !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.78) !important;
+    color: #0b1220 !important;
+    text-align: left;
+    box-shadow: none !important;
+}
+
+.market-trending-row:hover,
+.market-index-row:hover,
+.trend-mover-row:hover {
+    border-color: rgba(37, 99, 235, 0.3) !important;
+    transform: translateY(-1px);
+}
+
+.market-trending-row strong,
+.market-index-row strong,
+.trend-mover-row strong {
+    color: #0b1220 !important;
+}
+
+.gain {
+    color: #059669 !important;
+}
+
+.loss {
+    color: #dc2626 !important;
+}
+
+.workspace-grid,
+.heatmap-panel,
+body.heatmap-open .heatmap-panel {
+    min-height: calc(100svh - 160px) !important;
+}
+
+.sector-sidebar,
+.intelligence-panel,
+.heatmap-stage {
+    border-color: rgba(203, 213, 225, 0.62) !important;
+    background: rgba(255, 255, 255, 0.76) !important;
+    color: #0b1220 !important;
+}
+
+.sector-sidebar *,
+.intelligence-panel *,
+.heatmap-stage * {
+    color: inherit;
+}
+
+.financial-search-wrap input,
+.financial-tab {
+    border-color: rgba(203, 213, 225, 0.74) !important;
+    background: rgba(255, 255, 255, 0.78) !important;
+    color: #0b1220 !important;
+}
+
+.financial-tab.active {
+    border-color: rgba(37, 99, 235, 0.32) !important;
+    background: #eaf2ff !important;
+    color: #0f4bb8 !important;
+}
+
+.financial-table-wrap {
+    overflow-x: auto;
+}
+
+.insight-research-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.insight-research-grid article {
+    display: grid;
+    gap: 12px;
+    min-height: 132px;
+    padding: 18px;
+}
+
+.insight-research-grid strong {
+    color: #0b1220;
+    line-height: 1.45;
+}
+
+@keyframes floatOrb {
+    0%, 100% { transform: translate3d(0, -4px, 0); }
+    50% { transform: translate3d(0, 10px, 0); }
+}
+
+@keyframes routeFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 980px) {
+    .market-overview-grid,
+    .trend-hero-grid,
+    .route-content-grid,
+    .route-page-head,
+    .financial-page-head,
+    .insight-research-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .route-content-grid,
+    .route-page-head,
+    .financial-page-head {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    body.experience-open .app-shell,
+    .premium-trends,
+    .premium-financials {
+        width: calc(100% - 24px) !important;
+        margin-top: 22px !important;
+    }
+
+    body:not(.experience-open) .market-overview .index-strip,
+    .index-strip {
+        grid-template-columns: repeat(5, minmax(152px, 1fr)) !important;
+        justify-content: flex-start !important;
+        overflow-x: auto;
+        min-height: 106px !important;
+    }
+
+    .market-overview-grid,
+    .trend-hero-grid,
+    .insight-research-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .route-page,
+    .premium-trends,
+    .premium-financials {
+        border-radius: 16px !important;
+        padding: 18px !important;
+    }
+
+    .market-trending-row,
+    .market-index-row,
+    .trend-mover-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .market-trending-row em,
+    .market-index-row em,
+    .trend-mover-row em {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .intelligence-motion,
+    .motion-wave,
+    .motion-path,
+    .motion-node,
+    .route-page,
+    .premium-trends,
+    .premium-financials {
+        animation: none !important;
+    }
+}
+
+.workspace-eyebrow,
+.route-page .workspace-eyebrow,
+.premium-trends .workspace-eyebrow,
+.premium-financials .workspace-eyebrow {
+    color: #2563eb !important;
+}
+
+.sector-sidebar .gain,
+.intelligence-panel .gain,
+.heatmap-stage .gain {
+    color: #059669 !important;
+}
+
+.sector-sidebar .loss,
+.intelligence-panel .loss,
+.heatmap-stage .loss {
+    color: #dc2626 !important;
+}
