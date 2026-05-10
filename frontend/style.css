@@ -9106,6 +9106,41 @@ body.heatmap-open .heatmap-skeleton-tile em {
     }
 }
 
+/* Heatmap scroll freedom fix */
+html:has(body.heatmap-open),
+body.heatmap-open {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+}
+
+body.heatmap-open .app-shell,
+body.heatmap-open .workspace-grid,
+body.heatmap-open .heatmap-stage,
+body.heatmap-open .sector-sidebar {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overscroll-behavior: auto !important;
+}
+
+body.heatmap-open #heatmap.stock-card-grid,
+body.heatmap-open #heatmap.premium-treemap,
+body.heatmap-open #heatmap.heatmap-skeleton-grid {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overscroll-behavior: auto !important;
+    -webkit-overflow-scrolling: auto !important;
+}
+
+body.heatmap-open .site-header {
+    position: sticky !important;
+    top: 0 !important;
+}
+
 @media (max-width: 1180px) {
     body.heatmap-open .filter-pill-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
