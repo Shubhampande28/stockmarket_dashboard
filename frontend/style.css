@@ -53,13 +53,14 @@ input {
 .side-rail {
     display: flex;
     flex-direction: column;
-    min-height: 0;
-    padding: 18px;
+    align-self: start;
+    gap: 14px;
+    padding: 16px;
     border: 1px solid var(--border);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(14px);
 }
 
 .brand-block {
@@ -1395,9 +1396,16 @@ body {
 }
 
 .app-shell {
-    display: block !important;
-    width: min(1180px, calc(100% - 32px)) !important;
-    margin: 26px auto 46px !important;
+    display: grid !important;
+    grid-template-columns: 240px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    width: min(1400px, calc(100% - 32px)) !important;
+    margin: 24px auto 42px !important;
+}
+
+.side-rail > * {
+    margin: 0 !important;
 }
 
 .heatmap-panel {
