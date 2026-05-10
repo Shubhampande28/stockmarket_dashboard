@@ -2025,12 +2025,13 @@ body {
     }
 
     .side-rail {
-        position: sticky;
-        top: 0;
-        z-index: 30;
-        padding: 12px;
-        max-height: none;
-        border-radius: 14px;
+        position: relative;
+        top: unset;
+        z-index: 1;
+        padding: 16px;
+        border-radius: 18px;
+        height: fit-content;
+        align-self: start;
     }
 
     .brand-block {
@@ -2139,9 +2140,9 @@ body {
 
 @media (max-width: 640px) {
     .app-shell {
-        width: 100%;
-        margin: 0;
-        gap: 8px;
+        width: calc(100% - 20px);
+        margin: 14px auto;
+        align-items: start;
     }
 
     .side-rail,
@@ -2153,8 +2154,10 @@ body {
 
     .side-rail {
         position: relative;
-        padding: 11px;
-        border-radius: 0 0 14px 14px;
+        padding: 16px;
+        border-radius: 18px;
+        height: fit-content;
+        align-self: start;
     }
 
     .brand-block {
