@@ -8,6 +8,13 @@ const viewLabels = {
     finnifty: "FIN NIFTY stocks",
     sensex: "SENSEX stocks",
     midcpnifty: "MIDCPNIFTY stocks",
+    niftynext50: "NIFTY NEXT 50",
+    nifty100: "NIFTY 100",
+    nifty200: "NIFTY 200",
+    nifty500: "NIFTY 500",
+    niftymidcap100: "NIFTY MIDCAP 100",
+    niftysmallcap100: "NIFTY SMALLCAP 100",
+    niftypsubank: "NIFTY PSU BANK",
     it: "IT",
     bank: "Banking",
     finance: "Finance",
@@ -29,6 +36,7 @@ const viewLabels = {
 
 let currentView = "nifty50";
 let activeMarketFilter = "all";
+let activeSectorFilter = "all";
 let fullData = {};
 let fullUniverse = [];
 let indexQuotes = {};
@@ -86,8 +94,51 @@ const marketFilterLabels = {
     gainers: "Gainers",
     losers: "Losers",
     volume: "High Volume",
-    momentum: "High Momentum"
+    active: "Most Active",
+    gapup: "Gap Up",
+    gapdown: "Gap Down",
+    high52: "Near 52W High",
+    low52: "Near 52W Low",
+    bullish: "Bullish",
+    bearish: "Bearish"
 };
+
+const marketScopeOptions = [
+    ["nifty50", "NIFTY 50"],
+    ["niftynext50", "NIFTY NEXT 50"],
+    ["nifty100", "NIFTY 100"],
+    ["nifty200", "NIFTY 200"],
+    ["nifty500", "NIFTY 500"],
+    ["niftymidcap100", "NIFTY MIDCAP 100"],
+    ["niftysmallcap100", "NIFTY SMALLCAP 100"],
+    ["banknifty", "NIFTY BANK"],
+    ["finnifty", "NIFTY FIN SERVICE"],
+    ["it", "NIFTY IT"],
+    ["auto", "NIFTY AUTO"],
+    ["pharma", "NIFTY PHARMA"],
+    ["fmcg", "NIFTY FMCG"],
+    ["energy", "NIFTY ENERGY"],
+    ["realty", "NIFTY REALTY"],
+    ["niftypsubank", "NIFTY PSU BANK"]
+];
+
+const sectorFilterOptions = [
+    ["all", "All sectors"],
+    ["bank", "Banking"],
+    ["consumer", "Consumer"],
+    ["it", "IT"],
+    ["pharma", "Pharma"],
+    ["fmcg", "FMCG"],
+    ["auto", "Auto"],
+    ["energy", "Energy"],
+    ["metal", "Metals"],
+    ["psu", "PSU"],
+    ["telecom", "Telecom"],
+    ["realty", "Realty"],
+    ["infra", "Infra"],
+    ["chemicals", "Chemicals"],
+    ["media", "Media"]
+];
 
 const statementLabels = {
     profitLoss: "P&L",
@@ -240,17 +291,38 @@ function setupPremiumExperience() {
     sectorSidebar.innerHTML = `
         <section>
             <p class="workspace-eyebrow">Sector Intelligence</p>
-            <label class="heatmap-control-label" for="sectorSelect">Market scope</label>
-            <select class="heatmap-control-select" id="sectorSelect" data-sector-select>
-                <option value="nifty50">NIFTY 50 stocks</option>
-            </select>
-            <div class="sector-select-summary" id="sectorPerformanceList"></div>
+            <div class="market-context-card" id="sectorPerformanceList"></div>
         </section>
         <section>
-            <p class="workspace-eyebrow">Market Filters</p>
+            <p class="workspace-eyebrow">Explore</p>
+            <label class="heatmap-control-label" for="sectorSelect">Sector</label>
+            <select class="heatmap-control-select compact" id="sectorSelect" data-sector-select>
+                ${sectorFilterOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
+            </select>
             <label class="heatmap-control-label" for="marketFilterSelect">Secondary filter</label>
             <select class="heatmap-control-select" id="marketFilterSelect" data-market-filter-select>
-                ${Object.entries(marketFilterLabels).map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
+                <option value="all">All</option>
+                <optgroup label="Market Cap">
+                    <option value="largecap">Large Cap</option>
+                    <option value="midcap">Mid Cap</option>
+                    <option value="smallcap">Small Cap</option>
+                </optgroup>
+                <optgroup label="Performance">
+                    <option value="gainers">Top Gainers</option>
+                    <option value="losers">Top Losers</option>
+                    <option value="active">Most Active</option>
+                    <option value="volume">High Volume</option>
+                </optgroup>
+                <optgroup label="Price Action">
+                    <option value="gapup">Gap Up</option>
+                    <option value="gapdown">Gap Down</option>
+                    <option value="high52">Near 52W High</option>
+                    <option value="low52">Near 52W Low</option>
+                </optgroup>
+                <optgroup label="Trend">
+                    <option value="bullish">Bullish</option>
+                    <option value="bearish">Bearish</option>
+                </optgroup>
             </select>
             <button class="heatmap-clear-button" type="button" data-clear-heatmap-filters>Clear filters</button>
         </section>
@@ -267,7 +339,17 @@ function setupPremiumExperience() {
     intelligencePanel.id = "intelligencePanel";
     intelligencePanel.setAttribute("aria-label", "Market intelligence");
 
-    workspaceGrid.append(sectorSidebar, heatmapStage, intelligencePanel);
+    const heatmapToolbar = document.createElement("div");
+    heatmapToolbar.className = "heatmap-toolbar";
+    heatmapToolbar.innerHTML = `
+        <label class="heatmap-control-label" for="marketScopeSelect">Market Scope</label>
+        <select class="heatmap-control-select compact" id="marketScopeSelect" data-market-scope-select>
+            ${marketScopeOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
+        </select>
+    `;
+    heatmapStage.insertBefore(heatmapToolbar, heatmapStage.firstChild);
+
+    workspaceGrid.append(sectorSidebar, heatmapStage);
     heatmapPanel.appendChild(workspaceGrid);
     sectorPerformanceList = document.getElementById("sectorPerformanceList");
 
@@ -380,7 +462,8 @@ function setLoading(isLoading) {
     refreshButton.disabled = isLoading;
 
     if (isLoading) {
-        showMessage("Loading market data...", "loading");
+        renderHeatmapSkeleton();
+        showMessage("Preparing market heatmap...", "loading");
         setStatus("", "Connecting");
     }
 }
@@ -576,33 +659,23 @@ function renderSectorPerformance(rankedSectors = getSectorRankings()) {
     const sectors = sectorViewKeys.map(key => rankedByKey.get(key) || fallback.find(sector => sector.key === key) || { key, average: 0 });
     const sectorSelect = document.getElementById("sectorSelect");
     if (sectorSelect) {
-        const options = [
-            { key: "nifty50", label: "NIFTY 50 stocks", average: null },
-            { key: "all", label: "All stocks", average: null },
-            ...sectors.map(sector => ({
-                key: sector.key,
-                label: viewLabels[sector.key] || sector.key,
-                average: sector.average
-            }))
-        ];
-        sectorSelect.innerHTML = options.map(option => {
-            const change = option.average === null ? "" : ` (${formatChange(option.average)})`;
-            return `<option value="${escapeAttribute(option.key)}">${escapeHtml(option.label)}${escapeHtml(change)}</option>`;
-        }).join("");
-        sectorSelect.value = options.some(option => option.key === currentView) ? currentView : "nifty50";
+        sectorSelect.value = sectorFilterOptions.some(option => option[0] === activeSectorFilter) ? activeSectorFilter : "all";
     }
 
-    const activeSector = sectors.find(sector => sector.key === currentView);
-    const summarySectors = activeSector ? [activeSector] : sectors.slice(0, 4);
-    sectorPerformanceList.innerHTML = summarySectors.map(sector => {
-        const positive = Number(sector.average || 0) >= 0;
-        return `
-            <div class="sector-row ${positive ? "positive" : "negative"}">
-                <span>${escapeHtml(viewLabels[sector.key] || sector.key)}</span>
-                <strong>${formatChange(sector.average)}</strong>
-            </div>
-        `;
-    }).join("");
+    const scopeStocks = getScopeStocks(currentView);
+    const activeSector = activeSectorFilter === "all" ? sectors[0] : sectors.find(sector => sector.key === activeSectorFilter);
+    const positive = Number(activeSector?.average || 0) >= 0;
+    const sectorName = activeSectorFilter === "all"
+        ? viewLabels[activeSector?.key] || "Market"
+        : viewLabels[activeSectorFilter] || activeSectorFilter;
+    const direction = positive ? "showing strength" : "under pressure";
+    const summary = activeSector
+        ? `${sectorName} is ${direction} with ${formatChange(activeSector.average)} average movement. ${scopeStocks.length || "--"} stocks are in the selected scope.`
+        : `${viewLabels[currentView] || "Selected market"} is ready. Choose a sector or filter to narrow the heatmap.`;
+    sectorPerformanceList.innerHTML = `
+        <strong>${escapeHtml(sectorName)}</strong>
+        <p>${escapeHtml(summary)}</p>
+    `;
 }
 
 function getSectorRankings() {
@@ -976,6 +1049,10 @@ function updateIndexCards() {
 
 function loadView(type) {
     currentView = type;
+    const marketScopeSelect = document.getElementById("marketScopeSelect");
+    if (marketScopeSelect && Array.from(marketScopeSelect.options).some(option => option.value === currentView)) {
+        marketScopeSelect.value = currentView;
+    }
     const sectorTrigger = document.querySelector(".sector-trigger");
     searchTerm = "";
     if (searchInput) {
@@ -1031,7 +1108,12 @@ function updateMarketFilterControls() {
 
     const sectorSelect = document.getElementById("sectorSelect");
     if (sectorSelect) {
-        sectorSelect.value = Array.from(sectorSelect.options).some(option => option.value === currentView)
+        sectorSelect.value = activeSectorFilter;
+    }
+
+    const marketScopeSelect = document.getElementById("marketScopeSelect");
+    if (marketScopeSelect) {
+        marketScopeSelect.value = Array.from(marketScopeSelect.options).some(option => option.value === currentView)
             ? currentView
             : "nifty50";
     }
@@ -1145,8 +1227,12 @@ function shuffleArray(array) {
 }
 
 function getFilteredStocks() {
-    const sourceStocks = searchTerm ? fullUniverse : (fullData[currentView] || []);
-    const stocks = [...sourceStocks];
+    const sourceStocks = searchTerm ? fullUniverse : getScopeStocks(currentView);
+    let stocks = [...sourceStocks];
+    if (!searchTerm && activeSectorFilter !== "all") {
+        const sectorSymbols = new Set((fullData[activeSectorFilter] || []).map(stock => stock.symbol));
+        stocks = stocks.filter(stock => sectorSymbols.has(stock.symbol));
+    }
     let sortedStocks = applyMarketFilter(sortStocksForView(stocks));
 
     if (searchTerm) {
@@ -1159,6 +1245,44 @@ function getFilteredStocks() {
 
     // ❌ REMOVE shuffle
     return sortedStocks;
+}
+
+function getScopeStocks(scope) {
+    const allStocks = fullData.all || [];
+    const direct = fullData[scope];
+    if (Array.isArray(direct) && direct.length) {
+        return direct;
+    }
+
+    if (sectorViewKeys.includes(scope)) {
+        return fullData[scope] || [];
+    }
+
+    const byMarketCap = [...allStocks].sort((a, b) => normalizeMarketCapValue(b.marketCap) - normalizeMarketCapValue(a.marketCap));
+    const ranked = byMarketCap.length ? byMarketCap : [...allStocks].sort((a, b) => Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0)));
+
+    const sizeMap = {
+        niftynext50: [50, 100],
+        nifty100: [0, 100],
+        nifty200: [0, 200],
+        nifty500: [0, 500],
+        niftymidcap100: [100, 200],
+        niftysmallcap100: [200, 300],
+        niftypsubank: [0, 40]
+    };
+
+    if (scope === "niftypsubank") {
+        const psu = new Set((fullData.psu || []).map(stock => stock.symbol));
+        const banks = new Set((fullData.bank || []).map(stock => stock.symbol));
+        return allStocks.filter(stock => psu.has(stock.symbol) && banks.has(stock.symbol));
+    }
+
+    const range = sizeMap[scope];
+    if (range) {
+        return ranked.slice(range[0], range[1]);
+    }
+
+    return allStocks;
 }
 
 function applyMarketFilter(stocks) {
@@ -1186,8 +1310,28 @@ function applyMarketFilter(stocks) {
         return filteredStocks.sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0));
     }
 
+    if (activeMarketFilter === "active") {
+        return filteredStocks.sort((a, b) => {
+            const bActivity = Number(b.volume || 0) * Math.max(Math.abs(Number(b.change || 0)), 0.1);
+            const aActivity = Number(a.volume || 0) * Math.max(Math.abs(Number(a.change || 0)), 0.1);
+            return bActivity - aActivity;
+        });
+    }
+
     if (activeMarketFilter === "momentum") {
         return filteredStocks.sort((a, b) => Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0)));
+    }
+
+    if (activeMarketFilter === "gapup" || activeMarketFilter === "bullish" || activeMarketFilter === "high52") {
+        return filteredStocks
+            .filter(stock => Number(stock.change || 0) > 0)
+            .sort((a, b) => Number(b.change || 0) - Number(a.change || 0));
+    }
+
+    if (activeMarketFilter === "gapdown" || activeMarketFilter === "bearish" || activeMarketFilter === "low52") {
+        return filteredStocks
+            .filter(stock => Number(stock.change || 0) < 0)
+            .sort((a, b) => Number(a.change || 0) - Number(b.change || 0));
     }
 
     if (!marketCapValues.length) {
@@ -1249,10 +1393,6 @@ function sortStocksForView(stocks) {
 
     if (currentView === "losers") {
         return stocks.sort((a, b) => Number(a.change || 0) - Number(b.change || 0));
-    }
-
-    if (currentView === "movers" || currentView === "all" || sectorViewKeys.includes(currentView)) {
-        return stocks.sort((a, b) => Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0)));
     }
 
     return stocks.sort((a, b) => Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0)));
@@ -1332,6 +1472,23 @@ function renderStocksProgressively(stocks) {
     }
 }
 
+function renderHeatmapSkeleton() {
+    if (!heatmap) {
+        return;
+    }
+
+    heatmapRenderToken += 1;
+    const tileCount = getInitialHeatmapBatchSize();
+    heatmap.className = "stock-card-grid premium-treemap heatmap-skeleton-grid";
+    heatmap.innerHTML = Array.from({ length: tileCount }, (_, index) => `
+        <article class="heatmap-skeleton-tile ${index === 0 ? "large" : index <= 3 ? "medium" : "small"}" aria-hidden="true">
+            <span></span>
+            <strong></strong>
+            <em></em>
+        </article>
+    `).join("");
+}
+
 function getInitialHeatmapBatchSize() {
     if (window.innerWidth >= 1500) {
         return 48;
@@ -1345,9 +1502,10 @@ function getInitialHeatmapBatchSize() {
 }
 
 function buildHeatmapMeta(stockCount) {
-    const scope = viewLabels[currentView] || "Selected market";
+    const scope = marketScopeOptions.find(option => option[0] === currentView)?.[1] || viewLabels[currentView] || "Selected market";
+    const sector = activeSectorFilter === "all" ? "All sectors" : viewLabels[activeSectorFilter] || activeSectorFilter;
     const filter = activeMarketFilter === "all" ? "Top movers first" : `${marketFilterLabels[activeMarketFilter]} - top movers first`;
-    return `${stockCount} ${stockCount === 1 ? "stock" : "stocks"} shown - ${scope} - ${filter}`;
+    return `${stockCount} ${stockCount === 1 ? "stock" : "stocks"} shown - ${scope} - ${sector} - ${filter}`;
 }
 
 function renderHeatmapDescription(stockCount = visibleStocks.length) {
@@ -1363,17 +1521,18 @@ function renderHeatmapDescription(stockCount = visibleStocks.length) {
         viewMeta.insertAdjacentElement("afterend", description);
     }
 
-    const scope = currentView === "all" ? "the full market universe" : `${viewLabels[currentView] || currentView}`;
+    const scope = marketScopeOptions.find(option => option[0] === currentView)?.[1] || viewLabels[currentView] || currentView;
+    const sector = activeSectorFilter === "all" ? "all sectors" : viewLabels[activeSectorFilter] || activeSectorFilter;
     const filter = activeMarketFilter === "all" ? "No secondary filter is active." : `${marketFilterLabels[activeMarketFilter]} filter is active.`;
-    const source = "Source: live market feed where available; cards are ranked client-side after the selected scope and filter are applied.";
     description.innerHTML = `
         <div class="heatmap-info-card">
             <strong>What you are viewing</strong>
-            <p>Showing ${escapeHtml(scope)} ranked by absolute price movement so the strongest gainers and sharpest losers surface first. ${escapeHtml(filter)}</p>
-            <small>${escapeHtml(source)}</small>
+            <p>Showing ${escapeHtml(scope)} across ${escapeHtml(sector)}, ranked by absolute price movement so the strongest gainers and sharpest losers surface first. ${escapeHtml(filter)}</p>
+            <small>Use Market Scope for the index universe, then narrow by sector or a single secondary filter.</small>
         </div>
         <div class="active-filter-strip" aria-label="Active heatmap filters">
-            <span>${escapeHtml(viewLabels[currentView] || currentView)}</span>
+            <span>${escapeHtml(scope)}</span>
+            <span>${escapeHtml(activeSectorFilter === "all" ? "All sectors" : viewLabels[activeSectorFilter] || activeSectorFilter)}</span>
             <span>${escapeHtml(activeMarketFilter === "all" ? "All filters" : marketFilterLabels[activeMarketFilter])}</span>
             <button type="button" data-clear-heatmap-filters>Clear filters</button>
         </div>
@@ -1384,7 +1543,7 @@ function createStockCard(stock, index) {
     const card = document.createElement("article");
     const isPositive = Number(stock.change || 0) >= 0;
     const symbol = stock.symbol.replace(".NS", "");
-    const cardSize = getCardSize(index);
+    const cardSize = getCardSize(stock, index);
     const insight = getStockInsight(stock);
     const trendDirection = isPositive ? "↑ Uptrend" : "↓ Downtrend";
 
@@ -1595,17 +1754,34 @@ function closeSearchSuggestions() {
     searchInput.setAttribute("aria-expanded", "false");
 }
 
-function getCardSize(index) {
+function getCardSize(stock, index) {
     const isMobile = window.innerWidth <= 640;
+    const symbol = (stock?.symbol || "").replace(".NS", "");
+    const megaCapSymbols = new Set([
+        "RELIANCE",
+        "HDFCBANK",
+        "TCS",
+        "ICICIBANK",
+        "INFY",
+        "BHARTIARTL",
+        "SBIN",
+        "LT",
+        "ITC",
+        "HINDUNILVR",
+        "AXISBANK",
+        "KOTAKBANK"
+    ]);
+    const marketCap = normalizeMarketCapValue(stock?.marketCap);
+    const isMegaCap = megaCapSymbols.has(symbol) || marketCap >= 900000;
 
     if (isMobile) {
-        if (index === 0) return "large";
+        if (index === 0 || isMegaCap) return "large";
         if (index <= 3 && getCardIntensity(visibleStocks[index]?.change) >= 0.2) return "medium";
         return "small";
     }
 
-    if (index === 0) return "large";
-    if (index <= 3) return "medium";
+    if (index === 0 || isMegaCap) return "large";
+    if (index <= 5 || marketCap >= 450000) return "medium";
     return "small";
 }
 
@@ -2725,6 +2901,7 @@ document.addEventListener("click", event => {
     if (event.target.closest("[data-clear-heatmap-filters]")) {
         currentView = "nifty50";
         activeMarketFilter = "all";
+        activeSectorFilter = "all";
         updateMarketFilterControls();
         loadView("nifty50");
     }
@@ -2842,15 +3019,24 @@ document.addEventListener("input", event => {
 
 document.addEventListener("change", event => {
     if (event.target?.matches("[data-sector-select]")) {
+        activeSectorFilter = event.target.value;
         activeMarketFilter = "all";
-        loadView(event.target.value);
         updateMarketFilterControls();
+        renderGrid();
     }
 
     if (event.target?.matches("[data-market-filter-select]")) {
         activeMarketFilter = event.target.value;
         updateMarketFilterControls();
         renderGrid();
+    }
+
+    if (event.target?.matches("[data-market-scope-select]")) {
+        currentView = event.target.value;
+        activeSectorFilter = "all";
+        activeMarketFilter = "all";
+        updateMarketFilterControls();
+        loadView(event.target.value);
     }
 });
 
