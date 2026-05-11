@@ -1134,39 +1134,44 @@ function updateMarketFilterControls() {
 
 function getTileColorBase(change, intensity = 0.3) {
     const value = Number(change) || 0;
-    const strength = Math.min(Math.max(Math.abs(value) / 4, intensity * 0.72), 1);
+    const abs = Math.min(Math.abs(value), 6);
 
+    // Positive (Green)
     if (value > 0) {
-        const lightness = 37 - strength * 11;
-        return `linear-gradient(135deg, hsl(151 64% ${lightness}%), hsl(151 72% ${lightness - 4}%))`;
+        if (abs >= 5) {
+            return "linear-gradient(135deg, rgba(5,150,105,0.42), rgba(4,120,87,0.52))";
+        }
+
+        if (abs >= 3) {
+            return "linear-gradient(135deg, rgba(16,185,129,0.30), rgba(5,150,105,0.40))";
+        }
+
+        if (abs >= 1) {
+            return "linear-gradient(135deg, rgba(52,211,153,0.20), rgba(16,185,129,0.28))";
+        }
+
+        return "linear-gradient(135deg, rgba(110,231,183,0.14), rgba(52,211,153,0.18))";
     }
 
+    // Negative (Red)
     if (value < 0) {
-        const lightness = 46 - strength * 12;
-        return `linear-gradient(135deg, hsl(355 72% ${lightness}%), hsl(355 78% ${lightness - 5}%))`;
+        if (abs >= 5) {
+            return "linear-gradient(135deg, rgba(185,28,28,0.42), rgba(127,29,29,0.52))";
+        }
+
+        if (abs >= 3) {
+            return "linear-gradient(135deg, rgba(220,38,38,0.30), rgba(185,28,28,0.40))";
+        }
+
+        if (abs >= 1) {
+            return "linear-gradient(135deg, rgba(248,113,113,0.20), rgba(239,68,68,0.28))";
+        }
+
+        return "linear-gradient(135deg, rgba(254,202,202,0.14), rgba(248,113,113,0.18))";
     }
 
-    return "linear-gradient(135deg, #64748b, #475569)";
-
-    const val = Math.min(Math.abs(change), 5); // cap at 5%
-
-    if (change > 0) {
-        // 🟢 green shades
-        if (val > 3) return "#065f46";   // dark green
-        if (val > 2) return "#047857";
-        if (val > 1) return "#059669";
-        if (val > 0.5) return "#10b981";
-        return "#6ee7b7";               // light green
-    } else if (change < 0) {
-        // 🔴 red shades
-        if (val > 3) return "#7f1d1d";   // dark red
-        if (val > 2) return "#991b1b";
-        if (val > 1) return "#b91c1c";
-        if (val > 0.5) return "#dc2626";
-        return "#f87171";               // light red
-    } else {
-        return "#1f2937"; // neutral
-    }
+    // Neutral
+    return "linear-gradient(135deg, rgba(226,232,240,0.5), rgba(203,213,225,0.45))";
 }
 
 function getMovementStyleBase(intensity, index) {
