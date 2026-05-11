@@ -77,7 +77,9 @@ const sectorViewKeys = [
     "telecom",
     "infra",
     "psu",
+    "consumer",
     "finance",
+    "cement",
     "chemicals",
     "media",
     "it",
@@ -105,12 +107,8 @@ const marketFilterLabels = {
 
 const marketScopeOptions = [
     ["nifty50", "NIFTY 50"],
-    ["niftynext50", "NIFTY NEXT 50"],
-    ["nifty100", "NIFTY 100"],
-    ["nifty200", "NIFTY 200"],
-    ["nifty500", "NIFTY 500"],
-    ["niftymidcap100", "NIFTY MIDCAP 100"],
-    ["niftysmallcap100", "NIFTY SMALLCAP 100"],
+    ["sensex", "SENSEX"],
+    ["midcpnifty", "MIDCPNIFTY"],
     ["banknifty", "NIFTY BANK"],
     ["finnifty", "NIFTY FIN SERVICE"],
     ["it", "NIFTY IT"],
@@ -118,13 +116,14 @@ const marketScopeOptions = [
     ["pharma", "NIFTY PHARMA"],
     ["fmcg", "NIFTY FMCG"],
     ["energy", "NIFTY ENERGY"],
-    ["realty", "NIFTY REALTY"],
-    ["niftypsubank", "NIFTY PSU BANK"]
+    ["metal", "NIFTY METAL"],
+    ["realty", "NIFTY REALTY"]
 ];
 
 const sectorFilterOptions = [
     ["all", "All sectors"],
     ["bank", "Banking"],
+    ["finance", "Finance"],
     ["consumer", "Consumer"],
     ["it", "IT"],
     ["pharma", "Pharma"],
@@ -132,6 +131,7 @@ const sectorFilterOptions = [
     ["auto", "Auto"],
     ["energy", "Energy"],
     ["metal", "Metals"],
+    ["cement", "Cement"],
     ["psu", "PSU"],
     ["telecom", "Telecom"],
     ["realty", "Realty"],
@@ -225,6 +225,7 @@ async function loadHeatmap() {
         fullData = normalizePayload(data);
         indexQuotes = data.indexQuotes || {};
         fullUniverse = buildFullUniverse(fullData);
+        syncFilterDropdownOptions();
         updateIndexCards();
         updateSummary();
         renderGrid();
@@ -469,6 +470,65 @@ function buildFullUniverse(data) {
         const left = (a.name || a.symbol || "").localeCompare(b.name || b.symbol || "");
         return left || String(a.symbol).localeCompare(String(b.symbol));
     });
+}
+
+function hasLoadedStocks(key) {
+    return Array.isArray(fullData[key]) && fullData[key].length > 0;
+}
+
+function getAvailableMarketScopeOptions() {
+    if (!Object.keys(fullData).length) {
+        return marketScopeOptions;
+    }
+
+    const options = marketScopeOptions.filter(([value]) => hasLoadedStocks(value));
+    return options.length ? options : [["nifty50", "NIFTY 50"]];
+}
+
+function getAvailableSectorOptions(scope = currentView) {
+    const scopeStocks = getScopeStocks(scope);
+    if (!scopeStocks.length) {
+        return [["all", "All sectors"]];
+    }
+
+    const scopeSymbols = new Set(scopeStocks.map(stock => stock.symbol));
+    const options = sectorFilterOptions.filter(([value]) => {
+        if (value === "all") {
+            return true;
+        }
+
+        return (fullData[value] || []).some(stock => scopeSymbols.has(stock.symbol));
+    });
+
+    return options.length ? options : [["all", "All sectors"]];
+}
+
+function renderSelectOptions(select, options) {
+    if (!select) {
+        return;
+    }
+
+    const nextMarkup = options
+        .map(([value, label]) => `<option value="${escapeAttribute(value)}">${escapeHtml(label)}</option>`)
+        .join("");
+
+    if (select.innerHTML !== nextMarkup) {
+        select.innerHTML = nextMarkup;
+    }
+}
+
+function syncFilterDropdownOptions() {
+    const marketScopeSelect = document.getElementById("marketScopeSelect");
+    const availableScopes = getAvailableMarketScopeOptions();
+    renderSelectOptions(marketScopeSelect, availableScopes);
+
+    const sectorSelect = document.getElementById("sectorSelect");
+    const availableSectors = getAvailableSectorOptions(currentView);
+    renderSelectOptions(sectorSelect, availableSectors);
+
+    if (!availableSectors.some(([value]) => value === activeSectorFilter)) {
+        activeSectorFilter = "all";
+    }
 }
 
 function setLoading(isLoading) {
@@ -1062,6 +1122,7 @@ function updateIndexCards() {
 
 function loadView(type) {
     currentView = type;
+    syncFilterDropdownOptions();
     const marketScopeSelect = document.getElementById("marketScopeSelect");
     if (marketScopeSelect && Array.from(marketScopeSelect.options).some(option => option.value === currentView)) {
         marketScopeSelect.value = currentView;
@@ -1108,6 +1169,8 @@ function loadView(type) {
 }
 
 function updateMarketFilterControls() {
+    syncFilterDropdownOptions();
+
     document.querySelectorAll("[data-market-filter]").forEach(button => {
         const isActive = button.dataset.marketFilter === activeMarketFilter;
         button.classList.toggle("active", isActive);
@@ -1276,30 +1339,6 @@ function getScopeStocks(scope) {
         return fullData[scope] || [];
     }
 
-    const byMarketCap = [...allStocks].sort((a, b) => normalizeMarketCapValue(b.marketCap) - normalizeMarketCapValue(a.marketCap));
-    const ranked = byMarketCap.length ? byMarketCap : [...allStocks].sort((a, b) => Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0)));
-
-    const sizeMap = {
-        niftynext50: [50, 100],
-        nifty100: [0, 100],
-        nifty200: [0, 200],
-        nifty500: [0, 500],
-        niftymidcap100: [100, 200],
-        niftysmallcap100: [200, 300],
-        niftypsubank: [0, 40]
-    };
-
-    if (scope === "niftypsubank") {
-        const psu = new Set((fullData.psu || []).map(stock => stock.symbol));
-        const banks = new Set((fullData.bank || []).map(stock => stock.symbol));
-        return allStocks.filter(stock => psu.has(stock.symbol) && banks.has(stock.symbol));
-    }
-
-    const range = sizeMap[scope];
-    if (range) {
-        return ranked.slice(range[0], range[1]);
-    }
-
     return allStocks;
 }
 
@@ -1340,16 +1379,56 @@ function applyMarketFilter(stocks) {
         return filteredStocks.sort((a, b) => Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0)));
     }
 
-    if (activeMarketFilter === "gapup" || activeMarketFilter === "bullish" || activeMarketFilter === "high52") {
+    if (activeMarketFilter === "gapup") {
+        return filteredStocks
+            .filter(stock => Number(stock.open || 0) > Number(stock.previousClose || 0))
+            .sort((a, b) => {
+                const bGap = Number(b.previousClose || 0)
+                    ? ((Number(b.open || 0) - Number(b.previousClose || 0)) / Number(b.previousClose || 0)) * 100
+                    : 0;
+                const aGap = Number(a.previousClose || 0)
+                    ? ((Number(a.open || 0) - Number(a.previousClose || 0)) / Number(a.previousClose || 0)) * 100
+                    : 0;
+                return bGap - aGap;
+            });
+    }
+
+    if (activeMarketFilter === "gapdown") {
+        return filteredStocks
+            .filter(stock => Number(stock.open || 0) < Number(stock.previousClose || 0))
+            .sort((a, b) => {
+                const bGap = Number(b.previousClose || 0)
+                    ? ((Number(b.open || 0) - Number(b.previousClose || 0)) / Number(b.previousClose || 0)) * 100
+                    : 0;
+                const aGap = Number(a.previousClose || 0)
+                    ? ((Number(a.open || 0) - Number(a.previousClose || 0)) / Number(a.previousClose || 0)) * 100
+                    : 0;
+                return aGap - bGap;
+            });
+    }
+
+    if (activeMarketFilter === "bullish") {
         return filteredStocks
             .filter(stock => Number(stock.change || 0) > 0)
             .sort((a, b) => Number(b.change || 0) - Number(a.change || 0));
     }
 
-    if (activeMarketFilter === "gapdown" || activeMarketFilter === "bearish" || activeMarketFilter === "low52") {
+    if (activeMarketFilter === "bearish") {
         return filteredStocks
             .filter(stock => Number(stock.change || 0) < 0)
             .sort((a, b) => Number(a.change || 0) - Number(b.change || 0));
+    }
+
+    if (activeMarketFilter === "high52") {
+        return filteredStocks
+            .filter(stock => Number(stock.fiftyTwoWeekHigh || 0) > 0 && Number(stock.price || 0) > 0)
+            .sort((a, b) => getDistanceFromHigh52(a) - getDistanceFromHigh52(b));
+    }
+
+    if (activeMarketFilter === "low52") {
+        return filteredStocks
+            .filter(stock => Number(stock.fiftyTwoWeekLow || 0) > 0 && Number(stock.price || 0) > 0)
+            .sort((a, b) => getDistanceFromLow52(a) - getDistanceFromLow52(b));
     }
 
     if (!marketCapValues.length) {
@@ -1375,6 +1454,26 @@ function applyMarketFilter(stocks) {
     }
 
     return filteredStocks;
+}
+
+function getDistanceFromHigh52(stock) {
+    const high = Number(stock.fiftyTwoWeekHigh || 0);
+    const price = Number(stock.price || 0);
+    if (!high || !price) {
+        return Number.POSITIVE_INFINITY;
+    }
+
+    return Math.abs((high - price) / high);
+}
+
+function getDistanceFromLow52(stock) {
+    const low = Number(stock.fiftyTwoWeekLow || 0);
+    const price = Number(stock.price || 0);
+    if (!low || !price) {
+        return Number.POSITIVE_INFINITY;
+    }
+
+    return Math.abs((price - low) / low);
 }
 
 function normalizeMarketCapValue(value) {

@@ -26,9 +26,11 @@ CORS(app)
 NEWS_CACHE_PATH = BASE_DIR / "news_cache.json"
 AI_CACHE_PATH = BASE_DIR / "ai_cache.json"
 FINANCIALS_CACHE_PATH = BASE_DIR / "financials_cache.json"
+MARKET_STATS_CACHE_PATH = BASE_DIR / "market_stats_cache.json"
 NEWS_CACHE_TTL = 60 * 60 * 24 * 30
 AI_CACHE_TTL = 60 * 60 * 24 * 365
 FINANCIALS_CACHE_TTL = 60 * 60 * 24 * 30
+MARKET_STATS_CACHE_TTL = 60 * 60 * 6
 FINANCIALS_CACHE_VERSION = "nse-inr-v6-top-ratios"
 NEWS_LIMIT = 8
 AUTH_STATE_PATH = BASE_DIR / "auth_state.json"
@@ -114,6 +116,76 @@ def load_card_metrics():
         }
 
     return metrics
+
+def normalize_yahoo_quote_stat(value):
+    if value in ("", None):
+        return None
+
+    try:
+        return round(float(value), 2)
+    except (TypeError, ValueError):
+        return None
+
+def fetch_yahoo_market_stats(symbols):
+    clean_symbols = unique_values(to_nse_base_symbol(symbol) for symbol in symbols)
+    if not clean_symbols:
+        return {}
+
+    cache = load_json_cache(MARKET_STATS_CACHE_PATH)
+    now = time.time()
+    stats = {}
+    missing = []
+
+    for symbol in clean_symbols:
+        cached = cache.get(symbol)
+        if isinstance(cached, dict) and now - float(cached.get("cachedAt") or 0) < MARKET_STATS_CACHE_TTL:
+            payload = cached.get("payload")
+            if isinstance(payload, dict):
+                stats[symbol] = payload
+                continue
+
+        missing.append(symbol)
+
+    def chunked(items, size):
+        for index in range(0, len(items), size):
+            yield items[index:index + size]
+
+    for batch in chunked(missing, 50):
+        yahoo_symbols = [to_nse_symbol(symbol) for symbol in batch]
+        try:
+            res = requests.get(
+                "https://query1.finance.yahoo.com/v7/finance/quote",
+                params={"symbols": ",".join(yahoo_symbols)},
+                headers={"User-Agent": "Mozilla/5.0"},
+                timeout=12
+            )
+            res.raise_for_status()
+            results = res.json().get("quoteResponse", {}).get("result", []) or []
+        except requests.RequestException:
+            continue
+
+        for quote in results:
+            symbol = to_nse_base_symbol(quote.get("symbol"))
+            if not symbol:
+                continue
+
+            payload = {
+                "marketCap": normalize_yahoo_quote_stat(quote.get("marketCap")),
+                "pe": normalize_yahoo_quote_stat(quote.get("trailingPE")),
+                "volume": normalize_yahoo_quote_stat(
+                    quote.get("regularMarketVolume") or quote.get("averageDailyVolume3Month")
+                ),
+                "fiftyTwoWeekHigh": normalize_yahoo_quote_stat(quote.get("fiftyTwoWeekHigh")),
+                "fiftyTwoWeekLow": normalize_yahoo_quote_stat(quote.get("fiftyTwoWeekLow"))
+            }
+            payload = {key: value for key, value in payload.items() if value is not None}
+            stats[symbol] = payload
+            cache[symbol] = {"cachedAt": now, "payload": payload}
+
+    if missing:
+        save_json_cache(MARKET_STATS_CACHE_PATH, cache)
+
+    return stats
 
 def sort_by_change_desc(stocks):
     return sorted(stocks, key=lambda stock: float(stock.get("change") or 0), reverse=True)
@@ -750,6 +822,7 @@ def get_stocks():
     except requests.RequestException:
         return jsonify({"all": [], "gainers": [], "losers": []})
 
+    market_stats = fetch_yahoo_market_stats(val.get("symbol") for val in data.values())
     index_quote_data = fetch_index_quotes(headers)
 
     stocks_data = []
@@ -760,12 +833,22 @@ def get_stocks():
         change = val.get("net_change", 0)
         ohlc = val.get("ohlc", {}) or {}
         metrics = card_metrics.get(symbol, {})
+        stats = market_stats.get(symbol, {})
+        if not stats:
+            stats = next((market_stats.get(alias) for alias in SYMBOL_ALIASES.get(symbol, set()) if market_stats.get(alias)), {})
 
         previous_close = ltp - change
         day_open = ohlc.get("open", previous_close)
         close_value = ohlc.get("close", ltp)
         high_value = ohlc.get("high", ltp)
         low_value = ohlc.get("low", ltp)
+        volume = (
+            val.get("volume")
+            or val.get("volume_traded")
+            or val.get("last_traded_quantity")
+            or stats.get("volume")
+            or 0
+        )
         percent = (change / previous_close) * 100 if previous_close != 0 else 0
 
         stocks_data.append({
@@ -779,9 +862,12 @@ def get_stocks():
             "low": round(low_value, 2),
             "change": round(percent, 2),
             "netChange": round(change, 2),
-            "pe": metrics.get("pe"),
+            "volume": volume,
+            "pe": metrics.get("pe") or stats.get("pe"),
             "roe": metrics.get("roe"),
-            "marketCap": metrics.get("marketCap")
+            "marketCap": metrics.get("marketCap") or stats.get("marketCap"),
+            "fiftyTwoWeekHigh": stats.get("fiftyTwoWeekHigh"),
+            "fiftyTwoWeekLow": stats.get("fiftyTwoWeekLow")
         })
 
     # =========================
