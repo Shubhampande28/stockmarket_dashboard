@@ -170,7 +170,11 @@ def fetch_market_stats(symbols):
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [executor.submit(fetch_symbol, symbol) for symbol in missing]
         for future in as_completed(futures):
-            symbol, payload = future.result()
+            try:
+                symbol, payload = future.result()
+            except Exception as exc:
+                print("MARKET STATS SYMBOL FAILED =", str(exc))
+                continue
             if not payload:
                 continue
             stats[symbol] = payload
@@ -816,7 +820,7 @@ def get_stocks():
     except requests.RequestException:
         return jsonify({"all": [], "gainers": [], "losers": []})
 
-    market_stats = fetch_market_stats(val.get("symbol") for val in data.values())
+    market_stats = {}
     index_quote_data = fetch_index_quotes(headers)
 
     stocks_data = []
@@ -917,6 +921,25 @@ def get_stocks():
         "indexQuotes": build_index_quote_payload(index_quote_data),
         "others": sort_by_change_desc(others)
     })
+
+@app.route("/market-stats", methods=["POST"])
+def get_market_stats():
+    payload = request.get_json(silent=True) or {}
+    symbols = payload.get("symbols") or []
+    if not isinstance(symbols, list):
+        return jsonify({"error": "symbols must be a list."}), 400
+
+    clean_symbols = []
+    for symbol in symbols[:250]:
+        clean_symbol = to_nse_base_symbol(symbol)
+        if re.fullmatch(r"[A-Z0-9&.-]{1,24}", clean_symbol or ""):
+            clean_symbols.append(clean_symbol)
+
+    try:
+        return jsonify({"stats": fetch_market_stats(clean_symbols)})
+    except Exception as exc:
+        print("MARKET STATS API FAILED =", str(exc))
+        return jsonify({"stats": {}})
 
 def yahoo_raw_value(value):
     if isinstance(value, dict):

@@ -56,6 +56,8 @@ const API_BASE = "";
 const cardMetricCache = new Map();
 const pendingCardMetricSymbols = new Set();
 let cardMetricQueue = Promise.resolve();
+const pendingMarketStatsSymbols = new Set();
+const loadedMarketStatsSymbols = new Set();
 
 const routeConfig = {
     home: { path: "/", label: "Home" },
@@ -232,6 +234,7 @@ async function loadHeatmap() {
         updateIndexCards();
         updateSummary();
         renderGrid();
+        hydrateMarketStatsForScope(currentView);
         setStatus("ready", "Market ready");
         setLastFetched();
         openRequestedStockDetail();
@@ -473,6 +476,80 @@ function buildFullUniverse(data) {
         const left = (a.name || a.symbol || "").localeCompare(b.name || b.symbol || "");
         return left || String(a.symbol).localeCompare(String(b.symbol));
     });
+}
+
+function getBaseSymbol(symbol) {
+    return String(symbol || "").replace(".NS", "").toUpperCase();
+}
+
+function mergeMarketStats(stats) {
+    if (!stats || typeof stats !== "object") {
+        return false;
+    }
+
+    const bySymbol = new Map();
+    Object.values(fullData).flat().forEach(stock => {
+        if (stock?.symbol) {
+            bySymbol.set(getBaseSymbol(stock.symbol), stock);
+        }
+    });
+
+    let changed = false;
+    Object.entries(stats).forEach(([symbol, values]) => {
+        const stock = bySymbol.get(getBaseSymbol(symbol));
+        if (!stock || !values || typeof values !== "object") {
+            return;
+        }
+
+        ["marketCap", "pe", "volume", "fiftyTwoWeekHigh", "fiftyTwoWeekLow"].forEach(key => {
+            if (values[key] !== null && values[key] !== undefined && stock[key] !== values[key]) {
+                stock[key] = values[key];
+                changed = true;
+            }
+        });
+        loadedMarketStatsSymbols.add(getBaseSymbol(symbol));
+    });
+
+    if (changed) {
+        fullUniverse = buildFullUniverse(fullData);
+    }
+
+    return changed;
+}
+
+async function hydrateMarketStatsForScope(scope = currentView) {
+    const stocks = getScopeStocks(scope);
+    const symbols = stocks
+        .map(stock => getBaseSymbol(stock.symbol))
+        .filter(symbol => symbol && !loadedMarketStatsSymbols.has(symbol) && !pendingMarketStatsSymbols.has(symbol))
+        .slice(0, 250);
+
+    if (!symbols.length) {
+        return;
+    }
+
+    symbols.forEach(symbol => pendingMarketStatsSymbols.add(symbol));
+
+    try {
+        const res = await fetch(`${API_BASE}/market-stats`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ symbols })
+        });
+        if (!res.ok) {
+            return;
+        }
+
+        const data = await res.json();
+        if (mergeMarketStats(data.stats)) {
+            updateSummary();
+            renderGrid();
+        }
+    } catch (error) {
+        // Supplemental market stats should never block the base heatmap.
+    } finally {
+        symbols.forEach(symbol => pendingMarketStatsSymbols.delete(symbol));
+    }
 }
 
 function hasLoadedStocks(key) {
@@ -1293,6 +1370,7 @@ function loadView(type) {
         viewSelect.value = type;
     }
     renderGrid();
+    hydrateMarketStatsForScope(currentView);
 
     if (heatmap) {
         requestAnimationFrame(() => heatmap.classList.remove("is-switching"));
@@ -3140,6 +3218,7 @@ document.addEventListener("click", event => {
         activeMarketFilter = marketFilter.dataset.marketFilter;
         updateMarketFilterControls();
         renderGrid();
+        hydrateMarketStatsForScope(currentView);
     }
 
     if (event.target.closest("[data-clear-heatmap-filters]")) {
@@ -3263,12 +3342,14 @@ document.addEventListener("change", event => {
         activeMarketFilter = "all";
         updateMarketFilterControls();
         renderGrid();
+        hydrateMarketStatsForScope(currentView);
     }
 
     if (event.target?.matches("[data-market-filter-select]")) {
         activeMarketFilter = event.target.value;
         updateMarketFilterControls();
         renderGrid();
+        hydrateMarketStatsForScope(currentView);
     }
 
     if (event.target?.matches("[data-market-scope-select]")) {
