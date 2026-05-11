@@ -288,45 +288,67 @@ function setupPremiumExperience() {
     const sectorSidebar = document.createElement("aside");
     sectorSidebar.className = "sector-sidebar";
     sectorSidebar.setAttribute("aria-label", "Sector intelligence");
-    sectorSidebar.innerHTML = `
-        <section>
-            <p class="workspace-eyebrow">Sector Intelligence</p>
-            <div class="market-context-card" id="sectorPerformanceList"></div>
-        </section>
-        <section>
-            <label class="heatmap-control-label" for="sectorSelect">Sector</label>
-            <select class="heatmap-control-select compact" id="sectorSelect" data-sector-select>
-                ${sectorFilterOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
-            </select>
-            <label class="heatmap-control-label" for="marketFilterSelect">Secondary filter</label>
-            <select class="heatmap-control-select" id="marketFilterSelect" data-market-filter-select>
-                <option value="all">All</option>
-                <optgroup label="Market Cap">
-                    <option value="largecap">Large Cap</option>
-                    <option value="midcap">Mid Cap</option>
-                    <option value="smallcap">Small Cap</option>
-                </optgroup>
-                <optgroup label="Performance">
-                    <option value="gainers">Top Gainers</option>
-                    <option value="losers">Top Losers</option>
-                    <option value="active">Most Active</option>
-                    <option value="volume">High Volume</option>
-                </optgroup>
-                <optgroup label="Price Action">
-                    <option value="gapup">Gap Up</option>
-                    <option value="gapdown">Gap Down</option>
-                    <option value="high52">Near 52W High</option>
-                    <option value="low52">Near 52W Low</option>
-                </optgroup>
-                <optgroup label="Trend">
-                    <option value="bullish">Bullish</option>
-                    <option value="bearish">Bearish</option>
-                </optgroup>
-            </select>
-            <button class="heatmap-clear-button" type="button" data-clear-heatmap-filters>Clear filters</button>
-        </section>
-    `;
+sectorSidebar.innerHTML = `
+    <section>
+        <p class="workspace-eyebrow">Sector Intelligence</p>
+        <div class="market-context-card" id="sectorPerformanceList"></div>
+    </section>
 
+    <section>
+        <label class="heatmap-control-label" for="marketScopeSelect">
+            Market Scope
+        </label>
+
+        <select class="heatmap-control-select compact" id="marketScopeSelect" data-market-scope-select>
+            ${marketScopeOptions.map(([value, label]) => `
+                <option value="${value}">${label}</option>
+            `).join("")}
+        </select>
+
+        <label class="heatmap-control-label" for="sectorSelect">
+            Sector
+        </label>
+
+        <select class="heatmap-control-select compact" id="sectorSelect" data-sector-select>
+            ${sectorFilterOptions.map(([value, label]) => `
+                <option value="${value}">${label}</option>
+            `).join("")}
+        </select>
+
+        <label class="heatmap-control-label" for="marketFilterSelect">
+            Filters
+        </label>
+
+        <select class="heatmap-control-select" id="marketFilterSelect" data-market-filter-select>
+            <option value="all">All</option>
+
+            <optgroup label="Market Cap">
+                <option value="largecap">Large Cap</option>
+                <option value="midcap">Mid Cap</option>
+                <option value="smallcap">Small Cap</option>
+            </optgroup>
+
+            <optgroup label="Performance">
+                <option value="gainers">Top Gainers</option>
+                <option value="losers">Top Losers</option>
+                <option value="active">Most Active</option>
+                <option value="volume">High Volume</option>
+            </optgroup>
+
+            <optgroup label="Price Action">
+                <option value="gapup">Gap Up</option>
+                <option value="gapdown">Gap Down</option>
+                <option value="high52">Near 52W High</option>
+                <option value="low52">Near 52W Low</option>
+            </optgroup>
+
+            <optgroup label="Trend">
+                <option value="bullish">Bullish</option>
+                <option value="bearish">Bearish</option>
+            </optgroup>
+        </select>
+    </section>
+`;
     const heatmapStage = document.createElement("section");
     heatmapStage.className = "heatmap-stage";
     while (heatmapPanel.childNodes.length) {
@@ -338,15 +360,7 @@ function setupPremiumExperience() {
     intelligencePanel.id = "intelligencePanel";
     intelligencePanel.setAttribute("aria-label", "Market intelligence");
 
-    const heatmapToolbar = document.createElement("div");
-    heatmapToolbar.className = "heatmap-toolbar";
-    heatmapToolbar.innerHTML = `
-        <label class="heatmap-control-label" for="marketScopeSelect">Market Scope</label>
-        <select class="heatmap-control-select compact" id="marketScopeSelect" data-market-scope-select>
-            ${marketScopeOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
-        </select>
-    `;
-    heatmapStage.insertBefore(heatmapToolbar, heatmapStage.firstChild);
+
 
     workspaceGrid.append(sectorSidebar, heatmapStage);
     heatmapPanel.appendChild(workspaceGrid);
