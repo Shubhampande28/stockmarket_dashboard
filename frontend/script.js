@@ -429,10 +429,15 @@ sectorSidebar.innerHTML = `
                     <p class="workspace-eyebrow">Financial Statements</p>
                     <h2>Company Fundamentals</h2>
                 </div>
-                <div class="financial-search-wrap">
-                    <label for="financialCompanySearch">Company</label>
-                    <input id="financialCompanySearch" type="search" placeholder="Search company..." autocomplete="off">
-                    <div class="financial-search-results" id="financialSearchResults" hidden></div>
+                <div class="financial-head-actions">
+                    <a class="annual-report-button" id="annualReportButton" href="#" target="_blank" rel="noopener noreferrer" download hidden>
+                        Download Annual Report
+                    </a>
+                    <div class="financial-search-wrap">
+                        <label for="financialCompanySearch">Company</label>
+                        <input id="financialCompanySearch" type="search" placeholder="Search company..." autocomplete="off">
+                        <div class="financial-search-results" id="financialSearchResults" hidden></div>
+                    </div>
                 </div>
             </header>
             <div class="financial-tabs" id="financialTabs" role="tablist" aria-label="Financial statement tabs">
@@ -1033,6 +1038,7 @@ function renderFinancialPage() {
     }
 
     if (!stock) {
+        updateAnnualReportButton(null);
         financialContent.innerHTML = `<p class="financial-empty">Search a company to view financial statements.</p>`;
         return;
     }
@@ -1042,6 +1048,7 @@ function renderFinancialPage() {
     const data = financialPageData?.symbol?.replace(".NS", "") === symbol ? financialPageData : null;
 
     if (loadingThisStock && !data) {
+        updateAnnualReportButton(null);
         financialContent.innerHTML = `
             <div class="financial-company-strip">
                 <span>${escapeHtml(stock.name || symbol)}</span>
@@ -1054,6 +1061,7 @@ function renderFinancialPage() {
     }
 
     if (financialPageError && !data) {
+        updateAnnualReportButton(null);
         financialContent.innerHTML = `
             <div class="financial-company-strip">
                 <span>${escapeHtml(stock.name || symbol)}</span>
@@ -1066,9 +1074,12 @@ function renderFinancialPage() {
     }
 
     if (!data) {
+        updateAnnualReportButton(null);
         loadFinancialPageData(stock);
         return;
     }
+
+    updateAnnualReportButton(data);
 
     if (activeFinancialPageTab === "overview") {
         const valuation = data.valuation || {};
@@ -1116,6 +1127,26 @@ function renderFinancialPage() {
     }
 
     financialContent.innerHTML = renderFinancialStatementTable(statementMap[activeFinancialPageTab] || statementMap.income);
+}
+
+function updateAnnualReportButton(data) {
+    const button = document.getElementById("annualReportButton");
+    if (!button) {
+        return;
+    }
+
+    const report = data?.source?.annualReport;
+    if (!report?.url) {
+        button.hidden = true;
+        button.removeAttribute("href");
+        button.removeAttribute("download");
+        return;
+    }
+
+    button.hidden = false;
+    button.href = report.url;
+    button.setAttribute("download", "");
+    button.textContent = report.year ? `Download Annual Report ${report.year}` : "Download Annual Report";
 }
 
 function renderFinancialMetric(label, value) {
