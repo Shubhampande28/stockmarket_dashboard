@@ -126,7 +126,7 @@ def normalize_yahoo_quote_stat(value):
     except (TypeError, ValueError):
         return None
 
-def fetch_yahoo_market_stats(symbols):
+def fetch_market_stats(symbols):
     clean_symbols = unique_values(to_nse_base_symbol(symbol) for symbol in symbols)
     if not clean_symbols:
         return {}
@@ -146,39 +146,33 @@ def fetch_yahoo_market_stats(symbols):
 
         missing.append(symbol)
 
-    def chunked(items, size):
-        for index in range(0, len(items), size):
-            yield items[index:index + size]
-
-    for batch in chunked(missing, 50):
-        yahoo_symbols = [to_nse_symbol(symbol) for symbol in batch]
+    def fetch_symbol(symbol):
         try:
-            res = requests.get(
-                "https://query1.finance.yahoo.com/v7/finance/quote",
-                params={"symbols": ",".join(yahoo_symbols)},
-                headers={"User-Agent": "Mozilla/5.0"},
-                timeout=12
-            )
-            res.raise_for_status()
-            results = res.json().get("quoteResponse", {}).get("result", []) or []
+            summary = get_nse_quote_summary(symbol)
         except requests.RequestException:
-            continue
+            return symbol, {}
 
-        for quote in results:
-            symbol = to_nse_base_symbol(quote.get("symbol"))
-            if not symbol:
+        price_info = summary.get("priceInfo", {}) or {}
+        security_info = summary.get("securityInfo", {}) or {}
+        metadata = summary.get("metadata", {}) or {}
+        week_range = price_info.get("weekHighLow", {}) or {}
+        last_price = normalize_yahoo_quote_stat(price_info.get("lastPrice"))
+        issued_size = normalize_yahoo_quote_stat(security_info.get("issuedSize"))
+        market_cap = round(last_price * issued_size, 2) if last_price and issued_size else None
+        payload = {
+            "marketCap": market_cap,
+            "pe": normalize_yahoo_quote_stat(metadata.get("pdSymbolPe")),
+            "fiftyTwoWeekHigh": normalize_yahoo_quote_stat(week_range.get("max")),
+            "fiftyTwoWeekLow": normalize_yahoo_quote_stat(week_range.get("min"))
+        }
+        return symbol, {key: value for key, value in payload.items() if value is not None}
+
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        futures = [executor.submit(fetch_symbol, symbol) for symbol in missing]
+        for future in as_completed(futures):
+            symbol, payload = future.result()
+            if not payload:
                 continue
-
-            payload = {
-                "marketCap": normalize_yahoo_quote_stat(quote.get("marketCap")),
-                "pe": normalize_yahoo_quote_stat(quote.get("trailingPE")),
-                "volume": normalize_yahoo_quote_stat(
-                    quote.get("regularMarketVolume") or quote.get("averageDailyVolume3Month")
-                ),
-                "fiftyTwoWeekHigh": normalize_yahoo_quote_stat(quote.get("fiftyTwoWeekHigh")),
-                "fiftyTwoWeekLow": normalize_yahoo_quote_stat(quote.get("fiftyTwoWeekLow"))
-            }
-            payload = {key: value for key, value in payload.items() if value is not None}
             stats[symbol] = payload
             cache[symbol] = {"cachedAt": now, "payload": payload}
 
@@ -822,7 +816,7 @@ def get_stocks():
     except requests.RequestException:
         return jsonify({"all": [], "gainers": [], "losers": []})
 
-    market_stats = fetch_yahoo_market_stats(val.get("symbol") for val in data.values())
+    market_stats = fetch_market_stats(val.get("symbol") for val in data.values())
     index_quote_data = fetch_index_quotes(headers)
 
     stocks_data = []
@@ -842,6 +836,14 @@ def get_stocks():
         close_value = ohlc.get("close", ltp)
         high_value = ohlc.get("high", ltp)
         low_value = ohlc.get("low", ltp)
+        fifty_two_week_high = (
+            find_first_number(val, {"week52high", "fiftytwoweekhigh", "yearhigh", "high52"})
+            or stats.get("fiftyTwoWeekHigh")
+        )
+        fifty_two_week_low = (
+            find_first_number(val, {"week52low", "fiftytwoweeklow", "yearlow", "low52"})
+            or stats.get("fiftyTwoWeekLow")
+        )
         volume = (
             val.get("volume")
             or val.get("volume_traded")
@@ -866,8 +868,8 @@ def get_stocks():
             "pe": metrics.get("pe") or stats.get("pe"),
             "roe": metrics.get("roe"),
             "marketCap": metrics.get("marketCap") or stats.get("marketCap"),
-            "fiftyTwoWeekHigh": stats.get("fiftyTwoWeekHigh"),
-            "fiftyTwoWeekLow": stats.get("fiftyTwoWeekLow")
+            "fiftyTwoWeekHigh": fifty_two_week_high,
+            "fiftyTwoWeekLow": fifty_two_week_low
         })
 
     # =========================

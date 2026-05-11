@@ -204,6 +204,9 @@ let financialSearchInput = null;
 let financialTabs = null;
 let financialContent = null;
 let selectedFinancialStock = null;
+let financialPageData = null;
+let financialPageError = "";
+let financialPageLoadingSymbol = "";
 let activeFinancialPageTab = "overview";
 
 async function loadHeatmap() {
@@ -872,8 +875,76 @@ function renderTrendMovers() {
     `).join("") || "<p>Waiting for market data</p>";
 }
 
+async function loadFinancialPageData(stock) {
+    if (!stock) {
+        return;
+    }
+
+    const symbol = stock.symbol;
+    if (financialPageLoadingSymbol === symbol) {
+        return;
+    }
+
+    financialPageLoadingSymbol = symbol;
+    financialPageError = "";
+    financialPageData = null;
+    renderFinancialPage();
+
+    try {
+        const res = await fetch(`${API_BASE}/financials/${encodeURIComponent(symbol)}`);
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+            throw new Error(data.error || "Unable to load financial statements.");
+        }
+
+        if (selectedFinancialStock?.symbol === symbol) {
+            financialPageData = data;
+            financialPageError = "";
+        }
+    } catch (error) {
+        if (selectedFinancialStock?.symbol === symbol) {
+            financialPageError = error.message || "Unable to load financial statements.";
+        }
+    } finally {
+        if (financialPageLoadingSymbol === symbol) {
+            financialPageLoadingSymbol = "";
+        }
+        renderFinancialPage();
+    }
+}
+
+function selectFinancialStock(stock, shouldNavigate = false) {
+    if (!stock) {
+        return;
+    }
+
+    const changed = selectedFinancialStock?.symbol !== stock.symbol;
+    selectedFinancialStock = stock;
+    if (changed) {
+        financialPageData = null;
+        financialPageError = "";
+        activeFinancialPageTab = "overview";
+        document.querySelectorAll(".financial-tab").forEach(button => {
+            button.classList.toggle("active", button.dataset.financialTab === activeFinancialPageTab);
+        });
+    }
+    if (financialSearchInput) {
+        financialSearchInput.value = stock.symbol.replace(".NS", "");
+    }
+    if (shouldNavigate) {
+        navigateTo("financials");
+    }
+    renderFinancialPage();
+    loadFinancialPageData(stock);
+}
+
 function renderFinancialPage() {
     if (!financialContent) {
+        return;
+    }
+
+    if (activeRoute !== "financials" && !selectedFinancialStock) {
         return;
     }
 
@@ -890,69 +961,84 @@ function renderFinancialPage() {
     }
 
     const symbol = stock.symbol.replace(".NS", "");
-    const metricValues = {
-        revenue: estimateCurrency(stock.price, 4200),
-        netProfit: estimateCurrency(stock.price, 720),
-        ebitda: estimateCurrency(stock.price, 1180),
-        eps: formatRatio((Number(stock.price || 0) / 34) || 0),
-        roe: `${Math.max(8, Math.min(28, 14 + Number(stock.change || 0))).toFixed(1)}%`,
-        marketCap: formatMarketCap(stock.marketCap || Number(stock.price || 0) * 2800000),
-        pe: formatRatio(stock.pe || 28.4),
-        pb: formatRatio(stock.pb || 4.2),
-        roce: `${Math.max(9, Math.min(32, 16 + Number(stock.change || 0))).toFixed(1)}%`,
-        debtEquity: formatRatio(0.42),
-        currentRatio: formatRatio(1.74)
-    };
+    const loadingThisStock = financialPageLoadingSymbol === stock.symbol;
+    const data = financialPageData?.symbol?.replace(".NS", "") === symbol ? financialPageData : null;
 
-    if (activeFinancialPageTab === "overview") {
+    if (loadingThisStock && !data) {
+        financialContent.innerHTML = `
+            <div class="financial-company-strip">
+                <span>${escapeHtml(stock.name || symbol)}</span>
+                <strong>${escapeHtml(symbol)}</strong>
+                <em>Fetching INR statements...</em>
+            </div>
+            <p class="financial-empty">Loading Screener financials and NSE report links.</p>
+        `;
+        return;
+    }
+
+    if (financialPageError && !data) {
         financialContent.innerHTML = `
             <div class="financial-company-strip">
                 <span>${escapeHtml(stock.name || symbol)}</span>
                 <strong>${escapeHtml(symbol)}</strong>
                 <em class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</em>
             </div>
+            <p class="financial-empty">${escapeHtml(financialPageError)}</p>
+        `;
+        return;
+    }
+
+    if (!data) {
+        loadFinancialPageData(stock);
+        return;
+    }
+
+    if (activeFinancialPageTab === "overview") {
+        const valuation = data.valuation || {};
+        const info = data.info || {};
+        const statementSource = data.source?.url
+            ? `<a href="${escapeAttribute(data.source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml([data.source.provider, data.source.label].filter(Boolean).join(" - "))}</a>`
+            : escapeHtml([data.source?.provider, data.source?.label].filter(Boolean).join(" - ") || "Statement source unavailable");
+        const annualReport = data.source?.annualReport;
+        const reportLink = annualReport?.url
+            ? `<a href="${escapeAttribute(annualReport.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml([annualReport.provider, annualReport.year].filter(Boolean).join(" - ") || "Download annual report")}</a>`
+            : "Annual report link unavailable";
+        financialContent.innerHTML = `
+            <div class="financial-company-strip">
+                <span>${escapeHtml(data.name || stock.name || symbol)}</span>
+                <strong>${escapeHtml(symbol)}</strong>
+                <em class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</em>
+            </div>
             <div class="financial-metric-grid">
-                ${renderFinancialMetric("Revenue", metricValues.revenue)}
-                ${renderFinancialMetric("Net Profit", metricValues.netProfit)}
-                ${renderFinancialMetric("EBITDA", metricValues.ebitda)}
-                ${renderFinancialMetric("EPS", metricValues.eps)}
-                ${renderFinancialMetric("ROE", metricValues.roe)}
-                ${renderFinancialMetric("Market Cap", metricValues.marketCap)}
+                ${renderFinancialMetric("Market Cap", formatSnapshotMarketCap(info, valuation))}
+                ${renderFinancialMetric("Current Price", formatCompactPrice(stock.price))}
+                ${renderFinancialMetric("Stock P/E", formatSnapshotRatio(info.stockPe, valuation.peTrailing))}
+                ${renderFinancialMetric("ROE", formatInfoDisplayText(parseInfoDisplay(info.roe || formatPercentValue(valuation.roe), "", "%")))}
+                ${renderFinancialMetric("ROCE", formatInfoDisplayText(parseInfoDisplay(info.roce || formatPercentValue(valuation.roce), "", "%")))}
+                ${renderFinancialMetric("52W Range", formatSnapshotRange(info, valuation))}
+            </div>
+            <div class="snapshot-source">
+                <span>Data sources</span>
+                <strong>Statements: ${statementSource}</strong>
+                <strong>Official filing: ${reportLink}</strong>
+                <strong>${escapeHtml(data.sourceNote || "Figures are shown in INR crore where available.")}</strong>
             </div>
         `;
         return;
     }
 
-    const rows = {
-        income: [
-            ["Revenue", metricValues.revenue],
-            ["Operating Income", estimateCurrency(stock.price, 940)],
-            ["Net Income", metricValues.netProfit],
-            ["EPS", metricValues.eps]
-        ],
-        balance: [
-            ["Assets", estimateCurrency(stock.price, 6200)],
-            ["Liabilities", estimateCurrency(stock.price, 2600)],
-            ["Equity", estimateCurrency(stock.price, 3600)],
-            ["Debt", estimateCurrency(stock.price, 900)]
-        ],
-        cashflow: [
-            ["Operating Cash Flow", estimateCurrency(stock.price, 840)],
-            ["Investing Cash Flow", estimateCurrency(stock.price, -380)],
-            ["Financing Cash Flow", estimateCurrency(stock.price, -210)],
-            ["Free Cash Flow", estimateCurrency(stock.price, 460)]
-        ],
-        ratios: [
-            ["PE Ratio", metricValues.pe],
-            ["PB Ratio", metricValues.pb],
-            ["ROE", metricValues.roe],
-            ["ROCE", metricValues.roce],
-            ["Debt to Equity", metricValues.debtEquity],
-            ["Current Ratio", metricValues.currentRatio]
-        ]
+    const statementMap = {
+        income: data.statements?.profitLoss,
+        balance: data.statements?.balanceSheet,
+        cashflow: data.statements?.cashFlow
     };
 
-    financialContent.innerHTML = renderFinancialTable(rows[activeFinancialPageTab] || rows.income);
+    if (activeFinancialPageTab === "ratios") {
+        financialContent.innerHTML = renderFinancialTable(buildRatioRows(data, stock));
+        return;
+    }
+
+    financialContent.innerHTML = renderFinancialStatementTable(statementMap[activeFinancialPageTab] || statementMap.income);
 }
 
 function renderFinancialMetric(label, value) {
@@ -979,6 +1065,51 @@ function renderFinancialTable(rows) {
             </table>
         </div>
     `;
+}
+
+function renderFinancialStatementTable(statement) {
+    if (!statement?.rows?.length) {
+        return `<p class="financial-empty">This statement is not available from the INR source for the selected stock.</p>`;
+    }
+
+    return `
+        <div class="financial-table-wrap">
+            <table class="financial-clean-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Metric</th>
+                        ${statement.periods.map(period => `<th scope="col">${escapeHtml(period)}</th>`).join("")}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${statement.rows.map(row => `
+                        <tr>
+                            <th scope="row">${escapeHtml(row.label)}</th>
+                            ${row.values.map(value => `<td>${formatFinancialValue(value)}</td>`).join("")}
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function buildRatioRows(data, stock) {
+    const info = data.info || {};
+    const valuation = data.valuation || {};
+    return [
+        ["Market Cap", formatSnapshotMarketCap(info, valuation)],
+        ["Current Price", formatCompactPrice(stock.price)],
+        ["Stock P/E", formatSnapshotRatio(info.stockPe, valuation.peTrailing)],
+        ["Forward P/E", formatSnapshotRatio(valuation.peForward)],
+        ["Price to Book", formatSnapshotRatio(valuation.priceToBook)],
+        ["Book Value", formatInfoDisplayText(parseInfoDisplay(info.bookValue || formatCurrencyValue(valuation.bookValue), "₹", ""))],
+        ["Dividend Yield", formatInfoDisplayText(parseInfoDisplay(info.dividendYield || formatPercentValue(valuation.dividendYield), "", "%"))],
+        ["ROE", formatInfoDisplayText(parseInfoDisplay(info.roe || formatPercentValue(valuation.roe), "", "%"))],
+        ["ROCE", formatInfoDisplayText(parseInfoDisplay(info.roce || formatPercentValue(valuation.roce), "", "%"))],
+        ["Face Value", formatInfoDisplayText(parseInfoDisplay(info.faceValue || formatCurrencyValue(valuation.faceValue), "₹", ""))],
+        ["52W Range", formatSnapshotRange(info, valuation)]
+    ];
 }
 
 function estimateCurrency(price, multiplier) {
@@ -1348,7 +1479,8 @@ function applyMarketFilter(stocks) {
         return filteredStocks;
     }
 
-    const marketCapValues = filteredStocks
+    const capSource = (fullUniverse.length ? fullUniverse : filteredStocks);
+    const marketCapValues = capSource
         .map(stock => normalizeMarketCapValue(stock.marketCap))
         .filter(value => value > 0)
         .sort((a, b) => a - b);
@@ -3062,12 +3194,8 @@ document.addEventListener("click", event => {
     if (financialResult) {
         const stock = getStockBySymbol(financialResult.dataset.financialSymbol);
         if (stock) {
-            selectedFinancialStock = stock;
-            if (financialSearchInput) {
-                financialSearchInput.value = stock.symbol.replace(".NS", "");
-            }
             document.getElementById("financialSearchResults")?.setAttribute("hidden", "");
-            renderFinancialPage();
+            selectFinancialStock(stock);
         }
     }
 
@@ -3215,6 +3343,7 @@ heatmap.addEventListener("click", event => {
         document.querySelectorAll(".stock-card").forEach(card => {
             card.classList.toggle("selected", card.dataset.symbol === stock.symbol);
         });
+        selectFinancialStock(stock, true);
     }
 });
 
@@ -3236,6 +3365,7 @@ heatmap.addEventListener("keydown", event => {
         document.querySelectorAll(".stock-card").forEach(card => {
             card.classList.toggle("selected", card.dataset.symbol === stock.symbol);
         });
+        selectFinancialStock(stock, true);
     }
 });
 
