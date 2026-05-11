@@ -9231,3 +9231,7 @@ body.heatmap-open .panel-heading p,
 body.heatmap-open .panel-heading small {
     margin-bottom: 0 !important;
 }
+
+.market-status {
+    display: none !important;
+};

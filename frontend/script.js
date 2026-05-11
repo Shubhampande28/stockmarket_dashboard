@@ -3187,7 +3187,3 @@ window.addEventListener("load", () => {
     navigateTo(getRouteFromPath(), { replace: true, scroll: false });
     loadHeatmap();
 });
-
-.market-status {
-    display: none !important;
-}
