@@ -294,7 +294,6 @@ function setupPremiumExperience() {
             <div class="market-context-card" id="sectorPerformanceList"></div>
         </section>
         <section>
-            <p class="workspace-eyebrow">Explore</p>
             <label class="heatmap-control-label" for="sectorSelect">Sector</label>
             <select class="heatmap-control-select compact" id="sectorSelect" data-sector-select>
                 ${sectorFilterOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
@@ -1522,19 +1521,14 @@ function renderHeatmapDescription(stockCount = visibleStocks.length) {
     }
 
     const scope = marketScopeOptions.find(option => option[0] === currentView)?.[1] || viewLabels[currentView] || currentView;
-    const sector = activeSectorFilter === "all" ? "all sectors" : viewLabels[activeSectorFilter] || activeSectorFilter;
-    const filter = activeMarketFilter === "all" ? "No secondary filter is active." : `${marketFilterLabels[activeMarketFilter]} filter is active.`;
+
     description.innerHTML = `
-        <div class="heatmap-info-card">
-            <strong>What you are viewing</strong>
-            <p>Showing ${escapeHtml(scope)} across ${escapeHtml(sector)}, ranked by absolute price movement so the strongest gainers and sharpest losers surface first. ${escapeHtml(filter)}</p>
-            <small>Use Market Scope for the index universe, then narrow by sector or a single secondary filter.</small>
-        </div>
-        <div class="active-filter-strip" aria-label="Active heatmap filters">
-            <span>${escapeHtml(scope)}</span>
-            <span>${escapeHtml(activeSectorFilter === "all" ? "All sectors" : viewLabels[activeSectorFilter] || activeSectorFilter)}</span>
-            <span>${escapeHtml(activeMarketFilter === "all" ? "All filters" : marketFilterLabels[activeMarketFilter])}</span>
-            <button type="button" data-clear-heatmap-filters>Clear filters</button>
+        <div class="market-summary-inline">
+            ${escapeHtml(scope)} • ${escapeHtml(
+                activeSectorFilter === "all"
+                    ? "All sectors"
+                    : viewLabels[activeSectorFilter] || activeSectorFilter
+            )} • Ranked by strongest movers
         </div>
     `;
 }

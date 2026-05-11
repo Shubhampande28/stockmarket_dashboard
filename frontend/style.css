@@ -9196,3 +9196,17 @@ body.heatmap-open .workspace-grid {
 body.heatmap-open .app-shell {
     align-items: start !important;
 }
+
+.market-summary-inline {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(226,232,240,0.7);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.72);
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+}
