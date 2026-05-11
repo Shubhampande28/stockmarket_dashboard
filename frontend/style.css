@@ -2450,13 +2450,16 @@ body {
 
 @media (max-width: 520px) {
     .app-shell {
-        width: 100%;
-        gap: 10px;
-        margin: 0;
+        width: calc(100% - 20px);
+        gap: 14px;
+        margin: 14px auto 24px;
+        align-items: start;
     }
-
     .side-rail {
-        padding: 12px;
+        padding: 14px;
+        border-radius: 18px;
+        height: fit-content;
+        align-self: start;
     }
 
     #heatmap {
@@ -8668,6 +8671,17 @@ body.heatmap-open .market-context-card p {
     line-height: 1.45;
 }
 
+body.heatmap-open .market-context-card {
+    min-height: unset !important;
+    height: auto !important;
+}
+
+body.heatmap-open .side-rail {
+    justify-content: flex-start !important;
+    gap: 14px !important;
+    align-content: flex-start !important;
+}
+
 body.heatmap-open .heatmap-toolbar {
     display: flex;
     align-items: center;
@@ -9166,4 +9180,19 @@ body.heatmap-open .site-header {
     body.heatmap-open .filter-pill-grid {
         grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)) !important;
     }
+}
+
+body.heatmap-open .side-rail {
+    height: fit-content !important;
+    align-self: start !important;
+    justify-content: flex-start !important;
+    gap: 14px !important;
+}
+
+body.heatmap-open .workspace-grid {
+    align-items: start !important;
+}
+
+body.heatmap-open .app-shell {
+    align-items: start !important;
 }
