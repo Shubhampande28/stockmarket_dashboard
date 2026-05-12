@@ -1203,8 +1203,21 @@ def find_first_number(payload, keys):
 
 def build_nse_valuation_payload(summary, symbol):
     base_symbol = to_nse_base_symbol(symbol)
+    price_info = summary.get("priceInfo", {}) or {}
+    security_info = summary.get("securityInfo", {}) or {}
+    # Prefer NSE's direct totalMarketCap (in crores). Do NOT use ffmc — that is
+    # Free Float Market Cap (excludes promoter holding) which is far lower than total.
+    market_cap = (
+        normalize_yahoo_quote_stat(security_info.get("totalMarketCap"))
+        or find_first_number(summary, {"totalmarketcap", "mcap", "marketcapitalisation"})
+    )
+    if not market_cap:
+        last_price = normalize_yahoo_quote_stat(price_info.get("lastPrice"))
+        issued_size = normalize_yahoo_quote_stat(security_info.get("issuedSize"))
+        if last_price and issued_size:
+            market_cap = round((last_price * issued_size) / 1e7, 2)
     return {
-        "marketCap": find_first_number(summary, {"marketcap", "ffmc", "mcap", "marketcapitalisation"}),
+        "marketCap": market_cap,
         "peTrailing": find_first_number(summary, {"symbolpe", "pdsymbolpe", "pe", "peratio"}),
         "peForward": None,
         "epsTrailing": find_first_number(summary, {"eps", "trailingepe", "trailingepeps", "trailingePS".lower()}),

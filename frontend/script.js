@@ -2375,12 +2375,19 @@ function formatInfoFallback(rawValue, fallbackPrefix = "", fallbackUnit = "") {
 }
 
 function formatSnapshotMarketCap(info, valuation) {
-    const marketCap = getFirstFilledValue(valuation.marketCap);
-    if (marketCap !== undefined) {
-        return formatMarketCap(marketCap);
+    // Prefer Screener info string — already formatted as "13,08,834 Cr" (total market cap)
+    if (info.marketCap) {
+        return formatInfoFallback(info.marketCap, "", "Cr");
     }
-
-    return formatInfoFallback(info.marketCap, "", "Cr");
+    // Fall back to NSE numeric value (raw crores, needs explicit "Cr" suffix)
+    const marketCap = getFirstFilledValue(valuation.marketCap);
+    if (marketCap !== undefined && marketCap !== null) {
+        const num = Number(marketCap);
+        if (!isNaN(num) && num > 0) {
+            return escapeHtml(num.toLocaleString("en-IN", { maximumFractionDigits: 0 }) + " Cr");
+        }
+    }
+    return "--";
 }
 
 function formatSnapshotRatio(...values) {
