@@ -9693,7 +9693,7 @@ body.experience-open .site-header {
     gap: 8px;
     padding-top: 14px;
     margin-top: 10px;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid hsl(220, 40%, 88%);
     flex-shrink: 0;
 }
 
@@ -9759,7 +9759,91 @@ body.experience-open .route-live-chip {
     display: none !important;
 }
 
-/* Responsive: collapse sidebar, restore top nav on narrow screens */
+/* ---- Sidebar pastel & drawer ---- */
+.app-sidebar {
+    background: hsl(220, 55%, 97%) !important;
+    border-right-color: hsl(220, 40%, 88%) !important;
+    transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid hsl(220, 40%, 88%);
+    flex-shrink: 0;
+}
+
+/* Remove border-bottom from sidebar-brand since top-row handles it */
+.sidebar-top-row .sidebar-brand {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid hsl(220, 40%, 88%);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.7);
+    color: #475569;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 150ms ease, color 150ms ease;
+}
+
+.sidebar-collapse-btn:hover {
+    background: #ffffff;
+    color: var(--accent);
+}
+
+/* Floating expand button shown when sidebar is collapsed */
+.sidebar-expand-btn {
+    position: fixed;
+    top: 14px;
+    left: 10px;
+    z-index: 210;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
+    transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.sidebar-expand-btn:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+/* Collapsed state */
+body.experience-open.sidebar-collapsed .app-sidebar {
+    transform: translateX(-220px) !important;
+}
+
+body.experience-open.sidebar-collapsed {
+    padding-left: 0 !important;
+}
+
+body.experience-open.sidebar-collapsed .sidebar-expand-btn {
+    display: flex;
+}
+
+/* Responsive: collapse sidebar on narrow screens, restore top nav */
 @media (max-width: 860px) {
     body.experience-open {
         padding-left: 0 !important;
@@ -9772,6 +9856,90 @@ body.experience-open .route-live-chip {
     body.experience-open .site-header {
         display: block !important;
     }
+
+    .sidebar-expand-btn {
+        display: none !important;
+    }
+}
+
+/* ---- Fix insights top blank space ---- */
+/* App-shell has no visible content when insights is active — remove from flow */
+body.trends-open .app-shell {
+    display: none !important;
+}
+
+body.trends-open .premium-trends {
+    margin-top: clamp(0.5rem, 1vw, 1rem) !important;
+}
+
+/* ---- Heatmap horizontal toolbar ---- */
+body.heatmap-open .heatmap-panel {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+body.heatmap-open .heatmap-toolbar {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 10px 24px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 10px 18px !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(203, 213, 225, 0.66) !important;
+    border-radius: 0 !important;
+    background: rgba(248, 250, 252, 0.92) !important;
+    box-shadow: none !important;
+    flex-shrink: 0 !important;
+}
+
+body.heatmap-open .heatmap-toolbar-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+body.heatmap-open .heatmap-toolbar .heatmap-control-label {
+    margin: 0 !important;
+    white-space: nowrap !important;
+    font-size: 0.76rem !important;
+    letter-spacing: 0.06em !important;
+}
+
+body.heatmap-open .heatmap-toolbar .heatmap-control-select {
+    min-height: 2.3rem !important;
+    min-width: 120px !important;
+    border-radius: 0.7rem !important;
+    font-size: 0.88rem !important;
+    box-shadow: none !important;
+}
+
+body.heatmap-open .heatmap-stage {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Override old workspace-grid rules now that toolbar replaces it */
+body.heatmap-open .workspace-grid {
+    display: none !important;
+}
+
+/* Make heatmap fill the full height nicely */
+body.heatmap-open #heatmap.stock-card-grid,
+body.heatmap-open #heatmap.premium-treemap {
+    flex: 1 !important;
+    min-height: 60svh !important;
+}
+
+/* ---- Responsive width fix: account for sidebar ---- */
+body.experience-open:not(.sidebar-collapsed) .app-shell,
+body.experience-open:not(.sidebar-collapsed) .premium-trends,
+body.experience-open:not(.sidebar-collapsed) .premium-financials {
+    max-width: calc(var(--page-max) - 220px) !important;
 }
 
 body.heatmap-open .filter-pill-grid {

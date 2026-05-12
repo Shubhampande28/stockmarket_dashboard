@@ -292,72 +292,50 @@ function setupPremiumExperience() {
         setupMarketHoverTip();
     }
 
-    const workspaceGrid = document.createElement("div");
-    workspaceGrid.className = "workspace-grid";
-    const sectorSidebar = document.createElement("aside");
-    sectorSidebar.className = "sector-sidebar";
-    sectorSidebar.setAttribute("aria-label", "Sector intelligence");
-sectorSidebar.innerHTML = `
-    <section>
-        <p class="workspace-eyebrow">Sector Intelligence</p>
-        <div class="market-context-card" id="sectorPerformanceList"></div>
-    </section>
+    // Horizontal toolbar replaces the old sector-sidebar + workspace-grid layout
+    const heatmapToolbar = document.createElement("div");
+    heatmapToolbar.className = "heatmap-toolbar";
+    heatmapToolbar.innerHTML = `
+        <div class="heatmap-toolbar-item">
+            <label class="heatmap-control-label" for="marketScopeSelect">Scope</label>
+            <select class="heatmap-control-select compact" id="marketScopeSelect" data-market-scope-select>
+                ${marketScopeOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
+            </select>
+        </div>
+        <div class="heatmap-toolbar-item">
+            <label class="heatmap-control-label" for="sectorSelect">Sector</label>
+            <select class="heatmap-control-select compact" id="sectorSelect" data-sector-select>
+                ${sectorFilterOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
+            </select>
+        </div>
+        <div class="heatmap-toolbar-item">
+            <label class="heatmap-control-label" for="marketFilterSelect">Filter</label>
+            <select class="heatmap-control-select" id="marketFilterSelect" data-market-filter-select>
+                <option value="all">All</option>
+                <optgroup label="Market Cap">
+                    <option value="largecap">Large Cap</option>
+                    <option value="midcap">Mid Cap</option>
+                    <option value="smallcap">Small Cap</option>
+                </optgroup>
+                <optgroup label="Performance">
+                    <option value="gainers">Top Gainers</option>
+                    <option value="losers">Top Losers</option>
+                    <option value="active">Most Active</option>
+                    <option value="volume">High Volume</option>
+                </optgroup>
+                <optgroup label="Price Action">
+                    <option value="gapup">Gap Up</option>
+                    <option value="gapdown">Gap Down</option>
+                    <option value="high52">Near 52W High</option>
+                    <option value="low52">Near 52W Low</option>
+                </optgroup>
+                <optgroup label="Trend">
+                    <option value="bullish">Bullish</option>
+                    <option value="bearish">Bearish</option>
+                </optgroup>
+            </select>
+        </div>`;
 
-    <section>
-        <label class="heatmap-control-label" for="marketScopeSelect">
-            Market Scope
-        </label>
-
-        <select class="heatmap-control-select compact" id="marketScopeSelect" data-market-scope-select>
-            ${marketScopeOptions.map(([value, label]) => `
-                <option value="${value}">${label}</option>
-            `).join("")}
-        </select>
-
-        <label class="heatmap-control-label" for="sectorSelect">
-            Sector
-        </label>
-
-        <select class="heatmap-control-select compact" id="sectorSelect" data-sector-select>
-            ${sectorFilterOptions.map(([value, label]) => `
-                <option value="${value}">${label}</option>
-            `).join("")}
-        </select>
-
-        <label class="heatmap-control-label" for="marketFilterSelect">
-            Filters
-        </label>
-
-        <select class="heatmap-control-select" id="marketFilterSelect" data-market-filter-select>
-            <option value="all">All</option>
-
-            <optgroup label="Market Cap">
-                <option value="largecap">Large Cap</option>
-                <option value="midcap">Mid Cap</option>
-                <option value="smallcap">Small Cap</option>
-            </optgroup>
-
-            <optgroup label="Performance">
-                <option value="gainers">Top Gainers</option>
-                <option value="losers">Top Losers</option>
-                <option value="active">Most Active</option>
-                <option value="volume">High Volume</option>
-            </optgroup>
-
-            <optgroup label="Price Action">
-                <option value="gapup">Gap Up</option>
-                <option value="gapdown">Gap Down</option>
-                <option value="high52">Near 52W High</option>
-                <option value="low52">Near 52W Low</option>
-            </optgroup>
-
-            <optgroup label="Trend">
-                <option value="bullish">Bullish</option>
-                <option value="bearish">Bearish</option>
-            </optgroup>
-        </select>
-    </section>
-`;
     const heatmapStage = document.createElement("section");
     heatmapStage.className = "heatmap-stage";
     while (heatmapPanel.childNodes.length) {
@@ -369,11 +347,9 @@ sectorSidebar.innerHTML = `
     intelligencePanel.id = "intelligencePanel";
     intelligencePanel.setAttribute("aria-label", "Market intelligence");
 
-
-
-    workspaceGrid.append(sectorSidebar, heatmapStage);
-    heatmapPanel.appendChild(workspaceGrid);
-    sectorPerformanceList = document.getElementById("sectorPerformanceList");
+    heatmapPanel.appendChild(heatmapToolbar);
+    heatmapPanel.appendChild(heatmapStage);
+    // sectorPerformanceList removed — renderSectorPerformance exits early when null
 
     if (trendsPanel && !trendsPanel.innerHTML.trim()) {
         trendsPanel.innerHTML = `
@@ -3818,3 +3794,11 @@ function initializeHeroSlider() {
 }
 
 initializeHeroSlider();
+
+// Sidebar drawer toggle
+document.getElementById("sidebarCollapseBtn")?.addEventListener("click", () => {
+    document.body.classList.add("sidebar-collapsed");
+});
+document.getElementById("sidebarExpandBtn")?.addEventListener("click", () => {
+    document.body.classList.remove("sidebar-collapsed");
+});
