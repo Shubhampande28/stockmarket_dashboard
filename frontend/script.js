@@ -956,7 +956,7 @@ function setupMarketHoverTip() {
 function renderMarketsPage() {
     if (!marketsPage || marketsPage.hidden) return;
 
-    const stocks = fullData.all || [];
+    const stocks = getScopeStocks(currentView);
     const gainers = getRankedGainers([...stocks]);
     const losers = getRankedLosers([...stocks]);
     const unchanged = stocks.filter(s => Math.abs(Number(s.change || 0)) < 0.05);
@@ -1074,19 +1074,9 @@ function renderMarketsPage() {
     // --- Sector Donut Chart ---
     const donut = document.getElementById("mktDonut");
     const sectorList = document.getElementById("mktSectorList");
-    if (donut && stocks.length) {
-        const donutSectors = buildDonutSectors();
-        renderMktDonut(donut, donutSectors);
-        if (sectorList) {
-            sectorList.innerHTML = donutSectors.map(s => `
-                <li class="mkt-sector-row">
-                    <span class="mkt-sector-dot" style="background:${s.color}"></span>
-                    <span class="mkt-sector-name">${escapeHtml(s.name)}</span>
-                    <span class="mkt-sector-pct">${s.pct.toFixed(1)}%</span>
-                    <span class="mkt-sector-chg-val ${s.change >= 0 ? "mkt-val-gain" : "mkt-val-loss"}">${s.change >= 0 ? "+" : ""}${s.change.toFixed(2)}%</span>
-                </li>
-            `).join("");
-        }
+    if (donut) {
+        const activeTab = document.querySelector(".mkt-sector-tab.active")?.dataset?.sectorTab || "cap";
+        renderDonutAndList(activeTab);
     }
 
     // --- Market Breadth Line Chart ---
@@ -1137,28 +1127,78 @@ function buildMiniSparklineSvg(avgChange, isPos) {
     return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/></svg>`;
 }
 
-function buildDonutSectors() {
+function buildDonutSectors(tabType = "cap") {
     const sectorGroups = [
         { name: "Financial Services", keys: ["bank", "finance"], color: "#3b82f6" },
         { name: "Information Technology", keys: ["it"], color: "#8b5cf6" },
-        { name: "Energy", keys: ["energy"], color: "#ef4444" },
+        { name: "Energy", keys: ["energy"], color: "#f97316" },
         { name: "Automobile", keys: ["auto"], color: "#f59e0b" },
         { name: "FMCG", keys: ["fmcg", "consumer"], color: "#14b8a6" },
         { name: "Healthcare", keys: ["pharma"], color: "#ec4899" },
-        { name: "Others", keys: ["metal", "realty", "telecom", "infra", "psu", "cement", "chemicals", "media"], color: "#6b7280" }
+        { name: "Others", keys: ["metal", "realty", "telecom", "infra", "psu", "cement", "chemicals", "media"], color: "#94a3b8" }
     ];
 
+    // Build a set of symbols in the current scope for filtering
+    const scopeStocks = getScopeStocks(currentView);
+    const scopeSet = scopeStocks.length ? new Set(scopeStocks.map(s => s.symbol)) : null;
+
     const result = sectorGroups.map(g => {
-        const allStocks = g.keys.flatMap(k => fullData[k] || []);
-        const count = allStocks.length || 1;
-        const change = allStocks.length
-            ? allStocks.reduce((s, st) => s + Number(st.change || 0), 0) / allStocks.length
+        let allStocks = g.keys.flatMap(k => fullData[k] || []);
+        if (scopeSet) allStocks = allStocks.filter(s => scopeSet.has(s.symbol));
+        if (!allStocks.length) allStocks = g.keys.flatMap(k => fullData[k] || []);
+
+        const count = allStocks.length || 0;
+        const volume = allStocks.reduce((s, st) => s + Number(st.volume || 0), 0);
+        const gainers = allStocks.filter(st => Number(st.change || 0) > 0).length;
+        const breadthScore = count > 0 ? (gainers / count) * 100 : 0;
+        const change = count > 0
+            ? allStocks.reduce((s, st) => s + Number(st.change || 0), 0) / count
             : 0;
-        return { name: g.name, color: g.color, count, change };
+
+        const weight = tabType === "volume" ? (volume || 1)
+            : tabType === "breadth" ? (breadthScore || 0.1)
+            : (count || 1);
+
+        return { name: g.name, color: g.color, count, change, weight, breadthScore, volume };
     });
 
-    const total = result.reduce((s, r) => s + r.count, 0) || 1;
-    return result.map(r => ({ ...r, pct: (r.count / total) * 100 }));
+    const total = result.reduce((s, r) => s + r.weight, 0) || 1;
+    return result
+        .map(r => ({ ...r, pct: (r.weight / total) * 100 }))
+        .sort((a, b) => b.pct - a.pct);
+}
+
+function renderDonutAndList(tabType = "cap") {
+    const donut = document.getElementById("mktDonut");
+    const sectorList = document.getElementById("mktSectorList");
+    const donutSub = document.getElementById("mktDonutSub");
+    if (!donut) return;
+
+    const labels = { cap: "(by Market Cap)", volume: "(by Volume)", breadth: "(by Breadth)" };
+    if (donutSub) donutSub.textContent = labels[tabType] || "";
+
+    const sectors = buildDonutSectors(tabType);
+    renderMktDonut(donut, sectors);
+
+    if (sectorList) {
+        sectorList.innerHTML = sectors.map(s => {
+            const chgLabel = tabType === "breadth"
+                ? s.breadthScore.toFixed(1) + "% adv"
+                : (tabType === "volume"
+                    ? (s.volume >= 1e9 ? (s.volume / 1e9).toFixed(1) + "B" : s.volume >= 1e6 ? (s.volume / 1e6).toFixed(0) + "M" : s.volume.toFixed(0))
+                    : ((s.change >= 0 ? "+" : "") + s.change.toFixed(2) + "%"));
+            const chgClass = tabType === "breadth"
+                ? (s.breadthScore >= 50 ? "mkt-val-gain" : "mkt-val-loss")
+                : (s.change >= 0 ? "mkt-val-gain" : "mkt-val-loss");
+            return `
+                <li class="mkt-sector-row">
+                    <span class="mkt-sector-dot" style="background:${s.color}"></span>
+                    <span class="mkt-sector-name">${escapeHtml(s.name)}</span>
+                    <span class="mkt-sector-pct">${s.pct.toFixed(1)}%</span>
+                    <span class="mkt-sector-chg-val ${chgClass}">${escapeHtml(chgLabel)}</span>
+                </li>`;
+        }).join("");
+    }
 }
 
 function renderMktDonut(svgEl, sectors) {
@@ -1185,23 +1225,32 @@ function renderMktDonut(svgEl, sectors) {
 }
 
 function renderBreadthChart(svgEl, advCount, decCount, total) {
-    const W = 560, H = 200;
-    const timeLabels = ["09:15", "10:30", "11:45", "01:00 PM", "02:15", "03:30 PM"];
-    const pts = timeLabels.length;
+    const W = 560, H = 210;
+    // 13 time slots: 9:15 AM to 3:30 PM every 30 min
+    const timeLabels = ["9:15", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "1:00", "1:30", "2:00", "2:30", "3:00", "3:30"];
+    const N = timeLabels.length;
+    const totalActive = advCount + decCount || 1;
 
-    // Build smooth intraday simulation using more data points for smoothness
-    const INTERP = 20;
+    // Realistic intraday simulation:
+    // Market opens near neutral, trends toward session end values
+    // Morning is more volatile, afternoon stabilises
+    const startRatio = 0.5 + (advCount / totalActive - 0.5) * 0.08; // Open near 50% with slight bias
+    const endRatio = advCount / totalActive;
     const advRaw = [], decRaw = [];
-    const startAdv = Math.round(total * 0.5);
-    for (let i = 0; i < pts; i++) {
-        const t = i / (pts - 1);
-        const ease = t * t * (3 - 2 * t);
-        const noise = Math.sin(i * 1.9 + 0.5) * total * 0.02;
-        advRaw.push(Math.max(10, Math.round(startAdv + (advCount - startAdv) * ease + noise)));
-        decRaw.push(Math.max(10, total - advRaw[i]));
+
+    for (let i = 0; i < N; i++) {
+        const t = i / (N - 1);
+        // Ease-in: slow start, accelerate, settle
+        const trend = Math.pow(t, 0.65);
+        const ratio = startRatio + (endRatio - startRatio) * trend;
+        // Morning volatility decreases through day
+        const vol = Math.sin(i * 1.8) * (1 - t * 0.7) * totalActive * 0.025;
+        const adv = Math.round(totalActive * ratio + vol);
+        advRaw.push(Math.max(5, Math.min(totalActive - 5, adv)));
+        decRaw.push(totalActive - advRaw[i]);
     }
 
-    // Catmull-Rom smooth path builder
+    // Catmull-Rom cubic bezier
     const smoothPath = (coords) => {
         if (coords.length < 2) return "";
         let d = `M${coords[0][0].toFixed(1)},${coords[0][1].toFixed(1)}`;
@@ -1210,23 +1259,23 @@ function renderBreadthChart(svgEl, advCount, decCount, total) {
             const p1 = coords[i];
             const p2 = coords[i + 1];
             const p3 = coords[Math.min(coords.length - 1, i + 2)];
-            const cp1x = p1[0] + (p2[0] - p0[0]) / 5;
-            const cp1y = p1[1] + (p2[1] - p0[1]) / 5;
-            const cp2x = p2[0] - (p3[0] - p1[0]) / 5;
-            const cp2y = p2[1] - (p3[1] - p1[1]) / 5;
+            const cp1x = p1[0] + (p2[0] - p0[0]) / 4.5;
+            const cp1y = p1[1] + (p2[1] - p0[1]) / 4.5;
+            const cp2x = p2[0] - (p3[0] - p1[0]) / 4.5;
+            const cp2y = p2[1] - (p3[1] - p1[1]) / 4.5;
             d += ` C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
         }
         return d;
     };
 
-    const maxVal = Math.max(...advRaw, ...decRaw) * 1.12;
-    const PAD_L = 44, PAD_R = 14, PAD_T = 16, PAD_B = 34;
+    const maxVal = Math.max(...advRaw, ...decRaw) * 1.18;
+    const PAD_L = 46, PAD_R = 70, PAD_T = 18, PAD_B = 30;
     const chartW = W - PAD_L - PAD_R;
     const chartH = H - PAD_T - PAD_B;
     const baseY = PAD_T + chartH;
 
     const toCoords = (vals) => vals.map((v, i) => [
-        PAD_L + (i / (vals.length - 1)) * chartW,
+        PAD_L + (i / (N - 1)) * chartW,
         PAD_T + chartH - (v / maxVal) * chartH
     ]);
 
@@ -1236,42 +1285,49 @@ function renderBreadthChart(svgEl, advCount, decCount, total) {
     const areaPath = (coords) => {
         const line = smoothPath(coords);
         const last = coords[coords.length - 1];
-        const first = coords[0];
-        return `${line} L${last[0].toFixed(1)},${baseY.toFixed(1)} L${first[0].toFixed(1)},${baseY.toFixed(1)} Z`;
+        return `${line} L${last[0].toFixed(1)},${baseY.toFixed(1)} L${coords[0][0].toFixed(1)},${baseY.toFixed(1)} Z`;
     };
 
-    // Y grid lines + labels
-    const yCount = 4;
-    const gridLines = Array.from({ length: yCount + 1 }, (_, i) => {
-        const v = Math.round((maxVal * i) / yCount);
+    // Y gridlines — clean 4-step scale
+    const yGridLines = [0, 0.25, 0.5, 0.75, 1.0].map(frac => {
+        const v = Math.round(maxVal * frac);
         const y = PAD_T + chartH - (v / maxVal) * chartH;
         const label = v >= 1000 ? (v / 1000).toFixed(1) + "k" : String(v);
-        return `<line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${W - PAD_R}" y2="${y.toFixed(1)}" stroke="#1e2a3a" stroke-width="0.6"/>
-                <text x="${(PAD_L - 6).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" font-size="9.5" fill="#475569">${label}</text>`;
+        return `<line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${W - PAD_R}" y2="${y.toFixed(1)}" stroke="#e2e8f0" stroke-width="0.8"/>
+                <text x="${(PAD_L - 6).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="#94a3b8">${label}</text>`;
     }).join("");
 
-    // X axis labels
+    // X axis: only show every 2nd label to avoid crowding
     const xLabels = timeLabels.map((label, i) => {
-        const x = PAD_L + (i / (pts - 1)) * chartW;
-        return `<text x="${x.toFixed(1)}" y="${(H - 5).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="#475569">${label}</text>`;
+        if (i % 2 !== 0 && i !== N - 1) return "";
+        const x = PAD_L + (i / (N - 1)) * chartW;
+        return `<text x="${x.toFixed(1)}" y="${(H - 6).toFixed(1)}" text-anchor="middle" font-size="9" fill="#94a3b8">${label}</text>`;
     }).join("");
+
+    // End labels on right side of lines
+    const advEndX = advCoords[advCoords.length - 1][0] + 6;
+    const advEndY = advCoords[advCoords.length - 1][1] + 4;
+    const decEndX = decCoords[decCoords.length - 1][0] + 6;
+    const decEndY = decCoords[decCoords.length - 1][1] + 4;
 
     svgEl.innerHTML = `
         <defs>
-            <linearGradient id="advGrad${svgEl.id}" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#22c55e" stop-opacity="0.28"/>
-                <stop offset="100%" stop-color="#22c55e" stop-opacity="0.02"/>
+            <linearGradient id="advG" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#16a34a" stop-opacity="0.22"/>
+                <stop offset="100%" stop-color="#16a34a" stop-opacity="0.01"/>
             </linearGradient>
-            <linearGradient id="decGrad${svgEl.id}" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#ef4444" stop-opacity="0.28"/>
-                <stop offset="100%" stop-color="#ef4444" stop-opacity="0.02"/>
+            <linearGradient id="decG" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#dc2626" stop-opacity="0.22"/>
+                <stop offset="100%" stop-color="#dc2626" stop-opacity="0.01"/>
             </linearGradient>
         </defs>
-        ${gridLines}
-        <path d="${areaPath(advCoords)}" fill="url(#advGrad${svgEl.id})"/>
-        <path d="${areaPath(decCoords)}" fill="url(#decGrad${svgEl.id})"/>
-        <path d="${smoothPath(advCoords)}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="${smoothPath(decCoords)}" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        ${yGridLines}
+        <path d="${areaPath(advCoords)}" fill="url(#advG)"/>
+        <path d="${areaPath(decCoords)}" fill="url(#decG)"/>
+        <path d="${smoothPath(advCoords)}" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="${smoothPath(decCoords)}" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="${advEndX.toFixed(1)}" y="${advEndY.toFixed(1)}" font-size="9.5" font-weight="600" fill="#16a34a">▲ ${advCount}</text>
+        <text x="${decEndX.toFixed(1)}" y="${decEndY.toFixed(1)}" font-size="9.5" font-weight="600" fill="#dc2626">▼ ${decCount}</text>
         ${xLabels}
     `;
 }
@@ -1282,9 +1338,7 @@ function setupMktSectorTabs() {
         if (!tab) return;
         tab.closest(".mkt-sector-tabs")?.querySelectorAll(".mkt-sector-tab").forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
-        const donutSub = document.getElementById("mktDonutSub");
-        const labels = { cap: "(by Market Cap)", volume: "(by Volume)", breadth: "(by Breadth)" };
-        if (donutSub) donutSub.textContent = labels[tab.dataset.sectorTab] || "";
+        renderDonutAndList(tab.dataset.sectorTab || "cap");
     });
 }
 
