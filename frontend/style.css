@@ -1930,24 +1930,31 @@ body {
 .statement-table td:first-child {
     position: sticky;
     left: 0;
-    z-index: 1;
     min-width: 220px;
-    background: #f8fafc;
     text-align: left;
 }
 
+.statement-table thead th:first-child {
+    z-index: 6;
+    background: #1d4ed8 !important;
+    color: #ffffff !important;
+}
+
+.statement-table tbody th:first-child {
+    z-index: 2;
+    background: #dbeafe !important;
+}
 .statement-table thead th {
     position: sticky;
     top: 0;
-    z-index: 2;
-    background: #eef4ff;
-    color: #475569;
+    z-index: 5;
+    background: #2563eb !important;
+  color: #ffffff !important;
     font-size: 13px;
     font-weight: 800;
     letter-spacing: 0.03em;
     text-transform: uppercase;
 }
-
 .statement-table tbody th {
     color: #1e293b;
     font-weight: 800;
@@ -9384,30 +9391,4 @@ body.heatmap-open .panel-heading small {
             rgba(0,0,0,0.08)
         );
     pointer-events: none;
-}
-
-.statement-table tbody th:first-child {
-    background: #f8fbff !important;
-    color: #0f172a !important;
-    font-size: 15px !important;
-    font-weight: 800 !important;
-}
-.statement-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: #2563eb !important;
-    color: #ffffff !important;
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-}
-
-.statement-table tbody th {
-    color: #0f172a !important;
-    font-weight: 800;
-    font-size: 15px;
-    letter-spacing: -0.01em;
-    background: #dbeafe !important;
 }
