@@ -1940,16 +1940,20 @@ body {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: #f3f7fb;
-    color: #334155;
-    font-size: 12px;
-    letter-spacing: 0.04em;
+    background: #eef4ff;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
 }
 
 .statement-table tbody th {
-    color: #0f172a;
-    font-weight: 700;
+    color: #1e293b;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    background: #f8fbff;
 }
 
 .statement-table td {
@@ -9382,28 +9386,3 @@ body.heatmap-open .panel-heading small {
     pointer-events: none;
 }
 
-.financials-table td:first-child,
-.statement-table td:first-child,
-.financial-table td:first-child {
-    color: #334155 !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.01em;
-}
-
-.financials-table thead th,
-.statement-table thead th,
-.financial-table thead th {
-    color: #475569 !important;
-    font-weight: 700 !important;
-}
-
-table tbody tr td:first-child {
-    color: #334155 !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.01em !important;
-}
-
-table thead th {
-    color: #475569 !important;
-    font-weight: 700 !important;
-}
