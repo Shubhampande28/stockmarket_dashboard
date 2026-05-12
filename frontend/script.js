@@ -1929,22 +1929,26 @@ function createStockCard(stock, index, maxGain = 10, maxLoss = 10) {
     card.setAttribute("aria-label", `Select ${stock.name || symbol}`);
     card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
 
+    const textColor = darkTile ? "#ffffff" : "#111827";
+    const changeTextColor = darkTile ? "#ffffff" : (isPositive ? "#16a34a" : "#dc2626");
+    const secondaryTextColor = darkTile ? "rgba(255,255,255,0.72)" : "#475569";
+
     card.innerHTML = `
         ${index === 0 ? `<div class="top-signal-label">${escapeHtml(getTopSignalLabel(stock))}</div>` : ""}
         <div class="stock-card-header">
-            <span class="stock-card-name">${escapeHtml(symbol)}</span>
+            <span class="stock-card-name" style="color:${textColor}">${escapeHtml(symbol)}</span>
         </div>
         <div class="stock-card-price-row">
-            <strong>₹${formatPrice(stock.price)}</strong>
-            <span class="stock-card-change ${isPositive ? "gain" : "loss"}">
+            <strong style="color:${textColor}">₹${formatPrice(stock.price)}</strong>
+            <span class="stock-card-change ${isPositive ? "gain" : "loss"}" style="color:${changeTextColor}!important;opacity:1">
                 ${formatChange(stock.change)}
             </span>
         </div>
         <div class="stock-card-insight-inline">
-            <span class="insight-label">
+            <span class="insight-label" style="color:${secondaryTextColor}">
                 ${isPositive ? "🔥" : "⚠"} ${escapeHtml(insight)}
             </span>
-            <span class="insight-trend ${isPositive ? "gain" : "loss"}">
+            <span class="insight-trend ${isPositive ? "gain" : "loss"}" style="color:${secondaryTextColor}">
                 ${trendDirection}
             </span>
         </div>
