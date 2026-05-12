@@ -259,37 +259,146 @@ function setupPremiumExperience() {
 
     if (marketsPage && !marketsPage.innerHTML.trim()) {
         marketsPage.innerHTML = `
-            <header class="route-page-head markets-page-head">
-                <div>
-                    <p class="workspace-eyebrow">Markets</p>
-                    <h2>Market Overview</h2>
-                    <p>Track breadth, index momentum, sector leadership, and the stocks driving today's session.</p>
-                </div>
-                <div class="route-live-chip">
-                    <span class="status-dot"></span>
-                    <strong>Live market feed</strong>
-                </div>
-            </header>
-            <div id="marketSentimentStrip" class="market-sentiment-strip"></div>
-            <div class="market-overview-grid" id="marketOverviewGrid"></div>
-            <section class="route-content-grid">
-                <div class="route-panel">
-                    <div class="route-section-head">
-                        <p class="workspace-eyebrow">Trending Stocks</p>
-                        <h3>Momentum Leaders</h3>
+            <div class="mkt-page-head">
+                <div class="mkt-scope-bar">
+                    <button class="mkt-scope-btn" id="mktScopeBtn" type="button">
+                        <span id="mktScopeLabel">NIFTY 50</span>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </button>
+                    <div class="mkt-live-stamp">
+                        <span class="mkt-live-dot"></span>
+                        <span class="mkt-live-text" id="mktLiveTime">Loading…</span>
                     </div>
-                    <div class="market-trending-list" id="marketTrendingList"></div>
                 </div>
-                <div class="route-panel">
-                    <div class="route-section-head">
-                        <p class="workspace-eyebrow">Index Summaries</p>
-                        <h3>Major Benchmarks</h3>
+                <h2 class="mkt-overview-title">Market Overview</h2>
+                <p class="mkt-overview-sub">Real-time overview of Indian markets</p>
+            </div>
+
+            <div class="mkt-metric-row">
+                <article class="mkt-metric-card" id="mktCardSentiment">
+                    <span class="mkt-metric-eyebrow">MARKET SENTIMENT</span>
+                    <div class="mkt-sentiment-body">
+                        <div class="mkt-sentiment-icon" id="mktSentimentIcon">
+                            <svg width="36" height="36" viewBox="0 0 40 40" fill="none" id="mktSentimentSvg">
+                                <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="1.5"/>
+                                <circle cx="14" cy="16" r="2.5" fill="currentColor"/>
+                                <circle cx="26" cy="16" r="2.5" fill="currentColor"/>
+                                <path d="M13 26c1.8-3 12.2-3 14 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="mkt-sentiment-text">
+                            <strong class="mkt-metric-val" id="mktSentimentVal">--</strong>
+                            <p class="mkt-metric-desc" id="mktSentimentDesc">Waiting for data</p>
+                        </div>
+                        <div class="mkt-sentiment-spark" id="mktSentimentSparkline"></div>
                     </div>
-                    <div class="market-index-summary" id="marketIndexSummary"></div>
-                </div>
-            </section>
+                </article>
+
+                <article class="mkt-metric-card" id="mktCardBreadth">
+                    <span class="mkt-metric-eyebrow">MARKET BREADTH</span>
+                    <div class="mkt-breadth-nums">
+                        <strong class="mkt-breadth-adv" id="mktBreadthAdv">--</strong>
+                        <strong class="mkt-breadth-dec" id="mktBreadthDec">--</strong>
+                    </div>
+                    <div class="mkt-breadth-labels">
+                        <span>Advancing</span>
+                        <span>Declining</span>
+                    </div>
+                    <div class="mkt-breadth-bar-wrap">
+                        <div class="mkt-breadth-bar-adv" id="mktBreadthFillAdv"></div>
+                        <div class="mkt-breadth-bar-dec" id="mktBreadthFillDec"></div>
+                    </div>
+                    <p class="mkt-metric-desc mkt-ratio-label" id="mktBreadthRatio">Adv/Decl Ratio --</p>
+                </article>
+
+                <article class="mkt-metric-card" id="mktCardSector">
+                    <span class="mkt-metric-eyebrow">TOP SECTOR</span>
+                    <div class="mkt-sector-card-inner">
+                        <div class="mkt-sector-icon-wrap" id="mktSectorIconWrap">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.7"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.7"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.4"/></svg>
+                        </div>
+                        <div>
+                            <strong class="mkt-metric-val" id="mktTopSectorName">--</strong>
+                            <p class="mkt-sector-chg" id="mktTopSectorChg">--</p>
+                            <p class="mkt-metric-desc">Leading Sector</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="mkt-metric-card" id="mktCardActive">
+                    <span class="mkt-metric-eyebrow">MOST ACTIVE</span>
+                    <strong class="mkt-active-symbol" id="mktActiveSymbol">--</strong>
+                    <div class="mkt-active-row">
+                        <span class="mkt-active-price" id="mktActivePrice">--</span>
+                        <span class="mkt-active-chg" id="mktActiveChg">--</span>
+                    </div>
+                    <p class="mkt-metric-desc" id="mktActiveVol">--</p>
+                </article>
+            </div>
+
+            <div class="mkt-bottom-grid">
+                <article class="mkt-panel mkt-sector-panel">
+                    <div class="mkt-panel-hd">
+                        <span class="mkt-metric-eyebrow">SECTOR ROTATION</span>
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/><line x1="8" y1="5" x2="8" y2="8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.8" fill="currentColor"/></svg>
+                    </div>
+                    <div class="mkt-sector-tabs" role="tablist">
+                        <button class="mkt-sector-tab active" type="button" data-sector-tab="cap">By Market Cap</button>
+                        <button class="mkt-sector-tab" type="button" data-sector-tab="volume">By Volume</button>
+                        <button class="mkt-sector-tab" type="button" data-sector-tab="breadth">By Breadth</button>
+                    </div>
+                    <div class="mkt-sector-body">
+                        <div class="mkt-donut-wrap">
+                            <svg class="mkt-donut" id="mktDonut" viewBox="0 0 200 200" width="190" height="190" aria-hidden="true"></svg>
+                            <div class="mkt-donut-label">
+                                <strong>Market</strong>
+                                <span>Participation</span>
+                                <small id="mktDonutSub">(by Market Cap)</small>
+                            </div>
+                        </div>
+                        <ul class="mkt-sector-list" id="mktSectorList"></ul>
+                    </div>
+                    <p class="mkt-sector-note">Shows share of total market cap of NIFTY 50</p>
+                </article>
+
+                <article class="mkt-panel mkt-breadth-panel">
+                    <div class="mkt-panel-hd mkt-panel-hd-row">
+                        <span class="mkt-metric-eyebrow">MARKET BREADTH</span>
+                        <div class="mkt-time-tabs" role="tablist">
+                            <button class="mkt-time-tab active" type="button">1D</button>
+                            <button class="mkt-time-tab" type="button">1W</button>
+                            <button class="mkt-time-tab" type="button">1M</button>
+                            <button class="mkt-time-tab" type="button">1Y</button>
+                        </div>
+                    </div>
+                    <div class="mkt-breadth-chart-wrap">
+                        <svg class="mkt-breadth-svg" id="mktBreadthSvg" viewBox="0 0 500 180" preserveAspectRatio="none" aria-hidden="true"></svg>
+                        <div class="mkt-chart-labels" id="mktChartLabels"></div>
+                        <div class="mkt-y-labels" id="mktYLabels"></div>
+                    </div>
+                    <div class="mkt-breadth-stats">
+                        <div class="mkt-stat-block">
+                            <span class="mkt-stat-label mkt-adv-label">ADVANCING</span>
+                            <strong class="mkt-stat-val" id="mktStatAdv">--</strong>
+                            <span class="mkt-stat-delta mkt-adv-delta" id="mktStatAdvDelta"></span>
+                        </div>
+                        <div class="mkt-stat-block">
+                            <span class="mkt-stat-label mkt-dec-label">DECLINING</span>
+                            <strong class="mkt-stat-val" id="mktStatDec">--</strong>
+                            <span class="mkt-stat-delta mkt-dec-delta" id="mktStatDecDelta"></span>
+                        </div>
+                        <div class="mkt-stat-block">
+                            <span class="mkt-stat-label">UNCHANGED</span>
+                            <strong class="mkt-stat-val" id="mktStatUnch">--</strong>
+                            <span class="mkt-stat-delta" id="mktStatUnchDelta"></span>
+                        </div>
+                    </div>
+                </article>
+            </div>
         `;
         setupMarketHoverTip();
+        setupMktSectorTabs();
+        setupMktTimeTabs();
     }
 
     // Horizontal toolbar replaces the old sector-sidebar + workspace-grid layout
@@ -843,120 +952,307 @@ function setupMarketHoverTip() {
 }
 
 function renderMarketsPage() {
-    const overviewGrid = document.getElementById("marketOverviewGrid");
-    const trendingList = document.getElementById("marketTrendingList");
-    const indexSummary = document.getElementById("marketIndexSummary");
-    const sentimentStrip = document.getElementById("marketSentimentStrip");
-
-    if (!overviewGrid || !trendingList || !indexSummary) return;
+    if (!marketsPage || marketsPage.hidden) return;
 
     const stocks = fullData.all || [];
     const gainers = getRankedGainers([...stocks]);
     const losers = getRankedLosers([...stocks]);
+    const unchanged = stocks.filter(s => Math.abs(Number(s.change || 0)) < 0.05);
     const sectors = getSectorRankings();
     const topSector = sectors[0];
     const breadthRatio = stocks.length ? gainers.length / stocks.length : 0;
-    const breadthPct = Math.round(breadthRatio * 100);
     const mostActive = [...stocks].sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0))[0] || gainers[0];
     const topSectorChange = topSector ? Number(topSector.average || 0) : 0;
     const topSectorIsPos = topSectorChange >= 0;
     const topSectorName = topSector ? (viewLabels[topSector.key] || topSector.key) : "--";
+    const avgChange = stocks.length ? stocks.reduce((s, st) => s + Number(st.change || 0), 0) / stocks.length : 0;
+    const isBullish = breadthRatio >= 0.5;
 
-    // Sentiment strip
-    if (sentimentStrip && stocks.length) {
-        const pills = computeSentimentPills(stocks);
-        sentimentStrip.innerHTML = pills.map(p => `
-            <div class="sentiment-pill">
-                <span class="sentiment-pill-dot ${escapeHtml(p.dot)}"></span>
-                <span class="sentiment-pill-label">${escapeHtml(p.label)}</span>
-                <span>${escapeHtml(p.value)}</span>
-            </div>
-        `).join("");
-        sentimentStrip.hidden = false;
-    } else if (sentimentStrip) {
-        sentimentStrip.hidden = true;
+    // Live timestamp
+    const liveTimeEl = document.getElementById("mktLiveTime");
+    if (liveTimeEl) {
+        const now = new Date();
+        liveTimeEl.textContent = "LIVE  " + now.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+            + ", " + now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) + " IST";
     }
 
-    // Overview cards
-    overviewGrid.innerHTML = `
-        <article class="market-overview-card-lite ${breadthRatio >= 0.5 ? "card-bullish" : "card-bearish"}">
-            <div class="moc-header">
-                <span class="moc-eyebrow">Market Breadth</span>
-                <span class="moc-pulse"></span>
-            </div>
-            <strong class="moc-value">${stocks.length ? gainers.length + " / " + stocks.length : "--"}</strong>
-            <div class="moc-breadth-bar">
-                <div class="moc-breadth-track">
-                    <div class="moc-breadth-fill" style="width:${breadthPct}%"></div>
-                </div>
-            </div>
-            <small class="moc-sub ${breadthRatio >= 0.5 ? "gain-text" : "loss-text"}">${stocks.length ? breadthPct + "% advancing" : "Waiting for data"}</small>
-        </article>
-        <article class="market-overview-card-lite ${topSectorIsPos ? "card-bullish" : "card-bearish"}">
-            <div class="moc-header">
-                <span class="moc-eyebrow">Top Sector</span>
-                <span class="moc-trend-arrow ${topSectorIsPos ? "up" : "down"}">${topSectorIsPos ? "↑" : "↓"}</span>
-            </div>
-            <strong class="moc-value" style="font-size:clamp(1rem,1.8vw,1.4rem)">${escapeHtml(topSectorName)}</strong>
-            <small class="moc-sub ${topSectorIsPos ? "gain-text" : "loss-text"}">${topSector ? formatChange(topSector.average) : "Waiting for data"}</small>
-        </article>
-        <article class="market-overview-card-lite card-accent">
-            <div class="moc-header">
-                <span class="moc-eyebrow">Most Active</span>
-                <span class="moc-trend-arrow neutral" style="font-size:11px">VOL</span>
-            </div>
-            <strong class="moc-value">${mostActive ? escapeHtml(mostActive.symbol.replace(".NS", "")) : "--"}</strong>
-            <small class="moc-sub">${mostActive ? "₹" + formatPrice(mostActive.price) : "Waiting for data"}</small>
-        </article>
-        <article class="market-overview-card-lite card-accent">
-            <div class="moc-header">
-                <span class="moc-eyebrow">Tracked Universe</span>
-                <span class="moc-trend-arrow neutral" style="font-size:11px">LIVE</span>
-            </div>
-            <strong class="moc-value">${stocks.length || "--"}</strong>
-            <small class="moc-sub">Stocks in scan</small>
-        </article>
-    `;
+    // --- Sentiment card ---
+    const sentimentVal = document.getElementById("mktSentimentVal");
+    const sentimentDesc = document.getElementById("mktSentimentDesc");
+    const sentimentIcon = document.getElementById("mktSentimentSvg");
+    const sentimentSpark = document.getElementById("mktSentimentSparkline");
+    const cardSentiment = document.getElementById("mktCardSentiment");
 
-    // Trending stocks list
-    const trendSource = gainers.length ? gainers : visibleStocks;
-    trendingList.innerHTML = trendSource.slice(0, 8).map(stock => {
-        const isPos = Number(stock.change || 0) >= 0;
-        return `
-            <button class="market-trending-row ${isPos ? "mtr-gain" : "mtr-loss"}" type="button" data-symbol="${escapeAttribute(stock.symbol)}">
-                <div class="mtr-symbol-block">
-                    <span class="mtr-symbol">${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
-                    <span class="mtr-insight">${escapeHtml(getStockInsight(stock.change))}</span>
-                </div>
-                <div class="mtr-sparkline">${generateSparkline(stock.symbol, stock.change)}</div>
-                <div class="mtr-price-block">
-                    <span class="mtr-price">₹${formatPrice(stock.price)}</span>
-                    <span class="mtr-change ${isPos ? "gain" : "loss"}">${formatChange(stock.change)}</span>
-                </div>
-            </button>
-        `;
-    }).join("") || "<p>Waiting for market data</p>";
+    if (sentimentVal && stocks.length) {
+        const label = breadthRatio >= 0.65 ? "Bullish"
+            : breadthRatio >= 0.52 ? "Neutral"
+            : breadthRatio >= 0.4 ? "Bearish"
+            : "Bearish";
+        const desc = breadthRatio >= 0.52 ? "Risk-On Session" : "Risk-Off Session";
+        sentimentVal.textContent = label;
+        sentimentVal.className = "mkt-metric-val " + (isBullish ? "mkt-val-gain" : "mkt-val-loss");
+        if (sentimentDesc) sentimentDesc.textContent = desc;
+        if (cardSentiment) cardSentiment.dataset.sentiment = isBullish ? "bull" : "bear";
 
-    // Index summary
-    const indexes = ["nifty50", "banknifty", "finnifty", "sensex", "midcpnifty"];
-    indexSummary.innerHTML = indexes.map(key => {
-        const quote = indexQuotes[key] || {};
-        const change = (quote.change === null || quote.change === undefined) ? null : Number(quote.change || 0);
-        const isPos = change !== null && change >= 0;
-        return `
-            <button class="market-index-row" type="button" data-index-view="${escapeAttribute(key)}">
-                <div class="mir-label-block">
-                    <span class="mir-name">${escapeHtml(viewLabels[key] || key)}</span>
-                    <span class="mir-price">${(quote.price === null || quote.price === undefined) ? "--" : formatPrice(quote.price)}</span>
-                </div>
-                <div class="mir-sparkline">${generateSparkline(key, change ?? 0)}</div>
-                <div class="mir-change-block">
-                    <span class="mir-change ${change === null ? "" : isPos ? "gain" : "loss"}">${change === null ? "--" : formatChange(change)}</span>
-                    <span class="mir-arrow ${change === null ? "" : isPos ? "gain" : "loss"}">${change === null ? "" : isPos ? "▲" : "▼"}</span>
-                </div>
-            </button>
-        `;
+        // Flip bear/bull face
+        if (sentimentIcon && !isBullish) {
+            // Bear face — frown down
+            sentimentIcon.querySelector("path").setAttribute("d", "M13 28c1.8 3 12.2 3 14 0");
+        } else if (sentimentIcon) {
+            sentimentIcon.querySelector("path").setAttribute("d", "M13 26c1.8-3 12.2-3 14 0");
+        }
+
+        // Mini sparkline (SVG line representing avg change trend)
+        if (sentimentSpark) {
+            sentimentSpark.innerHTML = buildMiniSparklineSvg(avgChange, isBullish);
+        }
+    }
+
+    // --- Breadth card ---
+    const breadthAdv = document.getElementById("mktBreadthAdv");
+    const breadthDec = document.getElementById("mktBreadthDec");
+    const breadthFillAdv = document.getElementById("mktBreadthFillAdv");
+    const breadthFillDec = document.getElementById("mktBreadthFillDec");
+    const breadthRatioEl = document.getElementById("mktBreadthRatio");
+    if (breadthAdv && stocks.length) {
+        const total = gainers.length + losers.length || 1;
+        const advPct = Math.round((gainers.length / total) * 100);
+        const decPct = 100 - advPct;
+        breadthAdv.textContent = gainers.length.toLocaleString("en-IN");
+        if (breadthDec) breadthDec.textContent = losers.length.toLocaleString("en-IN");
+        if (breadthFillAdv) breadthFillAdv.style.width = advPct + "%";
+        if (breadthFillDec) breadthFillDec.style.width = decPct + "%";
+        if (breadthRatioEl) {
+            const ratio = losers.length ? (gainers.length / losers.length).toFixed(2) : "∞";
+            breadthRatioEl.textContent = "Adv/Decl Ratio " + ratio;
+        }
+    }
+
+    // --- Top Sector card ---
+    const topSectorNameEl = document.getElementById("mktTopSectorName");
+    const topSectorChgEl = document.getElementById("mktTopSectorChg");
+    const sectorIconWrap = document.getElementById("mktSectorIconWrap");
+    if (topSectorNameEl) {
+        topSectorNameEl.textContent = topSectorName;
+        if (topSectorChgEl) {
+            topSectorChgEl.textContent = topSector ? formatChange(topSector.average) : "--";
+            topSectorChgEl.className = "mkt-sector-chg " + (topSectorIsPos ? "mkt-val-gain" : "mkt-val-loss");
+        }
+        if (sectorIconWrap) sectorIconWrap.style.color = topSectorIsPos ? "#22c55e" : "#ef4444";
+    }
+
+    // --- Most Active card ---
+    const activeSymbol = document.getElementById("mktActiveSymbol");
+    const activePrice = document.getElementById("mktActivePrice");
+    const activeChg = document.getElementById("mktActiveChg");
+    const activeVol = document.getElementById("mktActiveVol");
+    if (activeSymbol && mostActive) {
+        const sym = mostActive.symbol.replace(".NS", "");
+        const chgNum = Number(mostActive.change || 0);
+        const isPos = chgNum >= 0;
+        activeSymbol.textContent = escapeHtml(sym);
+        if (activePrice) activePrice.textContent = "₹" + formatPrice(mostActive.price);
+        if (activeChg) {
+            activeChg.textContent = formatChange(mostActive.change);
+            activeChg.className = "mkt-active-chg " + (isPos ? "mkt-val-gain" : "mkt-val-loss");
+        }
+        if (activeVol && mostActive.volume) {
+            const vol = Number(mostActive.volume);
+            const volStr = vol >= 1e7 ? (vol / 1e7).toFixed(2) + "M" : vol >= 1e5 ? (vol / 1e5).toFixed(1) + "L" : vol.toLocaleString("en-IN");
+            activeVol.textContent = "Volume " + volStr;
+        }
+    }
+
+    // --- Sector Donut Chart ---
+    const donut = document.getElementById("mktDonut");
+    const sectorList = document.getElementById("mktSectorList");
+    if (donut && stocks.length) {
+        const donutSectors = buildDonutSectors();
+        renderMktDonut(donut, donutSectors);
+        if (sectorList) {
+            sectorList.innerHTML = donutSectors.map(s => `
+                <li class="mkt-sector-row">
+                    <span class="mkt-sector-dot" style="background:${s.color}"></span>
+                    <span class="mkt-sector-name">${escapeHtml(s.name)}</span>
+                    <span class="mkt-sector-pct">${s.pct.toFixed(1)}%</span>
+                    <span class="mkt-sector-chg-val ${s.change >= 0 ? "mkt-val-gain" : "mkt-val-loss"}">${s.change >= 0 ? "+" : ""}${s.change.toFixed(2)}%</span>
+                </li>
+            `).join("");
+        }
+    }
+
+    // --- Market Breadth Line Chart ---
+    const breadthSvg = document.getElementById("mktBreadthSvg");
+    if (breadthSvg && stocks.length) {
+        renderBreadthChart(breadthSvg, gainers.length, losers.length, stocks.length);
+    }
+
+    // --- Bottom stats ---
+    const statAdv = document.getElementById("mktStatAdv");
+    const statDec = document.getElementById("mktStatDec");
+    const statUnch = document.getElementById("mktStatUnch");
+    if (statAdv && stocks.length) {
+        statAdv.textContent = gainers.length.toLocaleString("en-IN");
+        if (statDec) statDec.textContent = losers.length.toLocaleString("en-IN");
+        if (statUnch) statUnch.textContent = unchanged.length.toLocaleString("en-IN");
+
+        const advDelta = document.getElementById("mktStatAdvDelta");
+        const decDelta = document.getElementById("mktStatDecDelta");
+        const unchDelta = document.getElementById("mktStatUnchDelta");
+        if (advDelta) {
+            const pct = stocks.length ? Math.round((gainers.length / stocks.length) * 100) : 0;
+            advDelta.textContent = "+" + gainers.length + " (+" + pct + "%)";
+        }
+        if (decDelta) {
+            const pct = stocks.length ? Math.round((losers.length / stocks.length) * 100) : 0;
+            decDelta.textContent = "-" + losers.length + " (-" + pct + "%)";
+        }
+        if (unchDelta) {
+            const pct = stocks.length ? Math.round((unchanged.length / stocks.length) * 100) : 0;
+            unchDelta.textContent = "-" + unchanged.length + " (-" + pct + "%)";
+        }
+    }
+}
+
+function buildMiniSparklineSvg(avgChange, isPos) {
+    const W = 80, H = 40;
+    const points = 12;
+    const pts = [];
+    for (let i = 0; i < points; i++) {
+        const progress = i / (points - 1);
+        const noise = (Math.sin(i * 2.3) * 0.3 + Math.cos(i * 1.7) * 0.2);
+        const y = H / 2 - progress * (avgChange * 4) + noise * H * 0.15;
+        pts.push([i * (W / (points - 1)), Math.max(2, Math.min(H - 2, y))]);
+    }
+    const d = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    const color = isPos ? "#22c55e" : "#ef4444";
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+}
+
+function buildDonutSectors() {
+    const sectorGroups = [
+        { name: "Financial Services", keys: ["bank", "finance"], color: "#3b82f6" },
+        { name: "Information Technology", keys: ["it"], color: "#8b5cf6" },
+        { name: "Energy", keys: ["energy"], color: "#ef4444" },
+        { name: "Automobile", keys: ["auto"], color: "#f59e0b" },
+        { name: "FMCG", keys: ["fmcg", "consumer"], color: "#14b8a6" },
+        { name: "Healthcare", keys: ["pharma"], color: "#ec4899" },
+        { name: "Others", keys: ["metal", "realty", "telecom", "infra", "psu", "cement", "chemicals", "media"], color: "#6b7280" }
+    ];
+
+    const result = sectorGroups.map(g => {
+        const allStocks = g.keys.flatMap(k => fullData[k] || []);
+        const count = allStocks.length || 1;
+        const change = allStocks.length
+            ? allStocks.reduce((s, st) => s + Number(st.change || 0), 0) / allStocks.length
+            : 0;
+        return { name: g.name, color: g.color, count, change };
+    });
+
+    const total = result.reduce((s, r) => s + r.count, 0) || 1;
+    return result.map(r => ({ ...r, pct: (r.count / total) * 100 }));
+}
+
+function renderMktDonut(svgEl, sectors) {
+    const CX = 100, CY = 100, R = 85, r = 56, GAP = 0.018;
+    let angle = -Math.PI / 2;
+    const paths = sectors.map(sec => {
+        const sweep = (sec.pct / 100) * (2 * Math.PI) - GAP;
+        if (sweep <= 0) return "";
+        const x1 = CX + R * Math.cos(angle);
+        const y1 = CY + R * Math.sin(angle);
+        const endA = angle + sweep;
+        const x2 = CX + R * Math.cos(endA);
+        const y2 = CY + R * Math.sin(endA);
+        const ix1 = CX + r * Math.cos(endA);
+        const iy1 = CY + r * Math.sin(endA);
+        const ix2 = CX + r * Math.cos(angle);
+        const iy2 = CY + r * Math.sin(angle);
+        const large = sweep > Math.PI ? 1 : 0;
+        const d = `M${x1.toFixed(2)} ${y1.toFixed(2)} A${R} ${R} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} L${ix1.toFixed(2)} ${iy1.toFixed(2)} A${r} ${r} 0 ${large} 0 ${ix2.toFixed(2)} ${iy2.toFixed(2)} Z`;
+        angle += sweep + GAP;
+        return `<path d="${d}" fill="${sec.color}" opacity="0.88"/>`;
+    });
+    svgEl.innerHTML = paths.join("");
+}
+
+function renderBreadthChart(svgEl, advCount, decCount, total) {
+    const W = 500, H = 160;
+    const timeLabels = ["09:15", "10:30", "11:45", "01:00 PM", "02:15", "03:30 PM"];
+    const pts = timeLabels.length;
+
+    // Simulate intraday advancing/declining curve
+    const advPts = [], decPts = [];
+    const startAdv = Math.round(total * 0.5);
+    for (let i = 0; i < pts; i++) {
+        const t = i / (pts - 1);
+        const ease = t * t * (3 - 2 * t);
+        const noise = Math.sin(i * 1.9 + 0.5) * total * 0.03;
+        advPts.push(Math.max(1, Math.round(startAdv + (advCount - startAdv) * ease + noise)));
+        decPts.push(total - advPts[i]);
+    }
+
+    const maxVal = Math.max(...advPts, ...decPts) * 1.08;
+    const ySteps = [0, Math.round(maxVal * 0.25), Math.round(maxVal * 0.5), Math.round(maxVal * 0.75), Math.round(maxVal)];
+    const PAD_L = 40, PAD_R = 10, PAD_T = 10, PAD_B = 28;
+    const chartW = W - PAD_L - PAD_R;
+    const chartH = H - PAD_T - PAD_B;
+
+    const toXY = (pts) => pts.map((v, i) => {
+        const x = PAD_L + (i / (pts.length - 1)) * chartW;
+        const y = PAD_T + chartH - (v / maxVal) * chartH;
+        return [x.toFixed(1), y.toFixed(1)];
+    });
+
+    const advCoords = toXY(advPts);
+    const decCoords = toXY(decPts);
+
+    const toPath = (coords) => coords.map((c, i) => (i === 0 ? "M" : "L") + c[0] + " " + c[1]).join(" ");
+    const toArea = (coords, baseY) => toPath(coords) + ` L${coords[coords.length - 1][0]} ${baseY} L${coords[0][0]} ${baseY} Z`;
+    const baseY = (PAD_T + chartH).toFixed(1);
+
+    // X axis labels
+    const xLabels = timeLabels.map((label, i) => {
+        const x = PAD_L + (i / (pts - 1)) * chartW;
+        return `<text x="${x.toFixed(1)}" y="${(H - 6).toFixed(1)}" text-anchor="middle" font-size="9" fill="#64748b">${label}</text>`;
     }).join("");
+
+    // Y axis labels and gridlines
+    const yLines = ySteps.map(v => {
+        const y = PAD_T + chartH - (v / maxVal) * chartH;
+        return `<line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${W - PAD_R}" y2="${y.toFixed(1)}" stroke="#1e2a3a" stroke-width="0.5"/>
+                <text x="${(PAD_L - 4).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="8" fill="#64748b">${v >= 1000 ? (v / 1000).toFixed(1) + "k" : v}</text>`;
+    }).join("");
+
+    svgEl.innerHTML = `
+        ${yLines}
+        <path d="${toArea(advCoords, baseY)}" fill="#22c55e" opacity="0.08"/>
+        <path d="${toArea(decCoords, baseY)}" fill="#ef4444" opacity="0.08"/>
+        <path d="${toPath(advCoords)}" fill="none" stroke="#22c55e" stroke-width="2" stroke-linejoin="round"/>
+        <path d="${toPath(decCoords)}" fill="none" stroke="#ef4444" stroke-width="2" stroke-linejoin="round"/>
+        ${xLabels}
+    `;
+}
+
+function setupMktSectorTabs() {
+    document.addEventListener("click", e => {
+        const tab = e.target.closest("[data-sector-tab]");
+        if (!tab) return;
+        tab.closest(".mkt-sector-tabs")?.querySelectorAll(".mkt-sector-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        const donutSub = document.getElementById("mktDonutSub");
+        const labels = { cap: "(by Market Cap)", volume: "(by Volume)", breadth: "(by Breadth)" };
+        if (donutSub) donutSub.textContent = labels[tab.dataset.sectorTab] || "";
+    });
+}
+
+function setupMktTimeTabs() {
+    document.addEventListener("click", e => {
+        const tab = e.target.closest(".mkt-time-tab");
+        if (!tab) return;
+        tab.closest(".mkt-time-tabs")?.querySelectorAll(".mkt-time-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+    });
 }
 
 function renderSectorPerformance(rankedSectors = getSectorRankings()) {
