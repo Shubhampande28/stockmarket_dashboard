@@ -1910,15 +1910,15 @@ function createStockCard(stock, index, maxGain = 10, maxLoss = 10) {
     const relativeMax = isPositive ? maxGain : maxLoss;
     const intensity = getCardIntensity(stock.change, relativeMax);
     const cardBg = getTileBackground(isPositive, intensity);
-    const darkTile = intensity > 0.52;
+    const darkTile = intensity > 0.38;
     const shadowOpacity = 0.08 + intensity * 0.18;
     const movementColor = getMovementAccent(stock.change, isPositive, relativeMax);
     card.style.setProperty("--mount-delay", `${Math.min(index, 18) * 38}ms`);
     card.style.setProperty("--move-intensity", intensity.toFixed(2));
     card.style.setProperty("--card-bg", cardBg);
     card.style.setProperty("--card-text", darkTile ? "#ffffff" : "#111827");
-    card.style.setProperty("--card-gain-text", darkTile ? "rgba(180,255,210,0.95)" : "#16a34a");
-    card.style.setProperty("--card-loss-text", darkTile ? "rgba(255,180,180,0.95)" : "#dc2626");
+    card.style.setProperty("--card-gain-text", darkTile ? "rgba(255,255,255,0.92)" : "#16a34a");
+    card.style.setProperty("--card-loss-text", darkTile ? "rgba(255,255,255,0.92)" : "#dc2626");
     card.style.setProperty("--card-shadow-y", `${(6 + intensity * 14).toFixed(1)}px`);
     card.style.setProperty("--card-shadow-blur", `${(14 + intensity * 22).toFixed(1)}px`);
     card.style.setProperty("--card-hover-y", `${(10 + intensity * 18).toFixed(1)}px`);

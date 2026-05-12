@@ -3588,7 +3588,7 @@ body::before {
 }
 
 .stock-card-price-row strong {
-    color: #030712;
+    color: var(--card-text, #030712);
     font-size: 20px;
     font-weight: 600;
     line-height: 1.15;
@@ -3874,16 +3874,17 @@ body.stock-detail-page .icon-button[data-close-statements] {
 }
 
 .insight-label {
-    color: #475569;
+    color: var(--card-text, #475569);
+    opacity: 0.82;
     font-weight: 500;
 }
 
 .insight-trend.gain {
-    color: #16a34a;
+    color: var(--card-gain-text, #16a34a);
 }
 
 .insight-trend.loss {
-    color: #dc2626;
+    color: var(--card-loss-text, #dc2626);
 }
 
 /* Card sizes */
