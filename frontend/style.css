@@ -9394,16 +9394,18 @@ body.heatmap-open .panel-heading small {
 }
 
 .financial-clean-table thead th {
-    background: #eff6ff;
-    color: #334155;
+    background: #dbeafe;
+    color: #1e293b;
     font-weight: 800;
     font-size: 13px;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #bfdbfe;
 }
 
 .financial-clean-table tbody th {
+    background: #eff6ff;
     color: #0f172a;
     font-weight: 800;
     font-size: 15px;
-    background: #f8fafc;
+    border-right: 1px solid #dbeafe;
 }
