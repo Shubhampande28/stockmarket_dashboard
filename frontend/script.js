@@ -347,7 +347,13 @@ function setupPremiumExperience() {
     intelligencePanel.id = "intelligencePanel";
     intelligencePanel.setAttribute("aria-label", "Market intelligence");
 
-    heatmapPanel.appendChild(heatmapToolbar);
+    // Insert toolbar inside heatmapStage, after panel-heading so filters sit below the title
+    const panelHeadingEl = heatmapStage.querySelector(".panel-heading");
+    if (panelHeadingEl) {
+        panelHeadingEl.insertAdjacentElement("afterend", heatmapToolbar);
+    } else {
+        heatmapStage.prepend(heatmapToolbar);
+    }
     heatmapPanel.appendChild(heatmapStage);
     // sectorPerformanceList removed — renderSectorPerformance exits early when null
 
@@ -1948,8 +1954,7 @@ function renderGrid() {
     heatmap.innerHTML = "";
     heatmap.className = "stock-card-grid premium-treemap";
     viewTitle.textContent = searchTerm ? "Search results" : viewLabels[currentView];
-    viewMeta.textContent = buildHeatmapMeta(stocks.length);
-    renderHeatmapDescription(stocks.length);
+    if (viewMeta) { viewMeta.textContent = ""; }
 
     if (!stocks.length) {
         if (Object.keys(fullData).length) {

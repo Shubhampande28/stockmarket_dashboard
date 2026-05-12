@@ -9928,6 +9928,103 @@ body.heatmap-open .workspace-grid {
     display: none !important;
 }
 
+/* ---- Heatmap clean header redesign ---- */
+
+/* Panel-heading: centered title + search pinned to the right */
+body.heatmap-open .heatmap-stage .panel-heading {
+    position: relative !important;
+    top: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 14px 20px !important;
+    min-height: 0 !important;
+    border-bottom: 1px solid rgba(203, 213, 225, 0.6) !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    gap: 12px !important;
+}
+
+body.heatmap-open .heatmap-stage .panel-heading h2 {
+    font-size: clamp(0.95rem, 1.4vw, 1.2rem) !important;
+    font-weight: 600 !important;
+    color: #0b1220 !important;
+    text-align: center !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+}
+
+/* Search input pinned to the right of the heading */
+body.heatmap-open .heatmap-header-search {
+    position: absolute !important;
+    right: 18px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    padding: 6px 11px !important;
+    border: 1px solid rgba(203, 213, 225, 0.85) !important;
+    border-radius: 8px !important;
+    background: rgba(248, 250, 252, 0.95) !important;
+    color: #94a3b8 !important;
+    min-width: 170px !important;
+    transition: border-color 150ms ease, box-shadow 150ms ease !important;
+}
+
+body.heatmap-open .heatmap-header-search:focus-within {
+    border-color: var(--accent, #3b82f6) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12) !important;
+}
+
+body.heatmap-open .heatmap-header-search input {
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    font-size: 0.86rem !important;
+    color: #0b1220 !important;
+    width: 100% !important;
+}
+
+body.heatmap-open .heatmap-header-search input::placeholder {
+    color: #94a3b8;
+}
+
+/* Hide viewMeta text and heatmapDescription — replaced by clean header */
+#viewMeta,
+#heatmapDescription {
+    display: none !important;
+}
+
+/* Toolbar sits directly below heading with no gap */
+body.heatmap-open .heatmap-toolbar {
+    margin-top: 0 !important;
+}
+
+/* Remove top gap on heatmap grid */
+body.heatmap-open #heatmap.stock-card-grid,
+body.heatmap-open #heatmap.premium-treemap {
+    padding-top: 10px !important;
+    margin-top: 0 !important;
+}
+
+/* Responsive: stack search below title on small screens */
+@media (max-width: 600px) {
+    body.heatmap-open .heatmap-header-search {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+    }
+
+    body.heatmap-open .heatmap-stage .panel-heading {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+}
+
 /* Make heatmap fill the full height nicely */
 body.heatmap-open #heatmap.stock-card-grid,
 body.heatmap-open #heatmap.premium-treemap {
