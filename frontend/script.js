@@ -1799,12 +1799,15 @@ function renderStocksProgressively(stocks) {
     const chunkSize = 32;
     let rendered = 0;
 
+    const maxGain = stocks.reduce((m, s) => Math.max(m, Number(s.change || 0)), 0) || 1;
+    const maxLoss = stocks.reduce((m, s) => Math.max(m, -Number(s.change || 0)), 0) || 1;
+
     const renderChunk = count => {
         const fragment = document.createDocumentFragment();
         const end = Math.min(stocks.length, rendered + count);
 
         for (let index = rendered; index < end; index += 1) {
-            fragment.appendChild(createStockCard(stocks[index], index));
+            fragment.appendChild(createStockCard(stocks[index], index, maxGain, maxLoss));
         }
 
         heatmap.appendChild(fragment);
@@ -1892,7 +1895,7 @@ function renderHeatmapDescription(stockCount = visibleStocks.length) {
     `;
 }
 
-function createStockCard(stock, index) {
+function createStockCard(stock, index, maxGain = 10, maxLoss = 10) {
     const card = document.createElement("article");
     const isPositive = Number(stock.change || 0) >= 0;
     const symbol = stock.symbol.replace(".NS", "");
@@ -1904,12 +1907,13 @@ function createStockCard(stock, index) {
     card.tabIndex = 0;
     card.role = "button";
     card.dataset.symbol = stock.symbol;
-    const intensity = getCardIntensity(stock.change);
-    const tintOpacity = 0.04 + intensity * 0.08;
-    const flowOpacity = 0.16 + intensity * 0.26;
-    const shadowOpacity = 0.07 + intensity * 0.07;
-    const positiveColor = getMovementAccent(stock.change, true);
-    const negativeColor = getMovementAccent(stock.change, false);
+    const relativeMax = isPositive ? maxGain : maxLoss;
+    const intensity = getCardIntensity(stock.change, relativeMax);
+    const tintOpacity = 0.04 + intensity * 0.22;
+    const flowOpacity = 0.18 + intensity * 0.44;
+    const shadowOpacity = 0.06 + intensity * 0.16;
+    const positiveColor = getMovementAccent(stock.change, true, maxGain);
+    const negativeColor = getMovementAccent(stock.change, false, maxLoss);
     const movementColor = isPositive ? positiveColor : negativeColor;
     card.style.setProperty("--mount-delay", `${Math.min(index, 18) * 38}ms`);
     card.style.setProperty("--move-intensity", intensity.toFixed(2));
@@ -1958,23 +1962,23 @@ function createStockCard(stock, index) {
     return card;
 }
 
-function getCardIntensity(change) {
+function getCardIntensity(change, max = 10) {
     const value = Math.abs(Number(change) || 0);
-    return Math.min(value / 10, 1);
+    return Math.min(value / Math.max(max, 0.01), 1);
 }
 
-function getMovementAccent(change, isPositive) {
-    const intensity = getCardIntensity(change);
+function getMovementAccent(change, isPositive, max = 10) {
+    const intensity = getCardIntensity(change, max);
 
     if (isPositive) {
-        const saturation = 82 + intensity * 8;
-        const lightness = 38 - intensity * 10;
+        const saturation = 75 + intensity * 15;
+        const lightness = 46 - intensity * 20;
 
         return `hsl(142 ${saturation}% ${lightness}%)`;
     }
 
-    const saturation = 84 + intensity * 8;
-    const lightness = 40 - intensity * 10;
+    const saturation = 77 + intensity * 15;
+    const lightness = 48 - intensity * 20;
 
     return `hsl(0 ${saturation}% ${lightness}%)`;
 }
