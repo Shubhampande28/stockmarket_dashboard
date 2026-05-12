@@ -9343,6 +9343,7 @@ body.heatmap-open .panel-heading small {
     height: 560px;
     object-fit: cover;
     display: block;
+    filter: saturate(1.05) contrast(1.02);
 }
 
 .hero-dots {
@@ -9366,4 +9367,17 @@ body.heatmap-open .panel-heading small {
 .hero-dots span.active {
     width: 24px;
     background: #38bdf8;
+}
+
+.hero-slider::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.02),
+            rgba(0,0,0,0.08)
+        );
+    pointer-events: none;
 }
