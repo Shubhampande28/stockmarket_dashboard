@@ -1909,25 +1909,22 @@ function createStockCard(stock, index, maxGain = 10, maxLoss = 10) {
     card.dataset.symbol = stock.symbol;
     const relativeMax = isPositive ? maxGain : maxLoss;
     const intensity = getCardIntensity(stock.change, relativeMax);
-    const tintOpacity = 0.04 + intensity * 0.22;
-    const flowOpacity = 0.18 + intensity * 0.44;
-    const shadowOpacity = 0.06 + intensity * 0.16;
-    const positiveColor = getMovementAccent(stock.change, true, maxGain);
-    const negativeColor = getMovementAccent(stock.change, false, maxLoss);
-    const movementColor = isPositive ? positiveColor : negativeColor;
+    const cardBg = getTileBackground(isPositive, intensity);
+    const darkTile = intensity > 0.52;
+    const shadowOpacity = 0.08 + intensity * 0.18;
+    const movementColor = getMovementAccent(stock.change, isPositive, relativeMax);
     card.style.setProperty("--mount-delay", `${Math.min(index, 18) * 38}ms`);
     card.style.setProperty("--move-intensity", intensity.toFixed(2));
+    card.style.setProperty("--card-bg", cardBg);
+    card.style.setProperty("--card-text", darkTile ? "#ffffff" : "#111827");
+    card.style.setProperty("--card-gain-text", darkTile ? "rgba(180,255,210,0.95)" : "#16a34a");
+    card.style.setProperty("--card-loss-text", darkTile ? "rgba(255,180,180,0.95)" : "#dc2626");
     card.style.setProperty("--card-shadow-y", `${(6 + intensity * 14).toFixed(1)}px`);
     card.style.setProperty("--card-shadow-blur", `${(14 + intensity * 22).toFixed(1)}px`);
     card.style.setProperty("--card-hover-y", `${(10 + intensity * 18).toFixed(1)}px`);
     card.style.setProperty("--card-hover-blur", `${(22 + intensity * 26).toFixed(1)}px`);
-    card.style.setProperty("--card-overlay-opacity", (0.1 + intensity * 0.18).toFixed(2));
     card.style.setProperty("--card-border", movementColor);
     card.style.setProperty("--change-color", movementColor);
-    card.style.setProperty("--change-opacity", (0.78 + intensity * 0.22).toFixed(2));
-    card.style.setProperty("--card-tint", isPositive ? `rgba(22, 163, 74, ${tintOpacity.toFixed(3)})` : `rgba(220, 38, 38, ${tintOpacity.toFixed(3)})`);
-    card.style.setProperty("--card-flow", isPositive ? `rgba(34, 197, 94, ${flowOpacity.toFixed(3)})` : `rgba(248, 113, 113, ${flowOpacity.toFixed(3)})`);
-    card.style.setProperty("--card-direction-tint", isPositive ? `rgba(34, 197, 94, ${(tintOpacity * 1.1).toFixed(3)})` : `rgba(248, 113, 113, ${(tintOpacity * 1.1).toFixed(3)})`);
     card.style.setProperty("--card-shadow", isPositive ? `rgba(22, 163, 74, ${shadowOpacity.toFixed(3)})` : `rgba(220, 38, 38, ${shadowOpacity.toFixed(3)})`);
     card.setAttribute("aria-label", `Select ${stock.name || symbol}`);
     card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
@@ -1981,6 +1978,13 @@ function getMovementAccent(change, isPositive, max = 10) {
     const lightness = 48 - intensity * 20;
 
     return `hsl(0 ${saturation}% ${lightness}%)`;
+}
+
+function getTileBackground(isPositive, intensity) {
+    const lightness = Math.round(96 - intensity * 58);
+    const saturation = Math.round(18 + intensity * 62);
+    const hue = isPositive ? 142 : 0;
+    return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
 function getTopSignalLabel(stock) {
