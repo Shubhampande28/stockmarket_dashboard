@@ -267,9 +267,10 @@ function setupPremiumExperience() {
                 </div>
                 <div class="route-live-chip">
                     <span class="status-dot"></span>
-                    <strong>Live market feel</strong>
+                    <strong>Live market feed</strong>
                 </div>
             </header>
+            <div id="marketSentimentStrip" class="market-sentiment-strip"></div>
             <div class="market-overview-grid" id="marketOverviewGrid"></div>
             <section class="route-content-grid">
                 <div class="route-panel">
@@ -288,6 +289,7 @@ function setupPremiumExperience() {
                 </div>
             </section>
         `;
+        setupMarketHoverTip();
     }
 
     const workspaceGrid = document.createElement("div");
@@ -740,53 +742,236 @@ function updateTopExperience() {
     renderFinancialPage();
 }
 
+function generateSparkline(seed, change, width, height) {
+    width = width || 72;
+    height = height || 26;
+    let s = 0;
+    const key = String(seed);
+    for (let i = 0; i < key.length; i++) s = (s * 31 + key.charCodeAt(i)) & 0xffff;
+    const n = 12;
+    const trend = Number(change || 0) / n;
+    let val = 50;
+    const values = [];
+    for (let i = 0; i < n; i++) {
+        s = (s * 1664525 + 1013904223) & 0xffff;
+        val += trend * 2.5 + (s / 0xffff - 0.5) * 3;
+        values.push(val);
+    }
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min || 1;
+    const pts = values.map((v, i) => {
+        const x = (i / (n - 1)) * width;
+        const y = (height - 2) - ((v - min) / range) * (height - 5) + 2;
+        return x.toFixed(1) + "," + y.toFixed(1);
+    }).join(" ");
+    const color = Number(change || 0) >= 0 ? "#10b981" : "#ef4444";
+    return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" aria-hidden="true"><polyline points="${pts}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/></svg>`;
+}
+
+function getStockInsight(change) {
+    const c = Number(change || 0);
+    const a = Math.abs(c);
+    if (a >= 9) return c > 0 ? "Upper circuit" : "Lower circuit";
+    if (a >= 6) return c > 0 ? "Momentum breakout" : "Heavy selling";
+    if (a >= 3.5) return c > 0 ? "Strong uptrend" : "Sharp decline";
+    if (a >= 2) return c > 0 ? "Trending up" : "Trending down";
+    if (a >= 1) return c > 0 ? "Mild positive" : "Mild negative";
+    return c >= 0 ? "Flat / stable" : "Weak";
+}
+
+function computeSentimentPills(stocks) {
+    if (!stocks.length) return [];
+    const gainers = getRankedGainers([...stocks]);
+    const breadthRatio = gainers.length / stocks.length;
+    const avgChange = stocks.reduce((s, st) => s + Number(st.change || 0), 0) / stocks.length;
+    const absAvg = Math.abs(avgChange);
+
+    const fearGreed = breadthRatio >= 0.65 ? ["Greed", "bullish"]
+        : breadthRatio >= 0.52 ? ["Neutral", "neutral"]
+        : breadthRatio >= 0.4 ? ["Fear", "bearish"]
+        : ["Extreme Fear", "bearish"];
+
+    const momentum = avgChange >= 1.5 ? ["Strong Bullish", "bullish"]
+        : avgChange >= 0.4 ? ["Bullish", "bullish"]
+        : avgChange >= -0.4 ? ["Neutral", "neutral"]
+        : avgChange >= -1.5 ? ["Weak Bearish", "bearish"]
+        : ["Bearish", "bearish"];
+
+    const volatility = absAvg >= 1.8 ? ["High", "bearish"]
+        : absAvg >= 0.7 ? ["Moderate", "neutral"]
+        : ["Low", "bullish"];
+
+    const breadthLabel = breadthRatio >= 0.6 ? ["Strong", "bullish"]
+        : breadthRatio >= 0.5 ? ["Moderate", "neutral"]
+        : breadthRatio >= 0.38 ? ["Weak", "bearish"]
+        : ["Very Weak", "bearish"];
+
+    return [
+        { label: "Sentiment", value: fearGreed[0], dot: fearGreed[1] },
+        { label: "Momentum", value: momentum[0], dot: momentum[1] },
+        { label: "Volatility", value: volatility[0], dot: volatility[1] },
+        { label: "Breadth", value: breadthLabel[0], dot: breadthLabel[1] },
+        { label: "Advancing", value: `${gainers.length} / ${stocks.length}`, dot: breadthRatio >= 0.5 ? "bullish" : "bearish" }
+    ];
+}
+
+function setupMarketHoverTip() {
+    let tip = document.getElementById("marketHoverTip");
+    if (!tip) {
+        tip = document.createElement("div");
+        tip.id = "marketHoverTip";
+        tip.className = "market-hover-tip";
+        document.body.appendChild(tip);
+    }
+
+    document.addEventListener("mouseover", function(e) {
+        const row = e.target.closest(".market-trending-row[data-symbol]");
+        if (!row) return;
+        const sym = row.dataset.symbol;
+        const stock = (fullData.all || []).find(s => s.symbol === sym);
+        if (!stock) return;
+
+        const rows = [
+            ["Open", stock.open ? "₹" + formatPrice(stock.open) : null],
+            ["High", stock.high ? "₹" + formatPrice(stock.high) : null],
+            ["Low", stock.low ? "₹" + formatPrice(stock.low) : null],
+            ["Volume", stock.volume ? Number(stock.volume).toLocaleString("en-IN") : null],
+            ["VWAP", stock.vwap ? "₹" + formatPrice(stock.vwap) : null]
+        ].filter(([, v]) => v);
+
+        if (!rows.length) return;
+        tip.innerHTML = rows.map(([l, v]) =>
+            `<div class="market-hover-tip-row"><span class="market-hover-tip-label">${escapeHtml(l)}</span><span class="market-hover-tip-value">${escapeHtml(v)}</span></div>`
+        ).join("");
+        tip.classList.add("visible");
+    });
+
+    document.addEventListener("mousemove", function(e) {
+        if (!tip.classList.contains("visible")) return;
+        tip.style.left = Math.min(e.clientX + 18, window.innerWidth - 210) + "px";
+        tip.style.top = Math.min(e.clientY - 20, window.innerHeight - 200) + "px";
+    });
+
+    document.addEventListener("mouseout", function(e) {
+        if (e.target.closest(".market-trending-row[data-symbol]") && !e.relatedTarget?.closest(".market-trending-row[data-symbol]")) {
+            tip.classList.remove("visible");
+        }
+    });
+}
+
 function renderMarketsPage() {
     const overviewGrid = document.getElementById("marketOverviewGrid");
     const trendingList = document.getElementById("marketTrendingList");
     const indexSummary = document.getElementById("marketIndexSummary");
+    const sentimentStrip = document.getElementById("marketSentimentStrip");
 
-    if (!overviewGrid || !trendingList || !indexSummary) {
-        return;
-    }
+    if (!overviewGrid || !trendingList || !indexSummary) return;
 
     const stocks = fullData.all || [];
     const gainers = getRankedGainers([...stocks]);
     const losers = getRankedLosers([...stocks]);
     const sectors = getSectorRankings();
     const topSector = sectors[0];
-    const breadthRatio = stocks.length ? (gainers.length / stocks.length) * 100 : 0;
+    const breadthRatio = stocks.length ? gainers.length / stocks.length : 0;
+    const breadthPct = Math.round(breadthRatio * 100);
     const mostActive = [...stocks].sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0))[0] || gainers[0];
+    const topSectorChange = topSector ? Number(topSector.average || 0) : 0;
+    const topSectorIsPos = topSectorChange >= 0;
+    const topSectorName = topSector ? (viewLabels[topSector.key] || topSector.key) : "--";
 
-    overviewGrid.innerHTML = [
-        ["Market Breadth", stocks.length ? `${gainers.length} / ${losers.length}` : "--", stocks.length ? `${breadthRatio.toFixed(0)}% advancing` : "Waiting for data"],
-        ["Top Sector", topSector ? viewLabels[topSector.key] : "--", topSector ? formatChange(topSector.average) : "Waiting for data"],
-        ["Most Active", mostActive ? mostActive.symbol.replace(".NS", "") : "--", mostActive ? formatPrice(mostActive.price) : "Waiting for data"],
-        ["Tracked Universe", stocks.length ? `${stocks.length} stocks` : "--", "Real-time scan"]
-    ].map(item => `
-        <article class="market-overview-card-lite">
-            <span>${escapeHtml(item[0])}</span>
-            <strong>${escapeHtml(item[1])}</strong>
-            <small>${escapeHtml(item[2])}</small>
+    // Sentiment strip
+    if (sentimentStrip && stocks.length) {
+        const pills = computeSentimentPills(stocks);
+        sentimentStrip.innerHTML = pills.map(p => `
+            <div class="sentiment-pill">
+                <span class="sentiment-pill-dot ${escapeHtml(p.dot)}"></span>
+                <span class="sentiment-pill-label">${escapeHtml(p.label)}</span>
+                <span>${escapeHtml(p.value)}</span>
+            </div>
+        `).join("");
+        sentimentStrip.hidden = false;
+    } else if (sentimentStrip) {
+        sentimentStrip.hidden = true;
+    }
+
+    // Overview cards
+    overviewGrid.innerHTML = `
+        <article class="market-overview-card-lite ${breadthRatio >= 0.5 ? "card-bullish" : "card-bearish"}">
+            <div class="moc-header">
+                <span class="moc-eyebrow">Market Breadth</span>
+                <span class="moc-pulse"></span>
+            </div>
+            <strong class="moc-value">${stocks.length ? gainers.length + " / " + stocks.length : "--"}</strong>
+            <div class="moc-breadth-bar">
+                <div class="moc-breadth-track">
+                    <div class="moc-breadth-fill" style="width:${breadthPct}%"></div>
+                </div>
+            </div>
+            <small class="moc-sub ${breadthRatio >= 0.5 ? "gain-text" : "loss-text"}">${stocks.length ? breadthPct + "% advancing" : "Waiting for data"}</small>
         </article>
-    `).join("");
+        <article class="market-overview-card-lite ${topSectorIsPos ? "card-bullish" : "card-bearish"}">
+            <div class="moc-header">
+                <span class="moc-eyebrow">Top Sector</span>
+                <span class="moc-trend-arrow ${topSectorIsPos ? "up" : "down"}">${topSectorIsPos ? "↑" : "↓"}</span>
+            </div>
+            <strong class="moc-value" style="font-size:clamp(1rem,1.8vw,1.4rem)">${escapeHtml(topSectorName)}</strong>
+            <small class="moc-sub ${topSectorIsPos ? "gain-text" : "loss-text"}">${topSector ? formatChange(topSector.average) : "Waiting for data"}</small>
+        </article>
+        <article class="market-overview-card-lite card-accent">
+            <div class="moc-header">
+                <span class="moc-eyebrow">Most Active</span>
+                <span class="moc-trend-arrow neutral" style="font-size:11px">VOL</span>
+            </div>
+            <strong class="moc-value">${mostActive ? escapeHtml(mostActive.symbol.replace(".NS", "")) : "--"}</strong>
+            <small class="moc-sub">${mostActive ? "₹" + formatPrice(mostActive.price) : "Waiting for data"}</small>
+        </article>
+        <article class="market-overview-card-lite card-accent">
+            <div class="moc-header">
+                <span class="moc-eyebrow">Tracked Universe</span>
+                <span class="moc-trend-arrow neutral" style="font-size:11px">LIVE</span>
+            </div>
+            <strong class="moc-value">${stocks.length || "--"}</strong>
+            <small class="moc-sub">Stocks in scan</small>
+        </article>
+    `;
 
-    trendingList.innerHTML = (gainers.length ? gainers : visibleStocks).slice(0, 8).map(stock => `
-        <button class="market-trending-row" type="button" data-symbol="${escapeAttribute(stock.symbol)}">
-            <span>${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
-            <strong>${formatPrice(stock.price)}</strong>
-            <em class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</em>
-        </button>
-    `).join("") || "<p>Waiting for market data</p>";
+    // Trending stocks list
+    const trendSource = gainers.length ? gainers : visibleStocks;
+    trendingList.innerHTML = trendSource.slice(0, 8).map(stock => {
+        const isPos = Number(stock.change || 0) >= 0;
+        return `
+            <button class="market-trending-row ${isPos ? "mtr-gain" : "mtr-loss"}" type="button" data-symbol="${escapeAttribute(stock.symbol)}">
+                <div class="mtr-symbol-block">
+                    <span class="mtr-symbol">${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
+                    <span class="mtr-insight">${escapeHtml(getStockInsight(stock.change))}</span>
+                </div>
+                <div class="mtr-sparkline">${generateSparkline(stock.symbol, stock.change)}</div>
+                <div class="mtr-price-block">
+                    <span class="mtr-price">₹${formatPrice(stock.price)}</span>
+                    <span class="mtr-change ${isPos ? "gain" : "loss"}">${formatChange(stock.change)}</span>
+                </div>
+            </button>
+        `;
+    }).join("") || "<p>Waiting for market data</p>";
 
+    // Index summary
     const indexes = ["nifty50", "banknifty", "finnifty", "sensex", "midcpnifty"];
     indexSummary.innerHTML = indexes.map(key => {
         const quote = indexQuotes[key] || {};
-        const change = quote.change === null || quote.change === undefined ? null : Number(quote.change || 0);
+        const change = (quote.change === null || quote.change === undefined) ? null : Number(quote.change || 0);
+        const isPos = change !== null && change >= 0;
         return `
             <button class="market-index-row" type="button" data-index-view="${escapeAttribute(key)}">
-                <span>${escapeHtml(viewLabels[key] || key)}</span>
-                <strong>${quote.price === null || quote.price === undefined ? "--" : formatPrice(quote.price)}</strong>
-                <em class="${change === null ? "" : change >= 0 ? "gain" : "loss"}">${change === null ? "Live quote unavailable" : formatChange(change)}</em>
+                <div class="mir-label-block">
+                    <span class="mir-name">${escapeHtml(viewLabels[key] || key)}</span>
+                    <span class="mir-price">${(quote.price === null || quote.price === undefined) ? "--" : formatPrice(quote.price)}</span>
+                </div>
+                <div class="mir-sparkline">${generateSparkline(key, change ?? 0)}</div>
+                <div class="mir-change-block">
+                    <span class="mir-change ${change === null ? "" : isPos ? "gain" : "loss"}">${change === null ? "--" : formatChange(change)}</span>
+                    <span class="mir-arrow ${change === null ? "" : isPos ? "gain" : "loss"}">${change === null ? "" : isPos ? "▲" : "▼"}</span>
+                </div>
             </button>
         `;
     }).join("");
