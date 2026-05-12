@@ -9561,6 +9561,219 @@ body.heatmap-open .trend-mover-row em.loss {
     color: #dc2626 !important;
 }
 
+/* ============================================================
+   APP SIDEBAR — Persistent left navigation for dashboard pages
+   ============================================================ */
+
+.app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    width: 220px;
+    height: 100vh;
+    height: 100svh;
+    padding: 18px 14px;
+    border-right: 1px solid var(--border);
+    background: #ffffff;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+body.experience-open .app-sidebar {
+    display: flex;
+}
+
+body.experience-open {
+    padding-left: 220px !important;
+}
+
+body.experience-open .site-header {
+    display: none !important;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 16px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text);
+    flex-shrink: 0;
+}
+
+.sidebar-brand-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.sidebar-brand-copy strong {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+.sidebar-brand-copy small {
+    display: block;
+    font-size: 9.5px;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-height: 0;
+}
+
+.sidebar-section-label {
+    margin: 0 0 5px;
+    padding: 0 10px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #475569;
+    font-size: 13.5px;
+    font-weight: 700;
+    transition: background 150ms ease, color 150ms ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar-link svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: opacity 150ms ease;
+}
+
+.sidebar-link:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.sidebar-link:hover svg,
+.sidebar-link.active svg {
+    opacity: 1;
+}
+
+.sidebar-link.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 800;
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 14px;
+    margin-top: 10px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.sidebar-footer .sidebar-section-label {
+    margin-bottom: 2px;
+}
+
+.sidebar-footer .market-status {
+    margin: 0 !important;
+    min-height: 32px !important;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+}
+
+.sidebar-footer .last-updated-card {
+    margin: 0 !important;
+    padding: 9px 10px !important;
+    box-shadow: none !important;
+}
+
+.sidebar-footer .last-updated-card span {
+    font-size: 10px !important;
+}
+
+.sidebar-footer .last-updated-card strong {
+    font-size: 12px !important;
+}
+
+.sidebar-footer .refresh-button {
+    width: 100% !important;
+    min-height: 36px !important;
+    padding: 0 12px !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    font-weight: 850 !important;
+    box-shadow: none !important;
+}
+
+body.heatmap-open .sidebar-footer .refresh-button {
+    width: 100% !important;
+    box-shadow: none !important;
+}
+
+/* Simplify panel-heading — actions now live in the sidebar */
+body.experience-open .panel-heading {
+    min-height: 54px !important;
+    padding: 12px 18px !important;
+}
+
+body.experience-open .panel-actions {
+    display: none !important;
+}
+
+/* Tighten app-shell top/bottom spacing */
+body.experience-open .app-shell {
+    margin-top: 14px !important;
+    margin-bottom: 20px !important;
+}
+
+/* Hide redundant live-chip from route page headers — status is in sidebar */
+body.experience-open .route-live-chip {
+    display: none !important;
+}
+
+/* Responsive: collapse sidebar, restore top nav on narrow screens */
+@media (max-width: 860px) {
+    body.experience-open {
+        padding-left: 0 !important;
+    }
+
+    body.experience-open .app-sidebar {
+        display: none !important;
+    }
+
+    body.experience-open .site-header {
+        display: block !important;
+    }
+}
+
 body.heatmap-open .filter-pill-grid {
     grid-template-columns: 1fr !important;
     gap: 0.55rem !important;

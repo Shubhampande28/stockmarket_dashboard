@@ -4,9 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Equilytics | Market Intelligence Platform</title>
-    <link rel="stylesheet" href="./style.css?v=20260512-responsive-fix">
+    <link rel="stylesheet" href="./style.css?v=20260513-sidebar">
 </head>
 <body>
+    <aside class="app-sidebar" id="appSidebar" aria-label="Navigation">
+        <a class="sidebar-brand" href="/" data-route="home" aria-label="Equilytics home">
+            <span class="brand-mark">EQ</span>
+            <span class="sidebar-brand-copy">
+                <strong>Equilytics</strong>
+                <small>Market Intelligence</small>
+            </span>
+        </a>
+
+        <nav class="sidebar-nav" aria-label="Main navigation">
+            <p class="sidebar-section-label">Main</p>
+            <a href="/markets" data-route="markets" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 13L5 8L8 10.5L11 5L15 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Markets
+            </a>
+            <a href="/heatmap" data-route="heatmap" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+                Heatmap
+            </a>
+            <a href="/financials" data-route="financials" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5" stroke="currentColor" stroke-width="1.5"/><line x1="1.5" y1="6" x2="14.5" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="6" x2="6" y2="14.5" stroke="currentColor" stroke-width="1.5"/></svg>
+                Financials
+            </a>
+            <a href="/insights" data-route="insights" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="6.5" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10v1.5h3V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="6.5" y1="13" x2="9.5" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                Insights
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <p class="sidebar-section-label">Status</p>
+            <div class="market-status" id="marketStatus">
+                <span class="status-dot"></span>
+                <span>Connecting</span>
+            </div>
+            <div class="last-updated-card">
+                <span>Last fetched</span>
+                <strong id="lastFetched">Not fetched yet</strong>
+            </div>
+            <button class="refresh-button" id="refreshButton" type="button">Refresh Data</button>
+        </div>
+    </aside>
+
     <header class="site-header" aria-label="Primary navigation">
         <div class="header-inner">
             <a class="brand-logo" href="/" aria-label="Equilytics home" data-route="home">
@@ -119,17 +162,6 @@
                     <h2 id="viewTitle">Top 10 gainers and losers</h2>
                     <p><span id="viewMeta">Waiting for market data</span></p>
                 </div>
-                <div class="panel-actions">
-                    <div class="market-status" id="marketStatus">
-                        <span class="status-dot"></span>
-                        <span>Connecting</span>
-                    </div>
-                    <div class="last-updated-card">
-                        <span>Last fetched</span>
-                        <strong id="lastFetched">Not fetched yet</strong>
-                    </div>
-                    <button class="refresh-button" id="refreshButton" type="button">Refresh</button>
-                </div>
             </header>
 
             <div id="message" class="message loading">Loading market data...</div>
@@ -193,6 +225,6 @@
         </section>
     </div>
 
-    <script src="./script.js?v=20260512-markets-premium"></script>
+    <script src="./script.js?v=20260513-sidebar"></script>
 </body>
 </html>
