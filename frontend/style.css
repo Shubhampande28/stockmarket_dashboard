@@ -9396,3 +9396,14 @@ body.heatmap-open .panel-heading small {
     color: #475569 !important;
     font-weight: 700 !important;
 }
+
+table tbody tr td:first-child {
+    color: #334155 !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+}
+
+table thead th {
+    color: #475569 !important;
+    font-weight: 700 !important;
+}
