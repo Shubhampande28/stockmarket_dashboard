@@ -3533,3 +3533,38 @@ window.addEventListener("load", () => {
     navigateTo(getRouteFromPath(), { replace: true, scroll: false });
     loadHeatmap();
 });
+
+function initializeHeroSlider() {
+    const slider = document.querySelector(".hero-slides");
+    const dots = document.querySelectorAll(".hero-dots span");
+
+    if (!slider || !dots.length) {
+        return;
+    }
+
+    const totalSlides = dots.length;
+    let currentSlide = 0;
+
+    function updateSlider() {
+        slider.style.transform =
+            `translateX(-${currentSlide * 100}%)`;
+
+        dots.forEach((dot, index) => {
+            dot.classList.toggle(
+                "active",
+                index === currentSlide
+            );
+        });
+    }
+
+    updateSlider();
+
+    setInterval(() => {
+        currentSlide =
+            (currentSlide + 1) % totalSlides;
+
+        updateSlider();
+    }, 4500);
+}
+
+initializeHeroSlider();
