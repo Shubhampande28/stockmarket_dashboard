@@ -2375,17 +2375,17 @@ function formatInfoFallback(rawValue, fallbackPrefix = "", fallbackUnit = "") {
 }
 
 function formatSnapshotMarketCap(info, valuation) {
-    // Prefer Screener info string — already formatted as "13,08,834 Cr" (total market cap)
-    if (info.marketCap) {
-        return formatInfoFallback(info.marketCap, "", "Cr");
-    }
-    // Fall back to NSE numeric value (raw crores, needs explicit "Cr" suffix)
+    // Prefer NSE valuation (real-time, fetched on every modal open — never stale)
     const marketCap = getFirstFilledValue(valuation.marketCap);
     if (marketCap !== undefined && marketCap !== null) {
         const num = Number(marketCap);
         if (!isNaN(num) && num > 0) {
             return escapeHtml(num.toLocaleString("en-IN", { maximumFractionDigits: 0 }) + " Cr");
         }
+    }
+    // Fall back to Screener info string (30-day cache — may be stale but better than nothing)
+    if (info.marketCap) {
+        return formatInfoFallback(info.marketCap, "", "Cr");
     }
     return "--";
 }
