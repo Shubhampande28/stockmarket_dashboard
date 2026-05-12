@@ -156,14 +156,31 @@ def fetch_market_stats(symbols):
         security_info = summary.get("securityInfo", {}) or {}
         metadata = summary.get("metadata", {}) or {}
         week_range = price_info.get("weekHighLow", {}) or {}
-        last_price = normalize_yahoo_quote_stat(price_info.get("lastPrice"))
-        issued_size = normalize_yahoo_quote_stat(security_info.get("issuedSize"))
-        market_cap = round(last_price * issued_size, 2) if last_price and issued_size else None
+
+        # Prefer NSE's direct market cap values (in crores) over computed price × shares
+        market_cap = (
+            normalize_yahoo_quote_stat(security_info.get("totalMarketCap"))
+            or normalize_yahoo_quote_stat(security_info.get("ffmc"))
+        )
+        if not market_cap:
+            # Fallback: compute from price × issued shares, convert ₹ → crores
+            last_price = normalize_yahoo_quote_stat(price_info.get("lastPrice"))
+            issued_size = normalize_yahoo_quote_stat(security_info.get("issuedSize"))
+            if last_price and issued_size:
+                market_cap = round((last_price * issued_size) / 1e7, 2)
+
         payload = {
             "marketCap": market_cap,
             "pe": normalize_yahoo_quote_stat(metadata.get("pdSymbolPe")),
+            "sectorPe": normalize_yahoo_quote_stat(metadata.get("pdSectorPe")),
             "fiftyTwoWeekHigh": normalize_yahoo_quote_stat(week_range.get("max")),
-            "fiftyTwoWeekLow": normalize_yahoo_quote_stat(week_range.get("min"))
+            "fiftyTwoWeekLow": normalize_yahoo_quote_stat(week_range.get("min")),
+            "vwap": normalize_yahoo_quote_stat(price_info.get("vwap")),
+            "upperCircuit": normalize_yahoo_quote_stat(price_info.get("upperCP")),
+            "lowerCircuit": normalize_yahoo_quote_stat(price_info.get("lowerCP")),
+            "faceValue": normalize_yahoo_quote_stat(security_info.get("faceValue")),
+            "industry": metadata.get("pdSectorInd") or None,
+            "isin": metadata.get("isin") or None,
         }
         return symbol, {key: value for key, value in payload.items() if value is not None}
 
@@ -873,7 +890,14 @@ def get_stocks():
             "roe": metrics.get("roe"),
             "marketCap": metrics.get("marketCap") or stats.get("marketCap"),
             "fiftyTwoWeekHigh": fifty_two_week_high,
-            "fiftyTwoWeekLow": fifty_two_week_low
+            "fiftyTwoWeekLow": fifty_two_week_low,
+            "vwap": stats.get("vwap"),
+            "upperCircuit": stats.get("upperCircuit"),
+            "lowerCircuit": stats.get("lowerCircuit"),
+            "sectorPe": stats.get("sectorPe"),
+            "faceValue": stats.get("faceValue"),
+            "industry": stats.get("industry"),
+            "isin": stats.get("isin"),
         })
 
     # =========================
