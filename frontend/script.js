@@ -1924,7 +1924,7 @@ function createStockCard(stock, index, maxGain = 10, maxLoss = 10) {
     card.style.setProperty("--card-hover-y", `${(10 + intensity * 18).toFixed(1)}px`);
     card.style.setProperty("--card-hover-blur", `${(22 + intensity * 26).toFixed(1)}px`);
     card.style.setProperty("--card-border", movementColor);
-    card.style.setProperty("--change-color", movementColor);
+    card.style.setProperty("--change-color", darkTile ? "rgba(255,255,255,0.95)" : movementColor);
     card.style.setProperty("--card-shadow", isPositive ? `rgba(22, 163, 74, ${shadowOpacity.toFixed(3)})` : `rgba(220, 38, 38, ${shadowOpacity.toFixed(3)})`);
     card.setAttribute("aria-label", `Select ${stock.name || symbol}`);
     card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;

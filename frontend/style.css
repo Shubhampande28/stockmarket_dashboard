@@ -3964,7 +3964,6 @@ body.stock-detail-page .icon-button[data-close-statements] {
 
 .stock-card-change {
     color: var(--change-color, currentColor) !important;
-    opacity: var(--change-opacity, 0.9);
 }
 
 @media (max-width: 640px) {
@@ -4917,7 +4916,6 @@ body {
 
 .stock-card-change {
     color: var(--change-color, currentColor) !important;
-    opacity: var(--change-opacity, 0.9);
 }
 
 @media (max-width: 640px) {
