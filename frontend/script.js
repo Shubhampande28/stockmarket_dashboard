@@ -351,7 +351,7 @@ function setupPremiumExperience() {
                     </div>
                     <div class="mkt-sector-body">
                         <div class="mkt-donut-wrap">
-                            <svg class="mkt-donut" id="mktDonut" viewBox="0 0 200 200" width="190" height="190" aria-hidden="true"></svg>
+                            <svg class="mkt-donut" id="mktDonut" viewBox="0 0 260 260" width="260" height="260" aria-hidden="true"></svg>
                             <div class="mkt-donut-label">
                                 <strong>Market</strong>
                                 <span>Participation</span>
@@ -374,7 +374,7 @@ function setupPremiumExperience() {
                         </div>
                     </div>
                     <div class="mkt-breadth-chart-wrap">
-                        <svg class="mkt-breadth-svg" id="mktBreadthSvg" viewBox="0 0 500 180" preserveAspectRatio="none" aria-hidden="true"></svg>
+                        <svg class="mkt-breadth-svg" id="mktBreadthSvg" viewBox="0 0 560 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
                         <div class="mkt-chart-labels" id="mktChartLabels"></div>
                         <div class="mkt-y-labels" id="mktYLabels"></div>
                     </div>
@@ -1162,9 +1162,9 @@ function buildDonutSectors() {
 }
 
 function renderMktDonut(svgEl, sectors) {
-    const CX = 100, CY = 100, R = 85, r = 56, GAP = 0.018;
+    const CX = 130, CY = 130, R = 110, r = 70, GAP = 0.022;
     let angle = -Math.PI / 2;
-    const paths = sectors.map(sec => {
+    const paths = sectors.map((sec, idx) => {
         const sweep = (sec.pct / 100) * (2 * Math.PI) - GAP;
         if (sweep <= 0) return "";
         const x1 = CX + R * Math.cos(angle);
@@ -1179,65 +1179,99 @@ function renderMktDonut(svgEl, sectors) {
         const large = sweep > Math.PI ? 1 : 0;
         const d = `M${x1.toFixed(2)} ${y1.toFixed(2)} A${R} ${R} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} L${ix1.toFixed(2)} ${iy1.toFixed(2)} A${r} ${r} 0 ${large} 0 ${ix2.toFixed(2)} ${iy2.toFixed(2)} Z`;
         angle += sweep + GAP;
-        return `<path d="${d}" fill="${sec.color}" opacity="0.88"/>`;
+        return `<path d="${d}" fill="${sec.color}" class="mkt-donut-seg" style="--seg-delay:${idx * 80}ms"/>`;
     });
     svgEl.innerHTML = paths.join("");
 }
 
 function renderBreadthChart(svgEl, advCount, decCount, total) {
-    const W = 500, H = 160;
+    const W = 560, H = 200;
     const timeLabels = ["09:15", "10:30", "11:45", "01:00 PM", "02:15", "03:30 PM"];
     const pts = timeLabels.length;
 
-    // Simulate intraday advancing/declining curve
-    const advPts = [], decPts = [];
+    // Build smooth intraday simulation using more data points for smoothness
+    const INTERP = 20;
+    const advRaw = [], decRaw = [];
     const startAdv = Math.round(total * 0.5);
     for (let i = 0; i < pts; i++) {
         const t = i / (pts - 1);
         const ease = t * t * (3 - 2 * t);
-        const noise = Math.sin(i * 1.9 + 0.5) * total * 0.03;
-        advPts.push(Math.max(1, Math.round(startAdv + (advCount - startAdv) * ease + noise)));
-        decPts.push(total - advPts[i]);
+        const noise = Math.sin(i * 1.9 + 0.5) * total * 0.02;
+        advRaw.push(Math.max(10, Math.round(startAdv + (advCount - startAdv) * ease + noise)));
+        decRaw.push(Math.max(10, total - advRaw[i]));
     }
 
-    const maxVal = Math.max(...advPts, ...decPts) * 1.08;
-    const ySteps = [0, Math.round(maxVal * 0.25), Math.round(maxVal * 0.5), Math.round(maxVal * 0.75), Math.round(maxVal)];
-    const PAD_L = 40, PAD_R = 10, PAD_T = 10, PAD_B = 28;
+    // Catmull-Rom smooth path builder
+    const smoothPath = (coords) => {
+        if (coords.length < 2) return "";
+        let d = `M${coords[0][0].toFixed(1)},${coords[0][1].toFixed(1)}`;
+        for (let i = 0; i < coords.length - 1; i++) {
+            const p0 = coords[Math.max(0, i - 1)];
+            const p1 = coords[i];
+            const p2 = coords[i + 1];
+            const p3 = coords[Math.min(coords.length - 1, i + 2)];
+            const cp1x = p1[0] + (p2[0] - p0[0]) / 5;
+            const cp1y = p1[1] + (p2[1] - p0[1]) / 5;
+            const cp2x = p2[0] - (p3[0] - p1[0]) / 5;
+            const cp2y = p2[1] - (p3[1] - p1[1]) / 5;
+            d += ` C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+        }
+        return d;
+    };
+
+    const maxVal = Math.max(...advRaw, ...decRaw) * 1.12;
+    const PAD_L = 44, PAD_R = 14, PAD_T = 16, PAD_B = 34;
     const chartW = W - PAD_L - PAD_R;
     const chartH = H - PAD_T - PAD_B;
+    const baseY = PAD_T + chartH;
 
-    const toXY = (pts) => pts.map((v, i) => {
-        const x = PAD_L + (i / (pts.length - 1)) * chartW;
+    const toCoords = (vals) => vals.map((v, i) => [
+        PAD_L + (i / (vals.length - 1)) * chartW,
+        PAD_T + chartH - (v / maxVal) * chartH
+    ]);
+
+    const advCoords = toCoords(advRaw);
+    const decCoords = toCoords(decRaw);
+
+    const areaPath = (coords) => {
+        const line = smoothPath(coords);
+        const last = coords[coords.length - 1];
+        const first = coords[0];
+        return `${line} L${last[0].toFixed(1)},${baseY.toFixed(1)} L${first[0].toFixed(1)},${baseY.toFixed(1)} Z`;
+    };
+
+    // Y grid lines + labels
+    const yCount = 4;
+    const gridLines = Array.from({ length: yCount + 1 }, (_, i) => {
+        const v = Math.round((maxVal * i) / yCount);
         const y = PAD_T + chartH - (v / maxVal) * chartH;
-        return [x.toFixed(1), y.toFixed(1)];
-    });
-
-    const advCoords = toXY(advPts);
-    const decCoords = toXY(decPts);
-
-    const toPath = (coords) => coords.map((c, i) => (i === 0 ? "M" : "L") + c[0] + " " + c[1]).join(" ");
-    const toArea = (coords, baseY) => toPath(coords) + ` L${coords[coords.length - 1][0]} ${baseY} L${coords[0][0]} ${baseY} Z`;
-    const baseY = (PAD_T + chartH).toFixed(1);
+        const label = v >= 1000 ? (v / 1000).toFixed(1) + "k" : String(v);
+        return `<line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${W - PAD_R}" y2="${y.toFixed(1)}" stroke="#1e2a3a" stroke-width="0.6"/>
+                <text x="${(PAD_L - 6).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" font-size="9.5" fill="#475569">${label}</text>`;
+    }).join("");
 
     // X axis labels
     const xLabels = timeLabels.map((label, i) => {
         const x = PAD_L + (i / (pts - 1)) * chartW;
-        return `<text x="${x.toFixed(1)}" y="${(H - 6).toFixed(1)}" text-anchor="middle" font-size="9" fill="#64748b">${label}</text>`;
-    }).join("");
-
-    // Y axis labels and gridlines
-    const yLines = ySteps.map(v => {
-        const y = PAD_T + chartH - (v / maxVal) * chartH;
-        return `<line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${W - PAD_R}" y2="${y.toFixed(1)}" stroke="#1e2a3a" stroke-width="0.5"/>
-                <text x="${(PAD_L - 4).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="8" fill="#64748b">${v >= 1000 ? (v / 1000).toFixed(1) + "k" : v}</text>`;
+        return `<text x="${x.toFixed(1)}" y="${(H - 5).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="#475569">${label}</text>`;
     }).join("");
 
     svgEl.innerHTML = `
-        ${yLines}
-        <path d="${toArea(advCoords, baseY)}" fill="#22c55e" opacity="0.08"/>
-        <path d="${toArea(decCoords, baseY)}" fill="#ef4444" opacity="0.08"/>
-        <path d="${toPath(advCoords)}" fill="none" stroke="#22c55e" stroke-width="2" stroke-linejoin="round"/>
-        <path d="${toPath(decCoords)}" fill="none" stroke="#ef4444" stroke-width="2" stroke-linejoin="round"/>
+        <defs>
+            <linearGradient id="advGrad${svgEl.id}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#22c55e" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#22c55e" stop-opacity="0.02"/>
+            </linearGradient>
+            <linearGradient id="decGrad${svgEl.id}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ef4444" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#ef4444" stop-opacity="0.02"/>
+            </linearGradient>
+        </defs>
+        ${gridLines}
+        <path d="${areaPath(advCoords)}" fill="url(#advGrad${svgEl.id})"/>
+        <path d="${areaPath(decCoords)}" fill="url(#decGrad${svgEl.id})"/>
+        <path d="${smoothPath(advCoords)}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="${smoothPath(decCoords)}" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         ${xLabels}
     `;
 }
