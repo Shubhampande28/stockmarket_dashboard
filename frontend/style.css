@@ -1522,6 +1522,32 @@ body {
     text-decoration: underline;
 }
 
+.financial-page-news {
+    margin-top: 28px;
+}
+
+.financial-page-news-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.financial-page-news-head h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.financial-page-news-head p {
+    color: #64748b;
+    font-size: 12px;
+}
+
 .snapshot-metrics span {
     display: grid;
     gap: 4px;

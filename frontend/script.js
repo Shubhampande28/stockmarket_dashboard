@@ -1111,7 +1111,19 @@ function renderFinancialPage() {
                 <strong>Official filing: ${reportLink}</strong>
                 <strong>${escapeHtml(data.sourceNote || "Figures are shown in INR crore where available.")}</strong>
             </div>
+            <div class="financial-page-news" id="financialPageNews">
+                <div class="financial-page-news-head">
+                    <h3>Latest News</h3>
+                    <p id="financialPageNewsMeta">Loading headlines...</p>
+                </div>
+                <div class="news-list" id="financialPageNewsList">
+                    <article class="news-card neutral">
+                        <div class="news-summary">Fetching latest headlines for ${escapeHtml(symbol)}...</div>
+                    </article>
+                </div>
+            </div>
         `;
+        loadFinancialPageNews(stock);
         return;
     }
 
@@ -2493,6 +2505,35 @@ async function loadStockNews(stock) {
     } catch (error) {
         newsMeta.textContent = error.message || "Unable to load stock news.";
         newsList.innerHTML = "";
+    }
+}
+
+async function loadFinancialPageNews(stock) {
+    const meta = document.getElementById("financialPageNewsMeta");
+    const list = document.getElementById("financialPageNewsList");
+    if (!meta || !list) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/news/${encodeURIComponent(stock.symbol)}`);
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || "Unable to load news.");
+        const items = data.items || [];
+        meta.textContent = items.length ? `${items.length} recent articles` : "No recent news found";
+        list.innerHTML = items.length
+            ? items.map(item => `
+                <article class="news-card ${escapeHtml(item.sentiment || "neutral")}">
+                    <div class="news-card-top">
+                        <span>${escapeHtml(item.publisher || "News")}</span>
+                        <strong>${escapeHtml(item.sentiment || "neutral")}</strong>
+                    </div>
+                    <a href="${escapeAttribute(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>
+                    <p class="news-summary">${escapeHtml(item.summary || item.title)}</p>
+                </article>
+            `).join("")
+            : `<article class="news-card neutral"><div class="news-summary">No recent news found for this stock.</div></article>`;
+    } catch (error) {
+        if (meta) meta.textContent = error.message || "Unable to load news.";
+        if (list) list.innerHTML = "";
     }
 }
 
