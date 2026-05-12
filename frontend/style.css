@@ -5558,9 +5558,9 @@ body {
 }
 
 .hero-section {
-    min-height: calc(100svh - 76px);
+    min-height: auto;
     align-items: center;
-    padding: 92px 0 78px !important;
+    padding: clamp(2.5rem, 6vh, 4.5rem) 0 clamp(2rem, 4vh, 3rem) !important;
 }
 
 .hero-copy {
@@ -5579,9 +5579,9 @@ body {
 .hero-section h1 {
     max-width: 760px;
     color: #f7fbff;
-    font-size: clamp(48px, 7vw, 92px);
-    line-height: 0.96;
-    letter-spacing: 0;
+    font-size: clamp(2rem, 3.8vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
 }
 
 .hero-subtitle {
@@ -7870,8 +7870,8 @@ body.heatmap-open .heatmap-panel {
     --page-max: 1440px;
     --page-pad: clamp(1rem, 4vw, 4rem);
     --section-gap: clamp(1.5rem, 4vw, 4.5rem);
-    --hero-title-size: clamp(3rem, 7.2vw, 7rem);
-    --body-fluid: clamp(1rem, 1.35vw, 1.2rem);
+    --hero-title-size: clamp(2rem, 3.6vw, 3.5rem);
+    --body-fluid: clamp(0.95rem, 1.15vw, 1.05rem);
     --card-pad: clamp(1rem, 2vw, 1.5rem);
 }
 
@@ -7943,13 +7943,13 @@ body:not(.experience-open) .header-inner {
 
 body:not(.experience-open) .hero-section {
     display: grid !important;
-    grid-template-columns: minmax(0, 1.04fr) minmax(18rem, 0.86fr) !important;
+    grid-template-columns: minmax(0, 1.04fr) minmax(16rem, 0.9fr) !important;
     align-items: center !important;
-    gap: clamp(2rem, 6vw, 6rem) !important;
-    min-height: min(100svh, 860px) !important;
+    gap: clamp(1.5rem, 4vw, 4rem) !important;
+    min-height: auto !important;
     height: auto !important;
-    padding-top: clamp(3rem, 7vh, 5.75rem) !important;
-    padding-bottom: clamp(2rem, 5vh, 4rem) !important;
+    padding-top: clamp(2.5rem, 5vh, 4rem) !important;
+    padding-bottom: clamp(1.5rem, 4vh, 3rem) !important;
     text-align: left !important;
 }
 
@@ -7961,19 +7961,19 @@ body:not(.experience-open) .hero-copy {
 
 body:not(.experience-open) .hero-section h1,
 body:not(.experience-open) .hero-copy h1 {
-    max-width: 11ch !important;
-    margin-bottom: clamp(1rem, 2.4vw, 1.5rem) !important;
+    max-width: 14ch !important;
+    margin-bottom: clamp(0.75rem, 1.8vw, 1.25rem) !important;
     font-size: var(--hero-title-size) !important;
-    line-height: 0.96 !important;
-    letter-spacing: 0 !important;
+    line-height: 1.05 !important;
+    letter-spacing: -0.01em !important;
     text-wrap: balance;
 }
 
 body:not(.experience-open) .hero-subtitle {
-    max-width: 38rem !important;
-    margin: 0 0 clamp(1.25rem, 3vw, 2rem) !important;
+    max-width: 34rem !important;
+    margin: 0 0 clamp(1rem, 2.5vw, 1.5rem) !important;
     font-size: var(--body-fluid) !important;
-    line-height: 1.62 !important;
+    line-height: 1.6 !important;
 }
 
 body:not(.experience-open) .hero-kicker {
@@ -7989,10 +7989,10 @@ body:not(.experience-open) .hero-actions {
 }
 
 body:not(.experience-open) .hero-button {
-    min-height: clamp(2.75rem, 5vw, 3.25rem) !important;
-    padding: 0 clamp(1rem, 2vw, 1.25rem) !important;
-    border-radius: clamp(0.75rem, 1.2vw, 0.9rem) !important;
-    font-size: clamp(0.9rem, 1vw, 1rem) !important;
+    min-height: clamp(2.5rem, 4vw, 2.875rem) !important;
+    padding: 0 clamp(1rem, 1.8vw, 1.25rem) !important;
+    border-radius: clamp(0.625rem, 1vw, 0.8rem) !important;
+    font-size: clamp(0.875rem, 0.95vw, 0.95rem) !important;
 }
 
 body:not(.experience-open) .hero-visual {
@@ -8208,23 +8208,23 @@ body.heatmap-open .heatmap-panel {
 @media (min-width: 1600px) {
     :root {
         --page-max: 1520px;
-        --hero-title-size: clamp(4rem, 6vw, 7rem);
+        --hero-title-size: clamp(2.25rem, 3.4vw, 3.75rem);
     }
 
     body:not(.experience-open) .hero-section {
-        grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.78fr) !important;
+        grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.82fr) !important;
     }
 }
 
 @media (max-width: 1180px) {
     body:not(.experience-open) .hero-section {
-        grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.78fr) !important;
-        gap: clamp(1.5rem, 4vw, 3rem) !important;
+        grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.82fr) !important;
+        gap: clamp(1.25rem, 3.5vw, 2.5rem) !important;
         min-height: auto !important;
     }
 
     .intelligence-motion {
-        width: min(38vw, 420px, 100%) !important;
+        width: min(36vw, 380px, 100%) !important;
     }
 
     .workspace-grid {
@@ -8238,7 +8238,7 @@ body.heatmap-open .heatmap-panel {
 
 @media (max-width: 900px) {
     :root {
-        --hero-title-size: clamp(2.75rem, 9vw, 5rem);
+        --hero-title-size: clamp(1.875rem, 5.5vw, 2.75rem);
     }
 
     .header-inner,
@@ -8266,11 +8266,13 @@ body.heatmap-open .heatmap-panel {
         grid-template-columns: 1fr !important;
         justify-items: center !important;
         text-align: center !important;
-        padding-top: clamp(2.25rem, 6vh, 3.5rem) !important;
+        padding-top: clamp(2rem, 5vh, 3rem) !important;
+        padding-bottom: clamp(1.25rem, 3vh, 2rem) !important;
+        gap: clamp(1.5rem, 4vw, 2.5rem) !important;
     }
 
     body:not(.experience-open) .hero-copy {
-        max-width: 42rem !important;
+        max-width: 38rem !important;
         margin-inline: auto !important;
     }
 
@@ -8285,8 +8287,17 @@ body.heatmap-open .heatmap-panel {
         justify-content: center !important;
     }
 
+    .hero-slider {
+        width: min(100%, 440px) !important;
+        margin-inline: auto !important;
+    }
+
+    .hero-slides img {
+        height: clamp(200px, 48vw, 340px) !important;
+    }
+
     .intelligence-motion {
-        width: min(58vw, 390px, 100%) !important;
+        width: min(52vw, 360px, 100%) !important;
     }
 
     .route-page-head,
@@ -8300,7 +8311,7 @@ body.heatmap-open .heatmap-panel {
 @media (max-width: 640px) {
     :root {
         --page-pad: clamp(0.875rem, 4vw, 1.25rem);
-        --hero-title-size: clamp(2.55rem, 13vw, 4.35rem);
+        --hero-title-size: clamp(1.75rem, 8vw, 2.25rem);
         --body-fluid: clamp(0.98rem, 4vw, 1.08rem);
     }
 
@@ -8309,31 +8320,40 @@ body.heatmap-open .heatmap-panel {
     }
 
     .main-nav {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 0.35rem 0.75rem !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 0 !important;
+        scrollbar-width: none !important;
+        -webkit-overflow-scrolling: touch;
     }
 
+    .main-nav::-webkit-scrollbar { display: none !important; }
+
     .main-nav a {
-        justify-content: start !important;
-        white-space: normal !important;
+        flex-shrink: 0 !important;
+        padding: 0.4rem 0.875rem !important;
+        white-space: nowrap !important;
+        font-size: 0.85rem !important;
     }
 
     body:not(.experience-open) .hero-section {
-        gap: clamp(1.25rem, 6vw, 2rem) !important;
+        gap: clamp(1rem, 5vw, 1.75rem) !important;
         min-height: auto !important;
-        padding-bottom: clamp(1.5rem, 7vw, 2.5rem) !important;
+        padding-top: clamp(1.5rem, 5vw, 2.25rem) !important;
+        padding-bottom: clamp(1.25rem, 5vw, 2rem) !important;
     }
 
     body:not(.experience-open) .hero-section h1,
     body:not(.experience-open) .hero-copy h1 {
-        max-width: 10ch !important;
-        line-height: 1 !important;
+        max-width: 16ch !important;
+        line-height: 1.1 !important;
     }
 
     body:not(.experience-open) .hero-actions {
         display: grid !important;
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr 1fr !important;
         width: min(100%, 22rem) !important;
     }
 
@@ -8341,8 +8361,16 @@ body.heatmap-open .heatmap-panel {
         width: 100% !important;
     }
 
+    .hero-slider {
+        width: min(100%, 320px) !important;
+    }
+
+    .hero-slides img {
+        height: clamp(180px, 52vw, 280px) !important;
+    }
+
     .intelligence-motion {
-        width: min(78vw, 330px) !important;
+        width: min(72vw, 300px) !important;
     }
 
     body:not(.experience-open) .market-overview .index-strip,
@@ -9781,11 +9809,11 @@ body.heatmap-open .panel-heading small {
 
 .hero-slider {
     position: relative;
-    width: 540px;
+    width: clamp(280px, 40vw, 500px);
     max-width: 100%;
     margin-left: auto;
     overflow: hidden;
-    border-radius: 32px;
+    border-radius: clamp(16px, 2.5vw, 28px);
     border: 1px solid rgba(148,163,184,0.14);
     background: rgba(10,18,32,0.78);
     backdrop-filter: blur(20px);
@@ -9805,7 +9833,7 @@ body.heatmap-open .panel-heading small {
     width: 100%;
     min-width: 100%;
     max-width: 100%;
-    height: 560px;
+    height: clamp(220px, 28vw, 420px);
     object-fit: cover;
     display: block;
     filter: saturate(1.05) contrast(1.02);
