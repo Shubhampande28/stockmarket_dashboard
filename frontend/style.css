@@ -9381,3 +9381,18 @@ body.heatmap-open .panel-heading small {
         );
     pointer-events: none;
 }
+
+.financials-table td:first-child,
+.statement-table td:first-child,
+.financial-table td:first-child {
+    color: #334155 !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+}
+
+.financials-table thead th,
+.statement-table thead th,
+.financial-table thead th {
+    color: #475569 !important;
+    font-weight: 700 !important;
+}
