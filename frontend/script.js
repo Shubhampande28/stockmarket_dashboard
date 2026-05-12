@@ -261,10 +261,12 @@ function setupPremiumExperience() {
         marketsPage.innerHTML = `
             <div class="mkt-page-head">
                 <div class="mkt-scope-bar">
-                    <button class="mkt-scope-btn" id="mktScopeBtn" type="button">
-                        <span id="mktScopeLabel">NIFTY 50</span>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                    </button>
+                    <div class="mkt-scope-select-wrap">
+                        <select class="mkt-scope-select" data-market-scope-select id="mktScopeSelect" aria-label="Market scope">
+                            ${marketScopeOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join("")}
+                        </select>
+                        <svg class="mkt-scope-caret" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </div>
                     <div class="mkt-live-stamp">
                         <span class="mkt-live-dot"></span>
                         <span class="mkt-live-text" id="mktLiveTime">Loading…</span>
@@ -972,8 +974,14 @@ function renderMarketsPage() {
     const liveTimeEl = document.getElementById("mktLiveTime");
     if (liveTimeEl) {
         const now = new Date();
-        liveTimeEl.textContent = "LIVE  " + now.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+        liveTimeEl.textContent = now.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
             + ", " + now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) + " IST";
+    }
+
+    // Sync scope select with currentView
+    const mktScopeSelect = document.getElementById("mktScopeSelect");
+    if (mktScopeSelect && mktScopeSelect.value !== currentView) {
+        mktScopeSelect.value = currentView;
     }
 
     // --- Sentiment card ---
