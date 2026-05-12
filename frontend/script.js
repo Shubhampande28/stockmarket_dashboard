@@ -1435,46 +1435,46 @@ function updateMarketFilterControls() {
     }
 }
 
-function getTileColorBase(change, intensity = 0.3) {
+function getTileColorBase(change) {
     const value = Number(change) || 0;
-    const abs = Math.min(Math.abs(value), 6);
+    const abs = Math.min(Math.abs(value), 8);
 
-    // Positive (Green)
+    // Strong Green Shades
     if (value > 0) {
-        if (abs >= 5) {
-            return "linear-gradient(135deg, rgba(5,150,105,0.42), rgba(4,120,87,0.52))";
+        if (abs >= 6) {
+            return "linear-gradient(135deg, rgba(5,150,105,0.55), rgba(4,120,87,0.68))";
         }
 
-        if (abs >= 3) {
-            return "linear-gradient(135deg, rgba(16,185,129,0.30), rgba(5,150,105,0.40))";
+        if (abs >= 4) {
+            return "linear-gradient(135deg, rgba(16,185,129,0.42), rgba(5,150,105,0.52))";
         }
 
-        if (abs >= 1) {
-            return "linear-gradient(135deg, rgba(52,211,153,0.20), rgba(16,185,129,0.28))";
+        if (abs >= 2) {
+            return "linear-gradient(135deg, rgba(52,211,153,0.30), rgba(16,185,129,0.38))";
         }
 
-        return "linear-gradient(135deg, rgba(110,231,183,0.14), rgba(52,211,153,0.18))";
+        return "linear-gradient(135deg, rgba(110,231,183,0.20), rgba(52,211,153,0.26))";
     }
 
-    // Negative (Red)
+    // Strong Red Shades
     if (value < 0) {
-        if (abs >= 5) {
-            return "linear-gradient(135deg, rgba(185,28,28,0.42), rgba(127,29,29,0.52))";
+        if (abs >= 6) {
+            return "linear-gradient(135deg, rgba(185,28,28,0.55), rgba(127,29,29,0.68))";
         }
 
-        if (abs >= 3) {
-            return "linear-gradient(135deg, rgba(220,38,38,0.30), rgba(185,28,28,0.40))";
+        if (abs >= 4) {
+            return "linear-gradient(135deg, rgba(220,38,38,0.42), rgba(185,28,28,0.52))";
         }
 
-        if (abs >= 1) {
-            return "linear-gradient(135deg, rgba(248,113,113,0.20), rgba(239,68,68,0.28))";
+        if (abs >= 2) {
+            return "linear-gradient(135deg, rgba(248,113,113,0.30), rgba(239,68,68,0.38))";
         }
 
-        return "linear-gradient(135deg, rgba(254,202,202,0.14), rgba(248,113,113,0.18))";
+        return "linear-gradient(135deg, rgba(254,202,202,0.20), rgba(248,113,113,0.26))";
     }
 
     // Neutral
-    return "linear-gradient(135deg, rgba(226,232,240,0.5), rgba(203,213,225,0.45))";
+    return "linear-gradient(135deg, rgba(241,245,249,0.88), rgba(226,232,240,0.92))";
 }
 
 function getMovementStyleBase(intensity, index) {
