@@ -4619,6 +4619,7 @@ body {
     box-shadow:
         0 1px 2px rgba(15, 23, 42, 0.04),
         0 var(--card-shadow-y, 8px) var(--card-shadow-blur, 18px) var(--card-shadow, rgba(15, 23, 42, 0.08));
+    mix-blend-mode: normal;
 }
 
 .stock-card::before {
@@ -4639,7 +4640,7 @@ body {
     inset: 0;
     z-index: 0;
     background: linear-gradient(var(--card-direction, 160deg), var(--card-direction-tint, rgba(148, 163, 184, 0.1)), transparent 54%);
-    opacity: var(--card-overlay-opacity, 0.22);
+    opacity: 0.02;
     pointer-events: none;
 }
 

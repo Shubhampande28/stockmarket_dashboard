@@ -1965,13 +1965,18 @@ function getCardIntensity(change) {
 
 function getMovementAccent(change, isPositive) {
     const intensity = getCardIntensity(change);
+
     if (isPositive) {
-        const lightness = 46 - intensity * 12;
-        return `hsl(142 72% ${lightness}%)`;
+        const saturation = 82 + intensity * 8;
+        const lightness = 38 - intensity * 10;
+
+        return `hsl(142 ${saturation}% ${lightness}%)`;
     }
 
-    const lightness = 50 - intensity * 10;
-    return `hsl(0 74% ${lightness}%)`;
+    const saturation = 84 + intensity * 8;
+    const lightness = 40 - intensity * 10;
+
+    return `hsl(0 ${saturation}% ${lightness}%)`;
 }
 
 function getTopSignalLabel(stock) {
