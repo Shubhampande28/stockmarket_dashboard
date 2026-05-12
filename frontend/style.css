@@ -9386,3 +9386,13 @@ body.heatmap-open .panel-heading small {
     pointer-events: none;
 }
 
+.statement-table tbody th:first-child {
+    background: #f8fbff !important;
+    color: #0f172a !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+}
+.statement-table thead th {
+    background: #eef4ff !important;
+    color: #334155 !important;
+}
