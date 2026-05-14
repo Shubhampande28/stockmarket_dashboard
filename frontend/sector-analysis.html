@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSE Sector Analysis India — Banking, IT, Energy &amp; Sector Rotation | Equilytics</title>
+  <meta name="description" content="Analyse NSE sector performance on Equilytics. Track sector rotation across Banking, IT, FMCG, Energy, Pharma, Auto, Metal and Realty sectors with live heatmap filters." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.equilytics.in/sector-analysis" />
+  <meta property="og:title" content="NSE Sector Analysis India — Banking, IT, Energy &amp; Sector Rotation | Equilytics" />
+  <meta property="og:description" content="Analyse NSE sector performance on Equilytics. Track sector rotation across Banking, IT, FMCG, Energy, Pharma, Auto, Metal and Realty sectors with live heatmap filters." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.equilytics.in/sector-analysis" />
+  <link rel="stylesheet" href="./lp-styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "NSE Sector Analysis India — Banking, IT, Energy & Sector Rotation",
+    "url": "https://www.equilytics.in/sector-analysis",
+    "description": "Analyse NSE sector performance on Equilytics. Track sector rotation across Banking, IT, FMCG, Energy, Pharma, Auto, Metal and Realty sectors with live heatmap filters.",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://www.equilytics.in/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Sector Analysis",
+          "item": "https://www.equilytics.in/sector-analysis"
+        }
+      ]
+    }
+  }
+  </script>
+  <style>
+    .lp-sector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .lp-sector-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .lp-sector-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .lp-sector-card:hover {
+      border-color: rgba(96, 165, 250, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .lp-sector-card:hover::before { opacity: 1; }
+
+    .sector-icon {
+      font-size: 30px;
+      margin-bottom: 12px;
+      display: block;
+      line-height: 1;
+    }
+
+    .sector-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .sector-stocks {
+      font-size: 10.5px;
+      color: var(--green);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+
+    .sector-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .rotation-visual {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px;
+    }
+
+    .rotation-visual h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .rotation-bar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .rotation-bar-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .rotation-bar-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      width: 80px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .rotation-bar-track {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .rotation-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .rotation-bar-fill.green { background: var(--green); }
+    .rotation-bar-fill.blue  { background: var(--blue); }
+    .rotation-bar-fill.amber { background: #f59e0b; }
+    .rotation-bar-fill.dim   { background: rgba(255,255,255,0.15); }
+    .rotation-bar-fill.loss  { background: var(--red); }
+
+    .rotation-bar-val {
+      font-size: 12px;
+      font-weight: 700;
+      width: 44px;
+      flex-shrink: 0;
+    }
+
+    .rotation-bar-val.green { color: var(--green); }
+    .rotation-bar-val.blue  { color: var(--blue); }
+    .rotation-bar-val.amber { color: #f59e0b; }
+    .rotation-bar-val.dim   { color: var(--muted); }
+    .rotation-bar-val.loss  { color: var(--red); }
+
+    .breadth-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .breadth-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .breadth-sector-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .breadth-bar {
+      height: 5px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .breadth-fill { height: 100%; border-radius: 3px; }
+    .breadth-fill.strong { background: var(--green); }
+    .breadth-fill.medium { background: #86efac; }
+    .breadth-fill.weak   { background: #f87171; }
+    .breadth-fill.mixed  { background: #f59e0b; }
+
+    .breadth-pct {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .breadth-pct span.up { color: var(--green); font-weight: 700; }
+    .breadth-pct span.dn { color: var(--red);   font-weight: 700; }
+
+    @media (max-width: 768px) {
+      .lp-sector-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .lp-sector-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <header class="lp-nav">
+    <a href="/" class="lp-nav-brand">
+      <div class="lp-nav-mark">EQ</div>
+      <span class="lp-nav-name">Equilytics</span>
+    </a>
+    <nav class="lp-nav-links">
+      <a href="/markets">Markets</a>
+      <a href="/heatmap">Heatmap</a>
+      <a href="/financials">Financials</a>
+      <a href="/blog.html">Blog</a>
+      <a href="/" class="lp-nav-cta">Open Dashboard</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="lp-hero">
+    <div class="lp-kicker">Live Sector Rotation · NSE India</div>
+    <h1>NSE <em>Sector Analysis</em> — Live Sector Rotation &amp; Performance India</h1>
+    <p>Watch institutional money rotate between India's 11 major NSE sectors in real time. Know which sectors are leading, which are lagging, and where the next move is coming from.</p>
+    <div class="lp-hero-actions">
+      <a href="/markets" class="lp-btn-primary">View Sector Map →</a>
+      <a href="/heatmap" class="lp-btn-secondary">Open Heatmap →</a>
+    </div>
+  </section>
+
+  <!-- WHAT IS SECTOR ROTATION -->
+  <section class="lp-section">
+    <div class="lp-eyebrow">Core Concept</div>
+    <h2>What Is Sector Rotation?</h2>
+    <div class="lp-two-col">
+
+      <div class="lp-two-col-block">
+        <h3>The Mechanism</h3>
+        <p>Sector rotation is the phenomenon where institutional investors — mutual funds, FIIs, insurance companies, and large proprietary desks — systematically shift capital from one industry sector to another as economic and market conditions change.</p>
+        <p>The rotation cycle follows a predictable pattern tied to the economic cycle. Early expansion favours <strong style="color: var(--text);">Financials and Consumer Discretionary</strong> (Banking and Auto). Mid-cycle growth benefits <strong style="color: var(--text);">Technology and Industrials</strong>. Late cycle sees <strong style="color: var(--text);">Energy and Materials</strong> (Metal) outperform. Recession conditions shift money into <strong style="color: var(--text);">Defensives</strong> like FMCG and Pharma.</p>
+        <div class="lp-highlight-box">
+          <p>In India, the Banking sector alone accounts for roughly <strong>35–40% of NIFTY 50 index weight</strong>. When Banking rotates into leadership, NIFTY almost always follows — making Banking sector movement the single most important signal to watch on Equilytics.</p>
+        </div>
+      </div>
+
+      <div class="lp-two-col-block">
+        <h3>Why It Matters for Indian Markets</h3>
+        <p>India's market has unique rotation dynamics driven by three forces: <strong style="color: var(--text);">FII flows</strong> (foreign money responding to global risk-on/risk-off cycles), <strong style="color: var(--text);">domestic policy</strong> (RBI rate decisions move Banking and NBFC stocks; budget announcements move Infra and Capital Goods), and <strong style="color: var(--text);">commodity prices</strong> (global oil and metal prices directly move Energy and Metal sectors).</p>
+        <p>When FIIs sell and domestic institutions buy, capital often rotates from high-beta cyclicals (Metal, Auto) into defensives (FMCG, Pharma). Equilytics tracks this rotation live, so you see it in the heatmap colours before it shows up in macro commentary.</p>
+        <ul class="lp-check-list">
+          <li>Banking sector leads NIFTY 50 — watch it first every morning</li>
+          <li>FII selling pushes cyclicals down and lifts defensives relatively</li>
+          <li>RBI rate decisions are the sharpest Banking sector catalyst</li>
+          <li>Global crude oil price drives Energy and downstream FMCG costs</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- NSE SECTORS COVERED -->
+  <section class="lp-section">
+    <div class="lp-eyebrow">Platform Coverage</div>
+    <h2>NSE Sectors Tracked on Equilytics</h2>
+    <p class="lp-lead">Eight major sectors — representing over 90% of NSE's total market capitalisation — tracked live with individual stock heatmaps and sector-level breadth indicators.</p>
+    <div class="lp-sector-grid">
+
+      <div class="lp-sector-card">
+        <span class="sector-icon">🏦</span>
+        <div class="sector-name">Banking</div>
+        <div class="sector-stocks">HDFC Bank · ICICI Bank · SBI · Kotak</div>
+        <p class="sector-desc">Highest weight in NIFTY 50 at ~35–40%. Driven by RBI monetary policy, credit growth cycles, and NPA trends. Bank NIFTY futures are India's most liquid derivative contract. Banking sector moves lead the broader index.</p>
+      </div>
+
+      <div class="lp-sector-card">
+        <span class="sector-icon">💻</span>
+        <div class="sector-name">Information Technology</div>
+        <div class="sector-stocks">TCS · Infosys · Wipro · HCL Tech</div>
+        <p class="sector-desc">Export-driven sector highly sensitive to USD/INR movements and US enterprise tech spending cycles. Strong US GDP data typically lifts Indian IT stocks. Quarterly results from US clients are the most watched sector catalyst.</p>
+      </div>
+
+      <div class="lp-sector-card">
+        <span class="sector-icon">⚡</span>
+        <div class="sector-name">Energy</div>
+        <div class="sector-stocks">Reliance · ONGC · Power Grid · NTPC</div>
+        <p class="sector-desc">Tied to global crude oil prices (OPEC decisions), domestic fuel pricing policy, and India's energy transition toward renewables. Reliance dominates sector weight due to its diversified conglomerate structure beyond pure energy.</p>
+      </div>
+
+      <div class="lp-sector-card">
+        <span class="sector-icon">🛒</span>
+        <div class="sector-name">FMCG</div>
+        <div class="sector-stocks">HUL · ITC · Nestlé · Dabur</div>
+        <p class="sector-desc">Classic defensive sector that holds value during market downturns. Consumer volumes are resilient in economic slowdowns. Outperforms when FIIs are selling cyclicals and seeking low-beta, high-dividend safety in Indian equities.</p>
+      </div>
+
+      <div class="lp-sector-card">
+        <span class="sector-icon">🚗</span>
+        <div class="sector-name">Auto &amp; EV</div>
+        <div class="sector-stocks">Tata Motors · M&amp;M · Maruti · Eicher</div>
+        <p class="sector-desc">Tracks the domestic consumption cycle, rural income trends, and India's EV transition. Tata Motors leads the EV narrative while M&amp;M dominates SUVs and tractors. Monsoon outcomes and retail credit growth are key demand drivers.</p>
+      </div>
+
+      <div class="lp-sector-card">
+        <span class="sector-icon">💊</span>
+        <div class="sector-name">Pharmaceuticals</div>
+        <div class="sector-stocks">Sun Pharma · Dr Reddy's · Cipla · Lupin</div>
+        <p class="sector-desc">Defensive with significant US export exposure. FDA approval letters and warning letters are the sharpest single-stock catalysts. Generic pricing trends in the US and domestic branded formulation growth drive very different stock outcomes.</p>
+      </div>
+
+      <div class="lp-sector-card">
+        <span class="sector-icon">🏗️</span>
+        <div class="sector-name">Metal &amp; Mining</div>
+        <div class="sector-stocks">JSW Steel · Tata Steel · Hindalco · SAIL</div>
+        <p class="sector-desc">Directly tied to the global commodity cycle — iron ore, coking coal, and aluminium prices on the LME. China's construction and manufacturing demand is the single biggest external driver. High-beta sector that amplifies both bull and bear moves.</p>
+      </div>
+
+      <div class="lp-sector-card">
+        <span class="sector-icon">🏠</span>
+        <div class="sector-name">Realty</div>
+        <div class="sector-stocks">DLF · Godrej Properties · Prestige · Oberoi</div>
+        <p class="sector-desc">Directly tied to interest rate cycles — falling RBI rates boost home loan affordability and housing launch momentum. India's ongoing housing upcycle is the key sector tailwind. Pre-sales data and luxury segment absorption are leading indicators.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- HOW TO READ SECTOR ROTATION -->
+  <section class="lp-section">
+    <div class="lp-eyebrow">Dashboard Guide</div>
+    <h2>How to Read Sector Rotation on Equilytics</h2>
+    <div class="lp-two-col">
+
+      <div class="lp-two-col-block">
+        <div class="rotation-visual">
+          <h3>Sector Performance — Illustrative Snapshot</h3>
+          <div class="rotation-bar-row">
+            <div class="rotation-bar-item">
+              <div class="rotation-bar-label">Banking</div>
+              <div class="rotation-bar-track"><div class="rotation-bar-fill green" style="width: 82%"></div></div>
+              <div class="rotation-bar-val green">+2.4%</div>
+            </div>
+            <div class="rotation-bar-item">
+              <div class="rotation-bar-label">Auto</div>
+              <div class="rotation-bar-track"><div class="rotation-bar-fill green" style="width: 66%"></div></div>
+              <div class="rotation-bar-val green">+1.8%</div>
+            </div>
+            <div class="rotation-bar-item">
+              <div class="rotation-bar-label">Realty</div>
+              <div class="rotation-bar-track"><div class="rotation-bar-fill blue" style="width: 54%"></div></div>
+              <div class="rotation-bar-val blue">+1.1%</div>
+            </div>
+            <div class="rotation-bar-item">
+              <div class="rotation-bar-label">FMCG</div>
+              <div class="rotation-bar-track"><div class="rotation-bar-fill dim" style="width: 36%"></div></div>
+              <div class="rotation-bar-val dim">+0.2%</div>
+            </div>
+            <div class="rotation-bar-item">
+              <div class="rotation-bar-label">Pharma</div>
+              <div class="rotation-bar-track"><div class="rotation-bar-fill amber" style="width: 27%"></div></div>
+              <div class="rotation-bar-val amber">−0.4%</div>
+            </div>
+            <div class="rotation-bar-item">
+              <div class="rotation-bar-label">IT</div>
+              <div class="rotation-bar-track"><div class="rotation-bar-fill amber" style="width: 18%"></div></div>
+              <div class="rotation-bar-val amber">−0.9%</div>
+            </div>
+            <div class="rotation-bar-item">
+              <div class="rotation-bar-label">Metal</div>
+              <div class="rotation-bar-track"><div class="rotation-bar-fill loss" style="width: 11%"></div></div>
+              <div class="rotation-bar-val loss">−2.1%</div>
+            </div>
+          </div>
+          <p style="font-size: 11px; color: var(--muted); margin-top: 16px; text-align: right;">⚠ Illustrative data — not real-time prices</p>
+        </div>
+        <p style="font-size: 13px; color: var(--muted); margin-top: 16px; line-height: 1.65;">This snapshot shows a risk-on rotation: cyclicals (Banking, Auto, Realty) are leading while defensives (FMCG, Pharma) lag. IT and Metal are under pressure — suggesting a USD headwind and commodity price decline respectively.</p>
+      </div>
+
+      <div class="lp-two-col-block">
+        <h3>Breadth by Sector</h3>
+        <p>Beyond percentage return, sector breadth tells you how many individual stocks within a sector are advancing vs declining. A sector up 2% on 80% breadth (8 of 10 stocks rising) is a fundamentally different signal from a sector up 2% on 30% breadth (one heavyweight dragging the average up).</p>
+        <div class="breadth-grid" style="margin-bottom: 20px;">
+          <div class="breadth-item">
+            <div class="breadth-sector-name">Banking</div>
+            <div class="breadth-bar"><div class="breadth-fill strong" style="width: 83%"></div></div>
+            <div class="breadth-pct"><span class="up">83%</span> advancing</div>
+          </div>
+          <div class="breadth-item">
+            <div class="breadth-sector-name">Auto</div>
+            <div class="breadth-bar"><div class="breadth-fill medium" style="width: 71%"></div></div>
+            <div class="breadth-pct"><span class="up">71%</span> advancing</div>
+          </div>
+          <div class="breadth-item">
+            <div class="breadth-sector-name">IT</div>
+            <div class="breadth-bar"><div class="breadth-fill mixed" style="width: 44%"></div></div>
+            <div class="breadth-pct"><span>44%</span> advancing</div>
+          </div>
+          <div class="breadth-item">
+            <div class="breadth-sector-name">Metal</div>
+            <div class="breadth-bar"><div class="breadth-fill weak" style="width: 18%"></div></div>
+            <div class="breadth-pct"><span class="dn">18%</span> advancing</div>
+          </div>
+        </div>
+        <p>High breadth in cyclical sectors (Banking 83%, Auto 71%) with low breadth in commodity sectors (Metal 18%) confirms the risk-on rotation signal. This is the Equilytics sector breadth view: percentage return <em>plus</em> the quality of that move.</p>
+        <div class="lp-highlight-box">
+          <p><strong>Interpretation rule:</strong> When a sector has above 70% breadth with a positive return, it signals genuine institutional rotation — not just an index-effect move from one or two large-caps pulling the headline percentage higher.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="lp-section">
+    <div class="lp-eyebrow">FAQ</div>
+    <h2>Sector Analysis — Common Questions</h2>
+    <div class="lp-faq-list">
+
+      <details class="lp-faq-item">
+        <summary>What is sector rotation and how do I identify it in real time?</summary>
+        <p>Sector rotation is the systematic movement of institutional capital between industry sectors as economic conditions change. You identify it by comparing sector performance over multiple timeframes: if Banking was the top sector last month but is now underperforming while IT outperforms, that's rotation in progress. On Equilytics, the sector performance bar chart and heatmap colour distribution make rotation visible in real time — you can see sectors turning green while others fade to grey within a single trading session, which is the earliest possible signal.</p>
+      </details>
+
+      <details class="lp-faq-item">
+        <summary>Which sector has the highest weight in NIFTY 50?</summary>
+        <p>The Financial Services sector (Banking stocks including HDFC Bank, ICICI Bank, Kotak Bank, Axis Bank, SBI, and Bajaj Finance) consistently holds the highest NIFTY 50 weight at approximately 35–40% of the total index. This means Banking sector movement has a disproportionately large impact on NIFTY 50 level changes. A 2% single-day move in Banking stocks can swing NIFTY 50 by 0.7–0.8%, while the same 2% move in the smaller Metal or Realty sector might only move NIFTY by 0.1–0.2%.</p>
+      </details>
+
+      <details class="lp-faq-item">
+        <summary>How do I filter by sector on the Equilytics heatmap?</summary>
+        <p>The sector filter toolbar is displayed above the main heatmap grid. Click any sector name to isolate it — the heatmap will dim all stocks outside your selected sector and highlight only the relevant tiles. You can select multiple sectors simultaneously to compare them in a combined view. Sector filters work alongside all other filter dimensions (market cap, signal type) at the same time. The filter state is preserved when you navigate between the heatmap and markets views, so your sector selection doesn't reset when you switch tabs.</p>
+      </details>
+
+      <details class="lp-faq-item">
+        <summary>What is sector breadth and how is it different from sector performance?</summary>
+        <p>Sector performance is the average (or market-cap-weighted) percentage change across all stocks in a sector — one number summarising the whole sector's move. Sector breadth measures what fraction of stocks within that sector are individually advancing (positive on the day). A sector can show +1% performance with only 30% breadth (one large-cap dragging the average up), or +1% performance with 80% breadth (most stocks rising together). The latter is a far more reliable bullish signal. Equilytics shows both simultaneously — the percentage bar and the breadth indicator — so you can assess the quality of each sector's move, not just its direction.</p>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="lp-cta-section">
+    <div class="lp-cta-inner">
+      <div class="lp-kicker" style="justify-content: center; margin-bottom: 20px;">Live NSE Sector Data · Free · No Login</div>
+      <h2>Track Live <em>Sector Rotation</em> Now</h2>
+      <p>Watch institutional money move between India's 11 NSE sectors in real time. Free heatmap, sector filters, and breadth indicators — all in one dashboard.</p>
+      <div class="lp-cta-actions">
+        <a href="/markets" class="lp-btn-primary">View Sector Map →</a>
+        <a href="/heatmap" class="lp-btn-secondary">Open Heatmap</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- RELATED -->
+  <section class="lp-section">
+    <div class="lp-eyebrow">Explore More</div>
+    <h2>Related Pages</h2>
+    <div class="lp-related">
+      <a href="/market-overview" class="lp-related-link">Market Overview</a>
+      <a href="/nifty-50-heatmap" class="lp-related-link">NIFTY 50 Heatmap</a>
+      <a href="/top-gainers" class="lp-related-link">Top Gainers Today</a>
+      <a href="/top-losers" class="lp-related-link">Top Losers Today</a>
+      <a href="/blog.html" class="lp-related-link">Market Insights Blog</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="lp-footer">
+      <div class="lp-footer-copy">
+        © 2026 Equilytics · India's intelligent stock market platform<br>
+        <span style="font-size: 11px; opacity: 0.7;">Disclaimer: For informational purposes only, not investment advice. Sector weights and illustrative chart data are approximate and not real-time figures.</span>
+      </div>
+      <div class="lp-footer-links">
+        <a href="/">Dashboard</a>
+        <a href="/blog.html">Blog</a>
+        <a href="/markets">Markets</a>
+        <a href="/heatmap">Heatmap</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

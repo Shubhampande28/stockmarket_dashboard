@@ -49,6 +49,17 @@ def home():
 def static_files(path):
     if path in {"markets", "heatmap", "financials", "insights"}:
         return send_from_directory(FRONTEND_DIR, "index.html")
+    # Clean URLs for SEO landing pages
+    seo_pages = {
+        "market-overview": "market-overview.html",
+        "nifty-50-heatmap": "nifty-50-heatmap.html",
+        "top-gainers": "top-gainers.html",
+        "top-losers": "top-losers.html",
+        "sector-analysis": "sector-analysis.html",
+        "blog": "blog.html",
+    }
+    if path in seo_pages:
+        return send_from_directory(FRONTEND_DIR, seo_pages[path])
     return send_from_directory(FRONTEND_DIR, path)
 
 # =========================

@@ -1,4 +1,23 @@
 User-agent: *
 Allow: /
 
+# Disallow internal API and backend routes
+Disallow: /api/
+Disallow: /auth/
+Disallow: /callback
+
+# Allow crawling of all SEO pages
+Allow: /market-overview
+Allow: /nifty-50-heatmap
+Allow: /top-gainers
+Allow: /top-losers
+Allow: /sector-analysis
+Allow: /blog
+Allow: /blog-what-is-heatmap.html
+Allow: /blog-nse-gainers-losers.html
+Allow: /markets
+Allow: /heatmap
+Allow: /financials
+Allow: /insights
+
 Sitemap: https://www.equilytics.in/sitemap.xml

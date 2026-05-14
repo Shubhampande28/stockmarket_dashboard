@@ -62,6 +62,101 @@
     }
     </script>
 
+    <!-- Schema: WebSite + SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Equilytics",
+      "url": "https://www.equilytics.in",
+      "description": "India's live NSE and BSE stock market heatmap — track NIFTY 50, sector rotation, top gainers, losers and company financials.",
+      "inLanguage": "en-IN",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.equilytics.in/financials?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Schema: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Equilytics",
+      "url": "https://www.equilytics.in",
+      "logo": "https://www.equilytics.in/images/Capture-1.JPG",
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "availableLanguage": "English"
+      }
+    }
+    </script>
+
+    <!-- Schema: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is a stock market heatmap?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A stock market heatmap is a color-coded visual grid where each tile represents one stock. Green tiles mean the price is up from the previous close; red tiles mean it is down. Color intensity shows the size of the move. Equilytics provides real-time heatmaps covering NIFTY 50, Bank NIFTY, Midcap and sector indices."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which indices does Equilytics cover?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Equilytics covers NIFTY 50, Bank NIFTY, FIN NIFTY, NIFTY Midcap, and SENSEX. Sector views include NIFTY Auto, NIFTY Bank, NIFTY Energy, NIFTY FMCG, NIFTY IT, NIFTY Metal, NIFTY Pharma, and NIFTY Realty."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Equilytics free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Equilytics is completely free with no account required. The heatmap, market overview, gainers/losers, sector analysis and company financials are all accessible to every visitor."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How often is market data updated?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Market data refreshes every few minutes during NSE and BSE trading hours — Monday to Friday, 9:15 AM to 3:30 PM IST. Data is sourced from exchange feeds and third-party providers. Always verify critical prices with the official NSE or BSE website."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I view company financial statements on Equilytics?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The Financials section lets you search any NSE-listed company and view its Profit and Loss statement, Balance Sheet, Cash Flow, and key ratios including PE, ROE, and ROCE. Data is sourced from Screener.in and official NSE annual report filings."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Equilytics provide investment advice?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Equilytics is an informational platform only. Nothing displayed constitutes investment advice, a buy or sell recommendation, or a solicitation. Always consult a SEBI-registered investment advisor before making financial decisions."
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- Google Search Console verification -->
     <!-- <meta name="google-site-verification" content="PASTE_YOUR_CODE_HERE" /> -->
 
@@ -74,7 +169,7 @@
       gtag('config', 'G-BNZX2YF2PX');
     </script>
 
-    <link rel="stylesheet" href="./style.css?v=20260514-disc-v1">
+    <link rel="stylesheet" href="./style.css?v=20260514-seo-v1">
     <link rel="stylesheet" href="./mkt-styles.css?v=5">
 </head>
 <body>
@@ -256,6 +351,110 @@
             <p class="heatmap-disclaimer">Data shown may be delayed or estimated. Not investment advice — verify with NSE/BSE official sources before acting.</p>
         </section>
     </main>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SEO CONTENT — crawlable homepage sections
+         Visible to Google; hidden on sub-routes via CSS
+         ═══════════════════════════════════════════════════════════ -->
+    <section class="seo-wrap" aria-label="About Equilytics">
+
+        <div class="seo-section">
+            <div class="seo-container">
+                <h2>Live NSE &amp; BSE Stock Market Overview</h2>
+                <p>Equilytics provides a unified, real-time view of Indian equity markets — covering <strong>NIFTY 50</strong>, <strong>Bank NIFTY</strong>, <strong>FIN NIFTY</strong>, <strong>NIFTY Midcap</strong>, and <strong>SENSEX</strong>. The platform displays live prices, percentage changes, trading volumes, advancing/declining breadth, and sector rotation signals in one clean dashboard. Market data refreshes automatically during NSE and BSE trading hours (Monday–Friday, 9:15 AM – 3:30 PM IST).</p>
+                <nav class="seo-link-row" aria-label="Explore features">
+                    <a href="/market-overview" class="seo-pill">Market Overview ↗</a>
+                    <a href="/nifty-50-heatmap" class="seo-pill">NIFTY 50 Heatmap ↗</a>
+                    <a href="/sector-analysis" class="seo-pill">Sector Analysis ↗</a>
+                    <a href="/top-gainers" class="seo-pill">Top Gainers ↗</a>
+                    <a href="/top-losers" class="seo-pill">Top Losers ↗</a>
+                    <a href="/blog" class="seo-pill">Blog ↗</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="seo-section seo-alt">
+            <div class="seo-container seo-two-col">
+                <div class="seo-col-text">
+                    <p class="seo-eyebrow">NIFTY 50 HEATMAP</p>
+                    <h2>See the Full Market at a Glance</h2>
+                    <p>The Equilytics heatmap replaces crowded tables with a single color-coded view. Each tile is one stock — <strong>green</strong> means it's up, <strong>red</strong> means it's down. Color intensity shows how big the move is. Switch between NIFTY 50, Bank NIFTY, Midcap and sector-specific views in one click. Filter by cap size or price action signal.</p>
+                    <a href="/nifty-50-heatmap" class="seo-text-link">Learn how to read the heatmap →</a>
+                </div>
+                <div class="seo-col-features">
+                    <div class="seo-feature">
+                        <span class="seo-feat-dot g"></span>
+                        <div><strong>Color-coded by % change</strong><p>Dark green = strong gainer. Dark red = heavy loss. Light shades = moderate moves.</p></div>
+                    </div>
+                    <div class="seo-feature">
+                        <span class="seo-feat-dot b"></span>
+                        <div><strong>Filter by sector</strong><p>Banking, IT, Auto, Energy, FMCG, Pharma, Metal, Realty — any sector in isolation.</p></div>
+                    </div>
+                    <div class="seo-feature">
+                        <span class="seo-feat-dot a"></span>
+                        <div><strong>Multiple index views</strong><p>NIFTY 50, Bank NIFTY, FIN NIFTY, Midcap 150, SENSEX and all-NSE.</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="seo-section">
+            <div class="seo-container">
+                <p class="seo-eyebrow">MARKET MOVERS</p>
+                <h2>Top Gainers &amp; Losers — NSE Today</h2>
+                <p class="seo-lead-p">Every trading day Equilytics ranks all tracked NSE stocks by absolute percentage movement, volume spike, and sector breadth — helping you catch momentum early and see where money is flowing.</p>
+                <div class="seo-movers-grid">
+                    <div class="seo-mover-block seo-gb">
+                        <h3>Top Gainers</h3>
+                        <p>Stocks posting the biggest % gains on NSE — ranked live, updated every few minutes. Sort by sector, cap size, or momentum signal.</p>
+                        <a href="/top-gainers">See top gainers →</a>
+                    </div>
+                    <div class="seo-mover-block seo-lb">
+                        <h3>Top Losers</h3>
+                        <p>Stocks with the sharpest declines — useful for support analysis, contrarian setups, and identifying oversold conditions.</p>
+                        <a href="/top-losers">See top losers →</a>
+                    </div>
+                    <div class="seo-mover-block seo-sb">
+                        <h3>Sector Rotation</h3>
+                        <p>Watch capital rotate between Banking, IT, Energy, FMCG and other sectors in real time with breadth and donut breakdowns.</p>
+                        <a href="/sector-analysis">Sector analysis →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="seo-section seo-alt">
+            <div class="seo-container">
+                <p class="seo-eyebrow">WHY EQUILYTICS</p>
+                <h2>Built for Indian Market Watchers</h2>
+                <div class="seo-why-grid">
+                    <div class="seo-why-card"><strong>Free &amp; No Login</strong><p>Full access to heatmap, market data, gainers, losers and company financials — no registration needed.</p></div>
+                    <div class="seo-why-card"><strong>NSE &amp; BSE Focused</strong><p>Built specifically for Indian equities. All indices, sectors and data sources calibrated for NSE and BSE markets.</p></div>
+                    <div class="seo-why-card"><strong>Company Financials</strong><p>View P&amp;L, balance sheet, cash flow and ratios (P/E, ROE, ROCE) for any NSE-listed company — sourced from Screener.in and NSE filings.</p></div>
+                    <div class="seo-why-card"><strong>Clean Dashboard UI</strong><p>No clutter, no ads. Just the data you need — heatmap, breadth, movers and financials in one place.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="seo-section seo-faq-wrap">
+            <div class="seo-container seo-faq-inner">
+                <div>
+                    <p class="seo-eyebrow">FAQ</p>
+                    <h2>Frequently Asked Questions</h2>
+                </div>
+                <div class="seo-faq-list">
+                    <details class="seo-faq-item"><summary>What is a stock market heatmap?</summary><div>A color-coded grid where each tile is one stock — green means up, red means down versus the previous day's close. Color intensity shows the size of the move. Equilytics provides real-time heatmaps for NSE stocks covering NIFTY 50, Bank NIFTY, Midcap and sector indices.</div></details>
+                    <details class="seo-faq-item"><summary>Which indices does Equilytics cover?</summary><div><strong>NIFTY 50</strong>, <strong>Bank NIFTY</strong>, <strong>FIN NIFTY</strong>, <strong>NIFTY Midcap</strong> and <strong>SENSEX</strong>. Sector views include NIFTY Auto, Bank, Energy, FMCG, IT, Metal, Pharma and Realty.</div></details>
+                    <details class="seo-faq-item"><summary>How often is market data updated?</summary><div>Data refreshes every few minutes during NSE and BSE trading hours — Monday to Friday, 9:15 AM to 3:30 PM IST. Quotes may carry a short delay. Always verify critical prices with the official NSE or BSE website.</div></details>
+                    <details class="seo-faq-item"><summary>Can I view company financial statements?</summary><div>Yes. The <a href="/financials">Financials</a> page lets you search any NSE-listed company and view P&amp;L, Balance Sheet, Cash Flow, and ratios (P/E, ROE, ROCE). Data from Screener.in and official NSE filings.</div></details>
+                    <details class="seo-faq-item"><summary>Is Equilytics free?</summary><div>Yes — completely free, no account required. All features including heatmap, market overview, gainers/losers, sector analysis, and company financials are available to every visitor.</div></details>
+                    <details class="seo-faq-item"><summary>Does Equilytics provide investment advice?</summary><div>No. Everything on Equilytics is for informational and educational purposes only. Nothing constitutes investment advice or a buy/sell recommendation. Always consult a SEBI-registered advisor before making financial decisions.</div></details>
+                </div>
+            </div>
+        </div>
+
+    </section>
+    <!-- ═══════════════════════════════════════════════════════════ -->
 
     <section class="trends-panel premium-trends route-page" id="trendsPanel" hidden></section>
     <section class="financial-page premium-financials route-page" id="financialStatementsPage" hidden></section>
