@@ -11354,4 +11354,220 @@ body.experience-open .sidebar-top-row {
 }
 
 .fin-page-disclaimer span { flex: 1; }
+
+/* ============================================================
+   UNIFIED DARK TOP NAV
+   Replaces sidebar drawer. Black header on every page.
+   These rules are last in the file and use !important to win
+   over all prior theme layers.
+   ============================================================ */
+
+/* 1 — Hide sidebar + its hamburger trigger permanently */
+.app-sidebar,
+.sidebar-expand-btn {
+    display: none !important;
+}
+
+/* 2 — Remove the 220px body offset that was for the sidebar */
+body.experience-open {
+    padding-left: 0 !important;
+}
+
+/* 3 — Unhide site-header on experience (sub-route) pages */
+body.experience-open .site-header {
+    display: block !important;
+}
+
+/* 4 — Unified black background for every header state */
+.site-header,
+body.experience-open .site-header,
+body:not(.experience-open) .site-header,
+body.heatmap-open .site-header,
+body.markets-open .site-header {
+    background: rgba(10, 10, 15, 0.97) !important;
+    border-bottom: 1px solid #1e1e2e !important;
+    box-shadow: none !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+}
+
+/* 5 — Header inner: wider, consistent height across all pages */
+.header-inner,
+body.experience-open .header-inner {
+    display: flex !important;
+    align-items: center !important;
+    width: min(1440px, calc(100% - 48px)) !important;
+    min-height: 60px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    gap: 0 !important;
+}
+
+/* 6 — EQ mark: dark navy tile with green underline, like blog nav */
+.site-header .brand-mark,
+body.experience-open .brand-mark,
+body:not(.experience-open) .brand-mark {
+    position: relative !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    border: 1px solid #2d3748 !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.5px !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+}
+
+.site-header .brand-mark::after,
+body.experience-open .brand-mark::after,
+body:not(.experience-open) .brand-mark::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 5px !important;
+    left: 5px !important;
+    right: 5px !important;
+    height: 2px !important;
+    background: #22c55e !important;
+    border-radius: 2px !important;
+    display: block !important;
+}
+
+/* 7 — Brand logo link */
+.brand-logo,
+body.experience-open .brand-logo {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    color: #e2e8f0 !important;
+    text-decoration: none !important;
+    flex-shrink: 0 !important;
+    min-width: 0 !important;
+}
+
+/* 8 — Brand name: Bebas Neue white, muted subtitle */
+.brand-copy strong,
+body.experience-open .brand-copy strong,
+body:not(.experience-open) .brand-copy strong {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.04em !important;
+    color: #e2e8f0 !important;
+    line-height: 1.1 !important;
+}
+
+.brand-copy small,
+body.experience-open .brand-copy small,
+body:not(.experience-open) .brand-copy small {
+    color: #334155 !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+}
+
+/* 9 — Main nav: push to right, horizontal scroll on overflow */
+.main-nav,
+body.experience-open .main-nav,
+body:not(.experience-open) .main-nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 2px !important;
+    flex: 1 !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    padding-left: 16px !important;
+}
+
+.main-nav::-webkit-scrollbar,
+body.experience-open .main-nav::-webkit-scrollbar {
+    display: none !important;
+}
+
+/* 10 — Nav link base: muted gray on dark */
+.main-nav a,
+body.experience-open .main-nav a,
+body:not(.experience-open) .main-nav a {
+    color: #64748b !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 7px !important;
+    padding: 6px 13px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    text-decoration: none !important;
+    transition: color 0.15s ease, background 0.15s ease !important;
+    box-shadow: none !important;
+    min-height: unset !important;
+    line-height: 1.4 !important;
+}
+
+/* 11 — Hover: white */
+.main-nav a:hover,
+body.experience-open .main-nav a:hover,
+body:not(.experience-open) .main-nav a:hover {
+    color: #e2e8f0 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* 12 — Active: green (matches blog "Blog" link style) */
+.main-nav a.active,
+body.experience-open .main-nav a.active,
+body:not(.experience-open) .main-nav a.active {
+    color: #22c55e !important;
+    background: rgba(34, 197, 94, 0.08) !important;
+    border-color: transparent !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+
+/* 13 — Fix experience-page content top spacing now header is visible */
+body.experience-open .app-shell {
+    margin-top: 20px !important;
+}
+
+/* ── MOBILE ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .header-inner,
+    body.experience-open .header-inner {
+        width: calc(100% - 32px) !important;
+        min-height: 54px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    /* Stack brand on top, links scroll below */
+    .header-inner,
+    body.experience-open .header-inner {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        min-height: auto !important;
+        padding: 10px 0 6px !important;
+        width: calc(100% - 24px) !important;
+        gap: 0 !important;
+    }
+
+    .main-nav,
+    body.experience-open .main-nav {
+        justify-content: flex-start !important;
+        flex: none !important;
+        padding: 0 0 4px !important;
+    }
+
+    .main-nav a,
+    body.experience-open .main-nav a {
+        font-size: 13px !important;
+        padding: 5px 10px !important;
+    }
+}
 .fin-page-disclaimer strong { color: #78350f; }
