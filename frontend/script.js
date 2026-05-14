@@ -520,19 +520,23 @@ function setupPremiumExperience() {
     if (financialStatementsPage && !financialStatementsPage.innerHTML.trim()) {
         financialStatementsPage.innerHTML = `
             <header class="financial-page-head">
-                <div>
-                    <p class="workspace-eyebrow">Financial Statements</p>
-                    <h2>Company Fundamentals</h2>
-                </div>
-                <div class="financial-head-actions">
-                    <a class="annual-report-button" id="annualReportButton" href="#" target="_blank" rel="noopener noreferrer" download hidden>
-                        Download Annual Report
-                    </a>
-                    <div class="financial-search-wrap">
-                        <label for="financialCompanySearch">Company</label>
-                        <input id="financialCompanySearch" type="search" placeholder="Search company..." autocomplete="off">
-                        <div class="financial-search-results" id="financialSearchResults" hidden></div>
+                <div class="fin-head-top">
+                    <p class="workspace-eyebrow">Company Fundamentals</p>
+                    <div class="fin-head-right">
+                        <a class="annual-report-button" id="annualReportButton" href="#" target="_blank" rel="noopener noreferrer" download hidden>
+                            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v8m0 0-3-3m3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Download Report
+                        </a>
+                        <span class="fin-trust-badge">
+                            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5L2 4v4c0 3.5 2.5 6.5 6 7.5 3.5-1 6-4 6-7.5V4L8 1.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                            NSE · Screener
+                        </span>
                     </div>
+                </div>
+                <div class="financial-search-wrap fin-search-primary">
+                    <svg class="fin-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <input id="financialCompanySearch" type="search" placeholder="Search company or ticker — e.g. RELIANCE, INFY, TCS" autocomplete="off" aria-label="Search company">
+                    <div class="financial-search-results" id="financialSearchResults" hidden></div>
                 </div>
             </header>
             <div class="financial-tabs" id="financialTabs" role="tablist" aria-label="Financial statement tabs">
@@ -540,7 +544,7 @@ function setupPremiumExperience() {
                 <button class="financial-tab" type="button" data-financial-tab="income">Income Statement</button>
                 <button class="financial-tab" type="button" data-financial-tab="balance">Balance Sheet</button>
                 <button class="financial-tab" type="button" data-financial-tab="cashflow">Cash Flow</button>
-                <button class="financial-tab" type="button" data-financial-tab="ratios">Ratios</button>
+                <button class="financial-tab" type="button" data-financial-tab="ratios">Key Ratios</button>
             </div>
             <section class="financial-content" id="financialContent"></section>
         `;
@@ -1643,41 +1647,110 @@ function renderFinancialPage() {
     if (activeFinancialPageTab === "overview") {
         const valuation = data.valuation || {};
         const info = data.info || {};
-        const statementSource = data.source?.url
-            ? `<a href="${escapeAttribute(data.source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml([data.source.provider, data.source.label].filter(Boolean).join(" - "))}</a>`
-            : escapeHtml([data.source?.provider, data.source?.label].filter(Boolean).join(" - ") || "Statement source unavailable");
+        const isGain = Number(stock.change || 0) >= 0;
+        const avatarText = symbol.slice(0, 2);
+        const stockSector = getStockSector(stock.symbol);
+
+        const mktCap = formatSnapshotMarketCap(info, valuation);
+        const currentPrice = formatCompactPrice(stock.price);
+        const peRatio = formatSnapshotRatio(info.stockPe, valuation.peTrailing);
+        const roeVal = parseInfoDisplay(info.roe || formatPercentValue(valuation.roe), "", "%");
+        const roceVal = parseInfoDisplay(info.roce || formatPercentValue(valuation.roce), "", "%");
+
+        const peNum = parseFloat(info.stockPe || valuation.peTrailing || 0);
+        const peMax = Math.max(peNum * 1.5, 50);
+        const pePct = peNum ? Math.min((peNum / peMax) * 100, 100) : 0;
+        const roeNum = parseFloat(info.roe || valuation.roe || 0);
+        const roePct = roeNum ? Math.min((roeNum / 30) * 100, 100) : 0;
+        const roceNum = parseFloat(info.roce || valuation.roce || 0);
+        const rocePct = roceNum ? Math.min((roceNum / 30) * 100, 100) : 0;
+
+        const sourceText = [data.source?.provider, data.source?.label].filter(Boolean).join(" · ") || "Screener.in";
+        const sourceUrl = data.source?.url || "";
         const annualReport = data.source?.annualReport;
-        const reportLink = annualReport?.url
-            ? `<a href="${escapeAttribute(annualReport.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml([annualReport.provider, annualReport.year].filter(Boolean).join(" - ") || "Download annual report")}</a>`
-            : "Annual report link unavailable";
+        const sourceNote = data.sourceNote || "Figures in INR crore where available";
+        const sparkColor = isGain ? "#16a34a" : "#dc2626";
+        const spark = generateDecorativeSparkline(isGain);
+
         financialContent.innerHTML = `
-            <div class="financial-company-strip">
-                <span>${escapeHtml(data.name || stock.name || symbol)}</span>
-                <strong>${escapeHtml(symbol)}</strong>
-                <em class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</em>
+            <div class="fin-company-row">
+                <div class="fin-company-identity">
+                    <div class="fin-avatar">${escapeHtml(avatarText)}</div>
+                    <div class="fin-company-info">
+                        <h3 class="fin-company-name">${escapeHtml(data.name || stock.name || symbol)}</h3>
+                        <div class="fin-company-tags">
+                            <span class="fin-tag">${escapeHtml(symbol)}</span>
+                            <span class="fin-tag">NSE</span>
+                            ${stockSector ? `<span class="fin-tag">${escapeHtml(stockSector)}</span>` : ""}
+                        </div>
+                    </div>
+                </div>
+                <div class="fin-company-price">
+                    <strong class="fin-price-val">${escapeHtml(currentPrice)}</strong>
+                    <span class="fin-price-chg ${isGain ? "fin-gain" : "fin-loss"}">${escapeHtml(formatChange(stock.change))}</span>
+                </div>
             </div>
-            <div class="financial-metric-grid">
-                ${renderFinancialMetric("Market Cap", formatSnapshotMarketCap(info, valuation))}
-                ${renderFinancialMetric("Current Price", formatCompactPrice(stock.price))}
-                ${renderFinancialMetric("Stock P/E", formatSnapshotRatio(info.stockPe, valuation.peTrailing))}
-                ${renderFinancialMetric("ROE", formatInfoDisplayText(parseInfoDisplay(info.roe || formatPercentValue(valuation.roe), "", "%")))}
-                ${renderFinancialMetric("ROCE", formatInfoDisplayText(parseInfoDisplay(info.roce || formatPercentValue(valuation.roce), "", "%")))}
-                ${renderFinancialMetric("52W Range", formatSnapshotRange(info, valuation))}
+
+            <div class="fin-metric-grid">
+                <article class="fin-metric-card fin-metric-primary">
+                    <div class="fin-metric-eyebrow">Market Cap</div>
+                    <div class="fin-metric-value">${escapeHtml(mktCap)}</div>
+                    <svg class="fin-sparkline" viewBox="0 0 120 40" preserveAspectRatio="none" fill="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="finSparkGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="${sparkColor}" stop-opacity="0.3"/>
+                                <stop offset="100%" stop-color="${sparkColor}" stop-opacity="0.02"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="${spark.area}" fill="url(#finSparkGrad)"/>
+                        <path d="${spark.line}" stroke="${sparkColor}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </article>
+
+                <article class="fin-metric-card fin-metric-secondary">
+                    <div class="fin-metric-eyebrow">P/E Ratio</div>
+                    <div class="fin-metric-value">${escapeHtml(peRatio)}</div>
+                    ${peNum ? `<div class="fin-benchmark">
+                        <div class="fin-benchmark-bar"><div class="fin-benchmark-fill" style="width:${pePct.toFixed(1)}%"></div></div>
+                        <span class="fin-benchmark-label">Nifty avg ~22×</span>
+                    </div>` : ""}
+                </article>
+
+                <article class="fin-metric-card fin-metric-secondary">
+                    <div class="fin-metric-eyebrow">ROE</div>
+                    <div class="fin-metric-value ${roeNum >= 15 ? "fin-val-good" : roeNum > 0 ? "fin-val-ok" : ""}">${escapeHtml(formatInfoDisplayText(roeVal))}</div>
+                    ${roeNum ? `<div class="fin-benchmark">
+                        <div class="fin-benchmark-bar"><div class="fin-benchmark-fill${roeNum >= 15 ? " fin-benchmark-good" : ""}" style="width:${roePct.toFixed(1)}%"></div></div>
+                        <span class="fin-benchmark-label">Good &gt; 15%</span>
+                    </div>` : ""}
+                </article>
+
+                <article class="fin-metric-card fin-metric-secondary">
+                    <div class="fin-metric-eyebrow">ROCE</div>
+                    <div class="fin-metric-value ${roceNum >= 15 ? "fin-val-good" : roceNum > 0 ? "fin-val-ok" : ""}">${escapeHtml(formatInfoDisplayText(roceVal))}</div>
+                    ${roceNum ? `<div class="fin-benchmark">
+                        <div class="fin-benchmark-bar"><div class="fin-benchmark-fill${roceNum >= 15 ? " fin-benchmark-good" : ""}" style="width:${rocePct.toFixed(1)}%"></div></div>
+                        <span class="fin-benchmark-label">Good &gt; 15%</span>
+                    </div>` : ""}
+                </article>
             </div>
-            <div class="snapshot-source">
-                <span>Data sources</span>
-                <strong>Statements: ${statementSource}</strong>
-                <strong>Official filing: ${reportLink}</strong>
-                <strong>${escapeHtml(data.sourceNote || "Figures are shown in INR crore where available.")}</strong>
+
+            <div class="fin-source-strip">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5L2 4v4c0 3.5 2.5 6.5 6 7.5 3.5-1 6-4 6-7.5V4L8 1.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                <span>Data: ${sourceUrl ? `<a href="${escapeAttribute(sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceText)}</a>` : escapeHtml(sourceText)}</span>
+                <span class="fin-source-sep">·</span>
+                <span>${escapeHtml(sourceNote)}</span>
+                ${annualReport?.url ? `<span class="fin-source-sep">·</span><a href="${escapeAttribute(annualReport.url)}" target="_blank" rel="noopener noreferrer" class="fin-source-link">Annual Report ${escapeHtml(String(annualReport.year || ""))}</a>` : ""}
             </div>
+
             <div class="financial-page-news" id="financialPageNews">
                 <div class="financial-page-news-head">
                     <h3>Latest News</h3>
                     <p id="financialPageNewsMeta">Loading headlines...</p>
                 </div>
-                <div class="news-list" id="financialPageNewsList">
-                    <article class="news-card neutral">
-                        <div class="news-summary">Fetching latest headlines for ${escapeHtml(symbol)}...</div>
+                <div class="fin-news-grid" id="financialPageNewsList">
+                    <article class="fin-news-card">
+                        <p class="fin-news-headline">Fetching latest headlines for ${escapeHtml(symbol)}…</p>
                     </article>
                 </div>
             </div>
@@ -1795,6 +1868,46 @@ function estimateCurrency(price, multiplier) {
     const value = Number(price || 1000) * multiplier;
     const sign = value < 0 ? "-" : "";
     return `${sign}₹${Math.abs(value).toLocaleString("en-IN", { maximumFractionDigits: 0 })} Cr`;
+}
+
+function getStockSector(symbol) {
+    const sectorNames = {
+        auto: "Auto", bank: "Banking", energy: "Energy", fmcg: "FMCG",
+        healthcare: "Healthcare", it: "IT", media: "Media", metal: "Metal",
+        pharma: "Pharma", realty: "Realty", midcap: "Midcap", nifty50: "Nifty 50"
+    };
+    for (const key of sectorViewKeys) {
+        if (fullData[key]?.some(s => s.symbol === symbol)) {
+            return sectorNames[key] || null;
+        }
+    }
+    return null;
+}
+
+function generateDecorativeSparkline(isGain) {
+    const w = 120, h = 40, pts = 10;
+    const points = [];
+    for (let i = 0; i < pts; i++) {
+        const t = i / (pts - 1);
+        const trend = isGain ? -t * h * 0.5 : t * h * 0.5;
+        const noise = (Math.sin(i * 2.1) + Math.cos(i * 1.6)) * h * 0.07;
+        const y = Math.max(4, Math.min(h - 4, h * (isGain ? 0.72 : 0.28) + trend + noise));
+        points.push({ x: (t * w), y });
+    }
+    const line = points.map((p, i) => {
+        if (i === 0) return `M${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+        const prev = points[i - 1];
+        const next = points[Math.min(i + 1, pts - 1)];
+        const pprev = points[Math.max(i - 2, 0)];
+        const cp1x = prev.x + (p.x - pprev.x) / 6;
+        const cp1y = prev.y + (p.y - pprev.y) / 6;
+        const cp2x = p.x - (next.x - prev.x) / 6;
+        const cp2y = p.y - (next.y - prev.y) / 6;
+        return `C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    }).join(" ");
+    const last = points[pts - 1];
+    const area = `${line} L${last.x.toFixed(1)},${h} L0,${h} Z`;
+    return { line, area };
 }
 
 function renderFinancialSearchResults(term) {
@@ -3085,17 +3198,28 @@ async function loadFinancialPageNews(stock) {
         const items = data.items || [];
         meta.textContent = items.length ? `${items.length} recent articles` : "No recent news found";
         list.innerHTML = items.length
-            ? items.map(item => `
-                <article class="news-card ${escapeHtml(item.sentiment || "neutral")}">
-                    <div class="news-card-top">
-                        <span>${escapeHtml(item.publisher || "News")}</span>
-                        <strong>${escapeHtml(item.sentiment || "neutral")}</strong>
-                    </div>
-                    <a href="${escapeAttribute(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>
-                    <p class="news-summary">${escapeHtml(item.summary || item.title)}</p>
-                </article>
-            `).join("")
-            : `<article class="news-card neutral"><div class="news-summary">No recent news found for this stock.</div></article>`;
+            ? items.map(item => {
+                const publisher = item.publisher || "News";
+                const initial = publisher.charAt(0).toUpperCase();
+                const sentiment = item.sentiment || "neutral";
+                const cleanTitle = (item.title || "").replace(/\s[-–—]\s*[^-–—]{2,}$/, "").trim();
+                const pillClass = sentiment === "positive" ? "fin-pill-pos" : sentiment === "negative" ? "fin-pill-neg" : "fin-pill-neu";
+                const hasSummary = item.summary && item.summary !== item.title;
+                return `
+                    <article class="fin-news-card">
+                        <div class="fin-news-top">
+                            <div class="fin-news-source-tile">${escapeHtml(initial)}</div>
+                            <div class="fin-news-meta">
+                                <span class="fin-news-publisher">${escapeHtml(publisher)}</span>
+                                <span class="fin-news-pill ${pillClass}">${escapeHtml(sentiment)}</span>
+                            </div>
+                        </div>
+                        <a href="${escapeAttribute(item.link)}" target="_blank" rel="noopener noreferrer" class="fin-news-headline">${escapeHtml(cleanTitle || item.title)}</a>
+                        ${hasSummary ? `<p class="fin-news-summary">${escapeHtml(item.summary)}</p>` : ""}
+                    </article>
+                `;
+            }).join("")
+            : `<article class="fin-news-card"><p class="fin-news-headline">No recent news found for this stock.</p></article>`;
     } catch (error) {
         if (meta) meta.textContent = error.message || "Unable to load news.";
         if (list) list.innerHTML = "";
