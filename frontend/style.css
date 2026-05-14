@@ -11186,5 +11186,172 @@ body.experience-open h3 {
     letter-spacing: 0.02em;
 }
 
+/* ============================================================
+   APP SIDEBAR — Dark premium theme matching blog nav
+   ============================================================ */
+
+.app-sidebar {
+    background: #0a0a0f !important;
+    border-right: 1px solid #1e1e2e !important;
+}
+
+/* Brand area */
+.app-sidebar .sidebar-brand {
+    border-bottom: 1px solid #1e1e2e !important;
+    color: #e2e8f0 !important;
+    text-decoration: none;
+}
+
+/* EQ mark — dark tile with green underline bar, like blog nav */
+.app-sidebar .brand-mark,
+.app-sidebar .brand-mark,
+body.experience-open .brand-mark {
+    position: relative !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    border: 1px solid #1e1e2e !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.5px !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+}
+
+.app-sidebar .brand-mark::after,
+body.experience-open .brand-mark::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 5px !important;
+    left: 5px !important;
+    right: 5px !important;
+    height: 2px !important;
+    background: #22c55e !important;
+    border-radius: 2px !important;
+}
+
+/* Brand name — Bebas Neue, white */
+.app-sidebar .sidebar-brand-copy strong,
+body.experience-open .sidebar-brand-copy strong {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 17px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.04em !important;
+    color: #e2e8f0 !important;
+}
+
+.app-sidebar .sidebar-brand-copy small,
+body.experience-open .sidebar-brand-copy small {
+    color: #475569 !important;
+    font-size: 9.5px !important;
+    font-weight: 500 !important;
+}
+
+/* Section label */
+.app-sidebar .sidebar-section-label,
+body.experience-open .sidebar-section-label {
+    color: #334155 !important;
+    letter-spacing: 0.14em !important;
+}
+
+/* Nav links — muted on dark */
+.app-sidebar .sidebar-link,
+body.experience-open .sidebar-link {
+    color: #64748b !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    font-size: 13.5px !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    transition: color 0.15s, background 0.15s !important;
+}
+
+.app-sidebar .sidebar-link svg,
+body.experience-open .sidebar-link svg {
+    opacity: 0.5 !important;
+}
+
+/* Hover state */
+.app-sidebar .sidebar-link:hover,
+body.experience-open .sidebar-link:hover {
+    color: #e2e8f0 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: none !important;
+}
+
+.app-sidebar .sidebar-link:hover svg,
+body.experience-open .sidebar-link:hover svg {
+    opacity: 0.9 !important;
+}
+
+/* Active state — green, like blog nav */
+.app-sidebar .sidebar-link.active,
+body.experience-open .sidebar-link.active {
+    color: #22c55e !important;
+    background: rgba(34, 197, 94, 0.08) !important;
+    box-shadow: inset 3px 0 0 #22c55e !important;
+    font-weight: 600 !important;
+}
+
+.app-sidebar .sidebar-link.active svg,
+body.experience-open .sidebar-link.active svg {
+    opacity: 1 !important;
+    color: #22c55e !important;
+}
+
+/* Footer divider */
+.app-sidebar .sidebar-footer,
+body.experience-open .sidebar-footer {
+    border-top: 1px solid #1e1e2e !important;
+}
+
+/* Market status chip inside dark sidebar */
+.app-sidebar .market-status,
+body.experience-open .market-status {
+    background: #111118 !important;
+    border-color: #1e1e2e !important;
+    color: #64748b !important;
+}
+
+/* Last updated card inside dark sidebar */
+.app-sidebar .last-updated-card,
+body.experience-open .last-updated-card {
+    background: #111118 !important;
+    border-color: #1e1e2e !important;
+}
+
+.app-sidebar .last-updated-card span,
+body.experience-open .last-updated-card span {
+    color: #334155 !important;
+}
+
+.app-sidebar .last-updated-card strong,
+body.experience-open .last-updated-card strong {
+    color: #94a3b8 !important;
+}
+
+/* Collapse/close button on dark bg */
+.app-sidebar .sidebar-collapse-btn,
+body.experience-open .sidebar-collapse-btn {
+    color: #475569 !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.app-sidebar .sidebar-collapse-btn:hover,
+body.experience-open .sidebar-collapse-btn:hover {
+    color: #e2e8f0 !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Sidebar-top-row separator on dark bg */
+.app-sidebar .sidebar-top-row,
+body.experience-open .sidebar-top-row {
+    background: transparent !important;
+    border-bottom-color: #1e1e2e !important;
+}
+
 .fin-page-disclaimer span { flex: 1; }
 .fin-page-disclaimer strong { color: #78350f; }
