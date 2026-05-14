@@ -397,6 +397,7 @@ function setupPremiumExperience() {
                     </div>
                 </article>
             </div>
+            <p class="mkt-page-disclaimer">Data shown is for informational purposes only and may be estimated or delayed. Market breadth, sector metrics, and figures may differ from official NSE/BSE data. This is <strong>not investment advice</strong> — verify with official exchange sources and consult a SEBI-registered advisor before making financial decisions.</p>
         `;
         setupMarketHoverTip();
         setupMktSectorTabs();
@@ -1741,6 +1742,11 @@ function renderFinancialPage() {
                 <span class="fin-source-sep">·</span>
                 <span>${escapeHtml(sourceNote)}</span>
                 ${annualReport?.url ? `<span class="fin-source-sep">·</span><a href="${escapeAttribute(annualReport.url)}" target="_blank" rel="noopener noreferrer" class="fin-source-link">Annual Report ${escapeHtml(String(annualReport.year || ""))}</a>` : ""}
+            </div>
+
+            <div class="fin-page-disclaimer">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5L1.5 13.5h13L8 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><line x1="8" y1="6.5" x2="8" y2="10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.65" fill="currentColor"/></svg>
+                <span>Financial figures sourced from third-party providers (Screener.in, Yahoo Finance) and may differ from company filings. Numbers are in INR crore unless stated. This is <strong>not investment advice</strong> — always verify with official company annual reports, NSE/BSE filings, and consult a SEBI-registered advisor before making investment decisions.</span>
             </div>
 
             <div class="financial-page-news" id="financialPageNews">

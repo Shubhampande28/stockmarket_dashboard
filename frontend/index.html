@@ -74,7 +74,7 @@
       gtag('config', 'G-BNZX2YF2PX');
     </script>
 
-    <link rel="stylesheet" href="./style.css?v=20260514-fin-v1">
+    <link rel="stylesheet" href="./style.css?v=20260514-disc-v1">
     <link rel="stylesheet" href="./mkt-styles.css?v=5">
 </head>
 <body>
@@ -158,6 +158,7 @@
                 <button class="hero-button primary" type="button" data-hero-action="heatmap">Explore Heatmap</button>
                 <button class="hero-button secondary" type="button" data-hero-action="trends">Explore Market Trends</button>
             </div>
+            <p class="hero-disclaimer">For informational purposes only. Not investment advice. Data may be delayed or estimated. Consult a SEBI-registered advisor before investing.</p>
         </div>
 
         <div class="hero-visual">
@@ -247,6 +248,7 @@
 
             <div id="message" class="message loading">Loading market data...</div>
             <div id="heatmap" aria-live="polite"></div>
+            <p class="heatmap-disclaimer">Data shown may be delayed or estimated. Not investment advice — verify with NSE/BSE official sources before acting.</p>
         </section>
     </main>
 
@@ -304,6 +306,12 @@
                 <p class="statement-disclaimer">Disclaimer: This dashboard is for information only and is not investment advice. Verify figures with exchange filings, company annual reports, and your financial advisor before making decisions.</p>
             </section>
         </section>
+    </div>
+
+    <div class="site-disclaimer-bar" role="note" aria-label="Legal disclaimer">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="flex-shrink:0"><path d="M8 1.5L1.5 13.5h13L8 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><line x1="8" y1="6.5" x2="8" y2="10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.65" fill="currentColor"/></svg>
+        <p><strong>Disclaimer:</strong> All data displayed on Equilytics is for <strong>informational and educational purposes only</strong> and does <strong>not constitute investment advice</strong>. Market data may be delayed, estimated, or sourced from third-party providers and may differ from official NSE/BSE exchange figures. Past performance is not indicative of future results. Always verify information with official exchange filings and consult a <strong>SEBI-registered investment advisor</strong> before making any financial decisions. Equilytics bears no liability for decisions made based on information displayed on this platform.</p>
+        <button class="site-disclaimer-close" type="button" aria-label="Dismiss disclaimer" onclick="this.closest('.site-disclaimer-bar').style.display='none'">✕</button>
     </div>
 
     <script src="./script.js?v=20260514-fin-v1"></script>

@@ -10796,3 +10796,108 @@ body.heatmap-open .panel-heading small {
     .fin-company-row { flex-direction: column; align-items: flex-start; }
     .fin-search-primary { min-height: 48px !important; }
 }
+
+/* ================================================================
+   DISCLAIMERS
+   ================================================================ */
+
+/* ---- Global sticky bar ---- */
+.site-disclaimer-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 20px;
+    background: #fefce8;
+    border-top: 1px solid #fde68a;
+    color: #713f12;
+    font-size: 0.72rem;
+    line-height: 1.45;
+}
+
+.site-disclaimer-bar p {
+    flex: 1;
+    margin: 0;
+    color: #713f12;
+    font-size: 0.72rem;
+}
+
+.site-disclaimer-bar strong { color: #78350f; }
+
+.site-disclaimer-bar svg {
+    margin-top: 2px;
+    color: #d97706;
+}
+
+.site-disclaimer-close {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border: 1px solid #fbbf24;
+    border-radius: 6px;
+    background: transparent;
+    color: #92400e;
+    font-size: 0.75rem;
+    cursor: pointer;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.site-disclaimer-close:hover { background: #fef3c7; }
+
+/* ---- Hero section ---- */
+.hero-disclaimer {
+    margin-top: 10px;
+    color: rgba(148, 163, 184, 0.85);
+    font-size: 0.72rem;
+    line-height: 1.4;
+    max-width: 38ch;
+}
+
+/* ---- Heatmap page ---- */
+.heatmap-disclaimer {
+    padding: 8px 16px 10px;
+    color: #94a3b8;
+    font-size: 0.7rem;
+    text-align: center;
+    margin: 0;
+}
+
+/* ---- Markets page ---- */
+.mkt-page-disclaimer {
+    padding: 12px 24px 16px;
+    color: #94a3b8;
+    font-size: 0.71rem;
+    line-height: 1.5;
+    text-align: center;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+.mkt-page-disclaimer strong { color: #64748b; }
+
+/* ---- Financial overview ---- */
+.fin-page-disclaimer {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 12px 16px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    color: #92400e;
+    font-size: 0.72rem;
+    line-height: 1.5;
+}
+
+.fin-page-disclaimer svg {
+    margin-top: 2px;
+    flex-shrink: 0;
+    color: #d97706;
+}
+
+.fin-page-disclaimer span { flex: 1; }
+.fin-page-disclaimer strong { color: #78350f; }
