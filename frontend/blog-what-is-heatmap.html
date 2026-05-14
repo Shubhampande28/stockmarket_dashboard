@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What Is a Stock Market Heatmap? A Beginner's Guide for Indian Investors | Equilytics</title>
+  <meta name="description" content="Learn what a stock market heatmap is, how to read it, and why it's the fastest way for Indian investors to track NSE and BSE stocks every day." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.equilytics.in/blog-what-is-heatmap.html" />
+  <meta property="og:title" content="What Is a Stock Market Heatmap? A Beginner's Guide for Indian Investors" />
+  <meta property="og:description" content="Learn what a stock market heatmap is, how to read it, and why it's the fastest way for Indian investors to track NSE and BSE stocks every day." />
+  <meta property="og:url" content="https://www.equilytics.in/blog-what-is-heatmap.html" />
+  <meta property="og:image" content="https://www.equilytics.in/images/Capture-1.JPG" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "What Is a Stock Market Heatmap? A Beginner's Guide for Indian Investors",
+    "description": "Learn what a stock market heatmap is, how to read it, and why it's the fastest way for Indian investors to track NSE and BSE stocks every day.",
+    "image": "https://www.equilytics.in/images/Capture-1.JPG",
+    "datePublished": "2026-05-14",
+    "author": { "@type": "Organization", "name": "Equilytics" },
+    "publisher": { "@type": "Organization", "name": "Equilytics", "url": "https://www.equilytics.in" }
+  }
+  </script>
+  <link rel="stylesheet" href="./style.css?v=20260514-fin-v1">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0f; --surface: #111118; --border: #1e1e2e;
+      --green: #4ade80; --blue: #60a5fa;
+      --text: #e2e8f0; --muted: #94a3b8; --card-bg: #13131c;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+    .blog-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: var(--bg); z-index: 100;
+    }
+    .blog-nav .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .blog-nav .brand-icon {
+      width: 36px; height: 36px; background: #0f172a; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900; color: #fff; letter-spacing: -1px;
+      position: relative;
+    }
+    .blog-nav .brand-icon::after {
+      content: ''; position: absolute; bottom: 7px; left: 6px; right: 6px;
+      height: 2px; background: var(--green); border-radius: 2px;
+    }
+    .blog-nav .brand-name { font-size: 16px; font-weight: 700; color: var(--text); }
+    .blog-nav nav a { color: var(--muted); text-decoration: none; font-size: 14px; margin-left: 28px; }
+    .blog-nav nav a:hover { color: var(--text); }
+    .blog-nav nav a.active { color: var(--green); }
+
+    .article-wrap { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+
+    .article-kicker { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--green); margin-bottom: 20px; }
+    .article-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+    .article-meta { font-size: 13px; color: var(--muted); margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+    .article-meta span { margin-right: 20px; }
+
+    .article-body h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px; color: var(--text);
+      margin: 48px 0 16px;
+    }
+    .article-body p { font-size: 16px; line-height: 1.8; color: var(--muted); margin-bottom: 20px; }
+    .article-body strong { color: var(--text); font-weight: 600; }
+    .article-body ul { margin: 0 0 20px 20px; }
+    .article-body ul li { font-size: 16px; line-height: 1.8; color: var(--muted); margin-bottom: 8px; }
+    .article-body ul li strong { color: var(--text); }
+
+    .highlight-box {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 8px; padding: 24px 28px; margin: 32px 0;
+    }
+    .highlight-box p { margin: 0; font-size: 15px; }
+
+    .cta-box {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px; margin: 48px 0; text-align: center;
+    }
+    .cta-box h3 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .cta-box p { color: var(--muted); margin-bottom: 20px; }
+    .cta-btn {
+      display: inline-block; background: var(--green); color: #052e16;
+      font-weight: 700; font-size: 14px; padding: 12px 28px;
+      border-radius: 8px; text-decoration: none; letter-spacing: 0.02em;
+    }
+
+    .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-size: 14px; margin-bottom: 40px; }
+    .back-link:hover { color: var(--text); }
+
+    .blog-footer { border-top: 1px solid var(--border); padding: 32px 48px; text-align: center; font-size: 13px; color: var(--muted); }
+    .blog-footer a { color: var(--green); text-decoration: none; }
+
+    @media (max-width: 600px) { .blog-nav { padding: 16px 20px; } .blog-nav nav { display: none; } }
+  </style>
+</head>
+<body>
+
+  <nav class="blog-nav">
+    <a href="/" class="brand">
+      <div class="brand-icon">EQ</div>
+      <span class="brand-name">Equilytics</span>
+    </a>
+    <nav>
+      <a href="/markets">Markets</a>
+      <a href="/heatmap">Heatmap</a>
+      <a href="/financials">Financials</a>
+      <a href="/insights">Insights</a>
+      <a href="/blog.html" class="active">Blog</a>
+    </nav>
+  </nav>
+
+  <article class="article-wrap">
+    <a href="./blog.html" class="back-link">← Back to Blog</a>
+
+    <p class="article-kicker">Beginner Guide</p>
+    <h1 class="article-title">What Is a Stock Market Heatmap? A Beginner's Guide for Indian Investors</h1>
+    <div class="article-meta">
+      <span>May 14, 2026</span>
+      <span>5 min read</span>
+      <span>By Equilytics</span>
+    </div>
+
+    <div class="article-body">
+      <p>If you've ever felt overwhelmed by stock market data — endless rows of numbers, tickers, percentages — you're not alone. Most retail investors in India feel the same way. That's exactly what a <strong>stock market heatmap</strong> is designed to solve.</p>
+
+      <h2>What Is a Stock Market Heatmap?</h2>
+      <p>A stock market heatmap is a <strong>visual representation of how stocks are performing</strong> on a given day. Instead of a table full of numbers, you see a grid of colored tiles — each tile representing one stock.</p>
+      <ul>
+        <li><strong>🟢 Green tiles</strong> — the stock is gaining (price going up)</li>
+        <li><strong>🔴 Red tiles</strong> — the stock is losing (price going down)</li>
+        <li><strong>Size of each tile</strong> — usually represents the stock's market capitalization or weight in an index</li>
+      </ul>
+      <p>The result? You can understand how the <strong>entire Nifty 50 or Sensex</strong> is performing in just a few seconds — no scrolling, no mental math.</p>
+
+      <div class="highlight-box">
+        <p>💡 <strong>Think of it like a weather map.</strong> Just as a weather map uses colors to show temperature across regions, a stock heatmap uses colors to show price movement across the market. The moment you see it, you know what's happening.</p>
+      </div>
+
+      <h2>How to Read a Stock Heatmap</h2>
+      <p>Reading a heatmap is intuitive once you know what to look for:</p>
+      <ul>
+        <li><strong>More green than red</strong> → the market is generally bullish today</li>
+        <li><strong>More red than green</strong> → the market is under selling pressure</li>
+        <li><strong>One very large red tile</strong> → a heavyweight like Reliance or HDFC Bank is dragging the index down</li>
+        <li><strong>Bright green in one sector</strong> → a sector rotation or sector-specific event is happening</li>
+        <li><strong>Darker shades</strong> → more extreme moves (very dark green = big gainer, very dark red = big loser)</li>
+      </ul>
+
+      <h2>Why Indian Investors Love Heatmaps</h2>
+      <p>Traditional stock tables require you to scroll, compare, and calculate. A heatmap does all of that visually in one screen. For <strong>active traders</strong>, it means faster signals. For <strong>long-term investors</strong>, it's a quick daily health check. For <strong>beginners</strong>, it's the most intuitive way to start understanding the market.</p>
+      <p>Especially in Indian markets where Nifty 50 heavyweights like Reliance, TCS, and HDFC Bank can single-handedly move the index — being able to spot those large tiles instantly is a massive advantage.</p>
+
+      <h2>What Can You Do With a Heatmap?</h2>
+      <ul>
+        <li>Spot the day's <strong>top gainers and losers</strong> instantly</li>
+        <li>Understand <strong>sector trends</strong> — is IT up while banking is down?</li>
+        <li>Check <strong>market breadth</strong> — are most stocks rising or just a few?</li>
+        <li>Find <strong>momentum stocks</strong> before digging into charts</li>
+        <li>Get a <strong>market mood reading</strong> in under 10 seconds</li>
+      </ul>
+
+      <div class="cta-box">
+        <h3>See the NSE Heatmap Live on Equilytics</h3>
+        <p>India's free, real-time stock market heatmap. No account needed.</p>
+        <a href="/heatmap" class="cta-btn">Open Live Heatmap →</a>
+      </div>
+
+      <h2>Heatmap vs Traditional Stock Screener</h2>
+      <p>A stock screener shows you ranked lists — you set filters and get results. A heatmap shows you <strong>everything at once</strong>, visually. They work best together: use the heatmap to spot what's moving, then use a screener to dig deeper into the stocks that caught your eye.</p>
+
+      <h2>Start Using a Heatmap Today</h2>
+      <p><strong>Equilytics.in</strong> offers a free, live stock market heatmap for NSE and BSE stocks. You can see top gainers, top losers, and get an instant feel for market mood — without creating an account. Open it during market hours (9:15 AM – 3:30 PM IST) and you'll immediately understand what the market is doing.</p>
+      <p>Understanding your market shouldn't require a finance degree. With the right tools, every investor can read the market like a pro.</p>
+    </div>
+  </article>
+
+  <footer class="blog-footer">
+    <p>© 2026 <a href="/">Equilytics</a> · India's intelligent stock market platform · <a href="/">equilytics.in</a></p>
+  </footer>
+
+</body>
+</html>

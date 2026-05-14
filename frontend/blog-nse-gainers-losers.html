@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSE Top Gainers & Losers Today — How to Track Them Instantly | Equilytics</title>
+  <meta name="description" content="Want to track NSE top gainers and losers every day? Here's the fastest, most visual way to stay on top of Indian stock market movements using a live heatmap." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.equilytics.in/blog-nse-gainers-losers.html" />
+  <meta property="og:title" content="NSE Top Gainers & Losers Today — How to Track Them Instantly" />
+  <meta property="og:description" content="Want to track NSE top gainers and losers every day? Here's the fastest, most visual way to stay on top of Indian stock market movements." />
+  <meta property="og:url" content="https://www.equilytics.in/blog-nse-gainers-losers.html" />
+  <meta property="og:image" content="https://www.equilytics.in/images/Capture-2.JPG" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "NSE Top Gainers & Losers Today — How to Track Them Instantly",
+    "description": "Want to track NSE top gainers and losers every day? Here's the fastest, most visual way to stay on top of Indian stock market movements using a live heatmap.",
+    "image": "https://www.equilytics.in/images/Capture-2.JPG",
+    "datePublished": "2026-05-14",
+    "author": { "@type": "Organization", "name": "Equilytics" },
+    "publisher": { "@type": "Organization", "name": "Equilytics", "url": "https://www.equilytics.in" }
+  }
+  </script>
+  <link rel="stylesheet" href="./style.css?v=20260514-fin-v1">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0f; --surface: #111118; --border: #1e1e2e;
+      --green: #4ade80; --blue: #60a5fa;
+      --text: #e2e8f0; --muted: #94a3b8; --card-bg: #13131c;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+    .blog-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: var(--bg); z-index: 100;
+    }
+    .blog-nav .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .blog-nav .brand-icon {
+      width: 36px; height: 36px; background: #0f172a; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900; color: #fff; letter-spacing: -1px; position: relative;
+    }
+    .blog-nav .brand-icon::after {
+      content: ''; position: absolute; bottom: 7px; left: 6px; right: 6px;
+      height: 2px; background: var(--green); border-radius: 2px;
+    }
+    .blog-nav .brand-name { font-size: 16px; font-weight: 700; color: var(--text); }
+    .blog-nav nav a { color: var(--muted); text-decoration: none; font-size: 14px; margin-left: 28px; }
+    .blog-nav nav a:hover { color: var(--text); } .blog-nav nav a.active { color: var(--green); }
+    .article-wrap { max-width: 720px; margin: 0 auto; padding: 60px 24px 100px; }
+    .article-kicker { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--green); margin-bottom: 20px; }
+    .article-title { font-family: 'DM Serif Display', serif; font-size: clamp(32px, 5vw, 52px); line-height: 1.1; color: var(--text); margin-bottom: 24px; }
+    .article-meta { font-size: 13px; color: var(--muted); margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+    .article-meta span { margin-right: 20px; }
+    .article-body h2 { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); margin: 48px 0 16px; }
+    .article-body p { font-size: 16px; line-height: 1.8; color: var(--muted); margin-bottom: 20px; }
+    .article-body strong { color: var(--text); font-weight: 600; }
+    .article-body ul { margin: 0 0 20px 20px; }
+    .article-body ul li { font-size: 16px; line-height: 1.8; color: var(--muted); margin-bottom: 8px; }
+    .article-body ul li strong { color: var(--text); }
+    .highlight-box { background: var(--card-bg); border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: 8px; padding: 24px 28px; margin: 32px 0; }
+    .highlight-box p { margin: 0; font-size: 15px; }
+    .checklist { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin: 32px 0; }
+    .checklist h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+    .checklist ul { list-style: none; margin: 0; padding: 0; }
+    .checklist ul li { font-size: 15px; color: var(--muted); padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px; }
+    .checklist ul li:last-child { border-bottom: none; }
+    .checklist ul li::before { content: '✅'; }
+    .cta-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 36px; margin: 48px 0; text-align: center; }
+    .cta-box h3 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .cta-box p { color: var(--muted); margin-bottom: 20px; }
+    .cta-btn { display: inline-block; background: var(--green); color: #052e16; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 8px; text-decoration: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-size: 14px; margin-bottom: 40px; }
+    .back-link:hover { color: var(--text); }
+    .blog-footer { border-top: 1px solid var(--border); padding: 32px 48px; text-align: center; font-size: 13px; color: var(--muted); }
+    .blog-footer a { color: var(--green); text-decoration: none; }
+    @media (max-width: 600px) { .blog-nav { padding: 16px 20px; } .blog-nav nav { display: none; } }
+  </style>
+</head>
+<body>
+
+  <nav class="blog-nav">
+    <a href="/" class="brand">
+      <div class="brand-icon">EQ</div>
+      <span class="brand-name">Equilytics</span>
+    </a>
+    <nav>
+      <a href="/markets">Markets</a>
+      <a href="/heatmap">Heatmap</a>
+      <a href="/financials">Financials</a>
+      <a href="/insights">Insights</a>
+      <a href="/blog.html" class="active">Blog</a>
+    </nav>
+  </nav>
+
+  <article class="article-wrap">
+    <a href="./blog.html" class="back-link">← Back to Blog</a>
+    <p class="article-kicker">Market Tools</p>
+    <h1 class="article-title">NSE Top Gainers & Losers Today — How to Track Them Instantly</h1>
+    <div class="article-meta">
+      <span>May 14, 2026</span>
+      <span>4 min read</span>
+      <span>By Equilytics</span>
+    </div>
+
+    <div class="article-body">
+      <p>Tracking NSE top gainers and losers is one of the most common tasks for Indian investors — whether you're an active intraday trader or someone who checks the markets once a day. But most platforms make it harder than it needs to be.</p>
+
+      <h2>Why Tracking Gainers & Losers Matters</h2>
+      <p>Knowing which stocks are moving the most on any given day tells you a lot about what's happening in the market:</p>
+      <ul>
+        <li><strong>High gainers</strong> often signal positive earnings, news events, or sector momentum building</li>
+        <li><strong>Heavy losers</strong> can signal trouble in a company, a sector sell-off, or broader market weakness</li>
+        <li><strong>Together</strong>, they tell you the overall market mood — and where the money is flowing</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p>💡 <strong>Pro tip:</strong> When a stock is a top gainer for 2–3 days in a row, it often signals strong institutional buying. That's when it's worth digging deeper into the fundamentals.</p>
+      </div>
+
+      <h2>The Problem With Traditional Stock Tables</h2>
+      <p>Most platforms show you gainers and losers as a ranked list. That works — but it has real limitations for the modern investor:</p>
+      <ul>
+        <li>You can only see 10–20 stocks at once</li>
+        <li>You need to scroll endlessly to get the full picture</li>
+        <li>It's hard to compare a 3% gainer vs a 0.5% gainer at a glance</li>
+        <li>Sector patterns are invisible in a flat list</li>
+      </ul>
+      <p>When the entire Banking sector is red but IT is green, a list won't show you that at a glance — but a heatmap will, instantly.</p>
+
+      <h2>The Better Way: A Visual Heatmap</h2>
+      <p>A <strong>stock heatmap</strong> shows you all the top NSE and BSE movers simultaneously on one screen. Color and size instantly communicate everything you need:</p>
+      <ul>
+        <li>Large green tile = big gainer with high market cap</li>
+        <li>Small red tile = minor loser in a smaller stock</li>
+        <li>All of Nifty 50 on one screen, at a glance</li>
+        <li>Sector clustering makes rotation patterns obvious</li>
+      </ul>
+      <p>No scrolling. No mental math. Just instant market intelligence — the way professional traders actually look at markets.</p>
+
+      <h2>What to Look For Every Morning</h2>
+      <div class="checklist">
+        <h3>Your 60-second morning market check</h3>
+        <ul>
+          <li>Is the overall heatmap more green or red? (market mood)</li>
+          <li>Which sector has the largest green tiles? (follow the money)</li>
+          <li>Is any single stock dominating with a huge move? (news event)</li>
+          <li>Are the index heavyweights (Reliance, TCS, HDFC) up or down?</li>
+          <li>Is the selling concentrated in one sector or broad-based?</li>
+        </ul>
+      </div>
+
+      <h2>Best Time to Check NSE Gainers & Losers</h2>
+      <p>NSE market hours are <strong>9:15 AM to 3:30 PM IST</strong>. The best times to check:</p>
+      <ul>
+        <li><strong>9:30–9:45 AM</strong> — after the opening volatility settles, real trends emerge</li>
+        <li><strong>12:00–12:30 PM</strong> — midday picture of where momentum is building</li>
+        <li><strong>3:00–3:15 PM</strong> — final 30 minutes often show the true day's winners and losers</li>
+        <li><strong>After 3:30 PM</strong> — review the full day's moves to plan for tomorrow</li>
+      </ul>
+
+      <div class="cta-box">
+        <h3>Track NSE Gainers & Losers on Equilytics</h3>
+        <p>Free, real-time heatmap of NSE and BSE stocks. See what's moving right now.</p>
+        <a href="/heatmap" class="cta-btn">See Today's Heatmap →</a>
+      </div>
+
+      <h2>Combining Gainers Data With Your Strategy</h2>
+      <p>Once you've spotted the top movers using a heatmap, here's how to use that information smartly:</p>
+      <ul>
+        <li><strong>Traders:</strong> Look for momentum stocks in the top 5 gainers — check volume to confirm conviction</li>
+        <li><strong>Long-term investors:</strong> If a quality stock is in the top losers on no news, it might be a buying opportunity</li>
+        <li><strong>Sector watchers:</strong> Consistent gains in a sector over several days = a trend worth researching</li>
+      </ul>
+      <p>The heatmap is your starting point — not your end point. It tells you <em>where</em> to look. Your analysis tells you <em>what</em> to do.</p>
+    </div>
+  </article>
+
+  <footer class="blog-footer">
+    <p>© 2026 <a href="/">Equilytics</a> · India's intelligent stock market platform · <a href="/">equilytics.in</a></p>
+  </footer>
+
+</body>
+</html>
