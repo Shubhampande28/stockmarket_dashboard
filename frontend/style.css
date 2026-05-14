@@ -11463,7 +11463,7 @@ body:not(.experience-open) .brand-copy strong {
 .brand-copy small,
 body.experience-open .brand-copy small,
 body:not(.experience-open) .brand-copy small {
-    color: #334155 !important;
+    color: #64748b !important;
     font-size: 10px !important;
     font-weight: 500 !important;
     line-height: 1 !important;
@@ -11523,17 +11523,23 @@ body:not(.experience-open) .main-nav a:hover {
 /* 12 — Active: green (matches blog "Blog" link style) */
 .main-nav a.active,
 body.experience-open .main-nav a.active,
-body:not(.experience-open) .main-nav a.active {
+body:not(.experience-open) .main-nav a.active,
+body.markets-open .main-nav a.active,
+body.heatmap-open .main-nav a.active,
+body.financials-open .main-nav a.active,
+body.trends-open .main-nav a.active {
     color: #22c55e !important;
     background: rgba(34, 197, 94, 0.08) !important;
     border-color: transparent !important;
     font-weight: 600 !important;
     box-shadow: none !important;
+    text-decoration: none !important;
 }
 
-/* 13 — Fix experience-page content top spacing now header is visible */
+/* 13 — Experience-page content starts directly below the sticky header */
 body.experience-open .app-shell {
-    margin-top: 20px !important;
+    margin-top: 0 !important;
+    padding-top: 16px !important;
 }
 
 /* ── MOBILE ──────────────────────────────────────────────── */

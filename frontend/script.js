@@ -2015,16 +2015,7 @@ function showExperience(type, options = {}) {
         return;
     }
 
-    const target = showHome
-        ? document.getElementById("home")
-        : showMarkets
-            ? marketsPage
-            : showFinancials
-                ? financialStatementsPage
-                : showTrends
-                    ? trendsPanel
-                    : heatmapPanel;
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function updateIndexCards() {
