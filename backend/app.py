@@ -23,6 +23,11 @@ app = Flask(__name__, static_folder=str(FRONTEND_DIR))
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret-before-hosting")
 CORS(app)
 
+@app.before_request
+def redirect_to_canonical_host():
+    if request.host == "equilytics.in":
+        return redirect(f"https://www.equilytics.in{request.full_path}".rstrip("?"), code=301)
+
 NEWS_CACHE_PATH = BASE_DIR / "news_cache.json"
 AI_CACHE_PATH = BASE_DIR / "ai_cache.json"
 FINANCIALS_CACHE_PATH = BASE_DIR / "financials_cache.json"
@@ -44,6 +49,48 @@ APIFY_RUN_TIMEOUT = 90
 @app.route("/")
 def home():
     return send_from_directory(FRONTEND_DIR, "index.html")
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    static_urls = [
+        ("/", "daily", "1.0"),
+        ("/markets", "daily", "0.9"),
+        ("/heatmap", "daily", "0.9"),
+        ("/financials", "weekly", "0.8"),
+        ("/insights", "weekly", "0.8"),
+        ("/market-overview", "daily", "0.9"),
+        ("/nifty-50-heatmap", "daily", "0.9"),
+        ("/top-gainers", "daily", "0.85"),
+        ("/top-losers", "daily", "0.85"),
+        ("/sector-analysis", "daily", "0.85"),
+        ("/blog", "weekly", "0.8"),
+        ("/blog-what-is-heatmap", "monthly", "0.7"),
+        ("/blog-nse-gainers-losers", "monthly", "0.7"),
+        ("/about", "monthly", "0.6"),
+        ("/contact", "monthly", "0.5"),
+        ("/privacy-policy", "yearly", "0.4"),
+        ("/disclaimer", "yearly", "0.4"),
+    ]
+    urls = list(static_urls)
+    urls.extend((f"/sectors/{sector}", "daily", "0.75") for sector in sorted(SECTOR_GROUPS))
+    urls.extend((f"/stocks/{stock_slug(symbol)}", "daily", "0.7") for symbol in sorted(load_instrument_map()))
+
+    entries = []
+    for path, changefreq, priority in urls:
+        entries.append(
+            "  <url>\n"
+            f"    <loc>https://www.equilytics.in{escape(path)}</loc>\n"
+            f"    <lastmod>{today}</lastmod>\n"
+            f"    <changefreq>{changefreq}</changefreq>\n"
+            f"    <priority>{priority}</priority>\n"
+            "  </url>"
+        )
+    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    xml += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+    xml += "\n".join(entries)
+    xml += "\n</urlset>\n"
+    return app.response_class(xml, mimetype="application/xml")
 
 @app.route("/<path:path>")
 def static_files(path):
@@ -672,11 +719,11 @@ def normalize_seo_symbol(value):
     return re.sub(r"[^A-Z0-9&-]", "", (value or "").upper().replace(".NS", ""))
 
 def stock_slug(symbol):
-    return symbol.lower().replace("&", "and")
+    return symbol.lower().replace("&", "-and-")
 
 def symbol_from_stock_slug(slug):
     raw = (slug or "").upper().replace("-AND-", "&")
-    return normalize_seo_symbol(raw.replace("-", ""))
+    return normalize_seo_symbol(raw)
 
 def stock_display_name(symbol):
     return STOCK_NAME_OVERRIDES.get(symbol, symbol)
