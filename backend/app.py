@@ -742,6 +742,128 @@ def index_memberships_for_symbol(symbol):
             memberships.append(index.upper().replace("NIFTY", " NIFTY").strip())
     return memberships[:5]
 
+def primary_sector_for_symbol(symbol):
+    for sector, symbols in SECTOR_GROUPS.items():
+        if symbol in symbols:
+            return sector
+    return None
+
+def format_metric_value(value, suffix=""):
+    if value in (None, ""):
+        return "Not cached"
+    try:
+        return f"{float(value):,.2f}{suffix}"
+    except (TypeError, ValueError):
+        return escape(str(value))
+
+def render_stock_peer_rows(symbol):
+    sector = primary_sector_for_symbol(symbol)
+    if not sector:
+        return '<tr><td colspan="3">Open the live dashboard to compare this stock with peers.</td></tr>'
+
+    rows = []
+    for peer in [item for item in SECTOR_GROUPS[sector] if item != symbol][:10]:
+        rows.append(
+            f"<tr><td><a href=\"/stocks/{stock_slug(peer)}\">{escape(stock_display_name(peer))}</a>"
+            f"<span class=\"lp-ticker\">{escape(peer)}</span></td>"
+            f"<td>{escape(SECTOR_LABELS.get(sector, sector.title()))}</td>"
+            f"<td><a href=\"/financials?q={quote_plus(peer)}\">Financials</a></td></tr>"
+        )
+    return "".join(rows)
+
+def render_stock_live_script(symbol):
+    symbol_json = json.dumps(symbol)
+    return f"""<script>
+  (function() {{
+    const symbol = {symbol_json};
+    const cells = {{
+      price: document.querySelector('[data-live-price]'),
+      change: document.querySelector('[data-live-change]'),
+      volume: document.querySelector('[data-live-volume]'),
+      high: document.querySelector('[data-live-high]'),
+      low: document.querySelector('[data-live-low]'),
+      updated: document.querySelector('[data-live-updated]')
+    }};
+    const money = value => Number.isFinite(Number(value)) ? '₹' + Number(value).toLocaleString('en-IN', {{ maximumFractionDigits: 2 }}) : '--';
+    const number = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString('en-IN') : '--';
+    fetch('/stocks', {{ cache: 'no-store' }})
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {{
+        const stock = (data.all || []).find(item => item.symbol === symbol);
+        if (!stock) return;
+        const change = Number(stock.change || 0);
+        cells.price.textContent = money(stock.price);
+        cells.change.textContent = `${{change >= 0 ? '+' : ''}}${{change.toFixed(2)}}%`;
+        cells.change.classList.toggle('lp-gain', change >= 0);
+        cells.change.classList.toggle('lp-loss', change < 0);
+        cells.volume.textContent = number(stock.volume);
+        cells.high.textContent = money(stock.high);
+        cells.low.textContent = money(stock.low);
+        cells.updated.textContent = 'Updated from live market feed';
+      }})
+      .catch(() => {{
+        cells.updated.textContent = 'Live snapshot unavailable. Use the dashboard for the latest feed.';
+      }});
+  }})();
+  </script>"""
+
+def render_sector_static_rows(sector):
+    rows = []
+    for index, symbol in enumerate(SECTOR_GROUPS[sector], start=1):
+        rows.append(
+            f"<tr><td>{index}</td><td><a href=\"/stocks/{stock_slug(symbol)}\">{escape(stock_display_name(symbol))}</a>"
+            f"<span class=\"lp-ticker\">{escape(symbol)}</span></td>"
+            f"<td><a href=\"/financials?q={quote_plus(symbol)}\">Financials</a></td>"
+            f"<td><a href=\"/stocks/{stock_slug(symbol)}\">Stock page</a></td></tr>"
+        )
+    return "".join(rows)
+
+def render_sector_live_script(sector):
+    sector_json = json.dumps(sector)
+    symbols_json = json.dumps(SECTOR_GROUPS[sector])
+    return f"""<script>
+  (function() {{
+    const sector = {sector_json};
+    const symbols = new Set({symbols_json});
+    const summary = {{
+      count: document.querySelector('[data-sector-count]'),
+      advancing: document.querySelector('[data-sector-advancing]'),
+      declining: document.querySelector('[data-sector-declining]'),
+      avg: document.querySelector('[data-sector-avg]'),
+      table: document.querySelector('[data-sector-live-table]'),
+      updated: document.querySelector('[data-sector-updated]')
+    }};
+    fetch('/stocks', {{ cache: 'no-store' }})
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {{
+        const stocks = (data[sector] || (data.all || []).filter(item => symbols.has(item.symbol))).slice();
+        if (!stocks.length) return;
+        const gainers = stocks.filter(item => Number(item.change || 0) > 0);
+        const losers = stocks.filter(item => Number(item.change || 0) < 0);
+        const avg = stocks.reduce((sum, item) => sum + Number(item.change || 0), 0) / stocks.length;
+        summary.count.textContent = stocks.length;
+        summary.advancing.textContent = gainers.length;
+        summary.declining.textContent = losers.length;
+        summary.avg.textContent = `${{avg >= 0 ? '+' : ''}}${{avg.toFixed(2)}}%`;
+        summary.avg.classList.toggle('lp-gain', avg >= 0);
+        summary.avg.classList.toggle('lp-loss', avg < 0);
+        summary.table.innerHTML = stocks
+          .sort((a, b) => Number(b.change || 0) - Number(a.change || 0))
+          .slice(0, 10)
+          .map(item => {{
+            const change = Number(item.change || 0);
+            const klass = change >= 0 ? 'lp-gain' : 'lp-loss';
+            return `<tr><td><a href="/stocks/${{item.symbol.toLowerCase().replace('&', '-and-')}}">${{item.symbol}}</a></td><td>₹${{Number(item.price || 0).toLocaleString('en-IN', {{ maximumFractionDigits: 2 }})}}</td><td class="${{klass}}">${{change >= 0 ? '+' : ''}}${{change.toFixed(2)}}%</td><td>${{Number(item.volume || 0).toLocaleString('en-IN')}}</td></tr>`;
+          }})
+          .join('');
+        summary.updated.textContent = 'Updated from live market feed';
+      }})
+      .catch(() => {{
+        summary.updated.textContent = 'Live sector table unavailable. Static constituents remain available below.';
+      }});
+  }})();
+  </script>"""
+
 def render_lp_nav():
     return """<header class="lp-nav">
     <a href="/" class="lp-nav-brand"><div class="lp-nav-mark">EQ</div><span class="lp-nav-name">Equilytics</span></a>
@@ -800,6 +922,7 @@ def render_stock_seo_page(slug):
     index_text = ", ".join(memberships) if memberships else "NSE-listed stock universe"
     canonical = f"https://www.equilytics.in/stocks/{stock_slug(symbol)}"
     description = f"Track {name} ({symbol}) on Equilytics with live NSE heatmap context, sector signals, top mover checks, and company financials."
+    cached_metrics = load_card_metrics().get(symbol, {})
     faq_items = [
         (f"Where can I track {symbol} live?", f"You can open Equilytics to view {symbol} in the live market dashboard, heatmap, and financials search."),
         (f"Does this page provide investment advice on {symbol}?", "No. Equilytics provides market data, visual tools, and educational context only. It is not investment advice."),
@@ -837,12 +960,44 @@ def render_stock_seo_page(slug):
     <div class="lp-hero-actions"><a href="/financials?q={quote_plus(symbol)}" class="lp-btn-primary">View Financials</a><a href="/heatmap" class="lp-btn-secondary">Open Heatmap</a></div>
   </section>
   <section class="lp-section">
+    <div class="lp-eyebrow">Live Snapshot</div>
+    <h2>{escape(name)} Price and Market Snapshot</h2>
+    <p class="lp-lead" data-live-updated>Loading live market snapshot from the Equilytics feed.</p>
+    <div class="lp-stat-row">
+      <div class="lp-stat-block"><span>Last Price</span><strong data-live-price>--</strong></div>
+      <div class="lp-stat-block"><span>Day Change</span><strong data-live-change>--</strong></div>
+      <div class="lp-stat-block"><span>Volume</span><strong data-live-volume>--</strong></div>
+      <div class="lp-stat-block"><span>Day Range</span><strong><span data-live-low>--</span> - <span data-live-high>--</span></strong></div>
+    </div>
+  </section>
+  <section class="lp-section">
+    <div class="lp-eyebrow">Fundamental Markers</div>
+    <h2>{escape(name)} Cached Valuation Snapshot</h2>
+    <p class="lp-lead">When company financials are available in the Equilytics cache, this page exposes basic valuation markers for faster research. Open the full financials view for statements and source links.</p>
+    <div class="lp-card-grid">
+      <div class="lp-card"><h3>P/E Ratio</h3><p>{format_metric_value(cached_metrics.get("pe"))}</p></div>
+      <div class="lp-card"><h3>ROE</h3><p>{format_metric_value(cached_metrics.get("roe"), "%")}</p></div>
+      <div class="lp-card"><h3>Market Cap</h3><p>{format_metric_value(cached_metrics.get("marketCap"))}</p></div>
+    </div>
+  </section>
+  <section class="lp-section">
     <div class="lp-eyebrow">Market Context</div>
     <h2>How to Analyse {escape(name)} on Equilytics</h2>
     <div class="lp-card-grid">
       <div class="lp-card"><h3>Sector Lens</h3><p>{escape(name)} is grouped under {escape(sector_text)} for market rotation and breadth analysis.</p></div>
       <div class="lp-card"><h3>Index Context</h3><p>Watch {symbol} alongside {escape(index_text)} to see whether the move is stock-specific or part of a broader index trend.</p></div>
       <div class="lp-card"><h3>Financial Check</h3><p>Use the financials view to review P&amp;L, balance sheet, cash flow, ratios, and recent business quality signals.</p></div>
+    </div>
+  </section>
+  <section class="lp-section">
+    <div class="lp-eyebrow">Peer Watchlist</div>
+    <h2>{escape(name)} Peer Stocks</h2>
+    <p class="lp-lead">Compare {symbol} against nearby sector peers before deciding whether the move is company-specific or part of a sector-wide rotation.</p>
+    <div class="lp-table-wrap">
+      <table class="lp-table">
+        <thead><tr><th>Company</th><th>Sector</th><th>Research</th></tr></thead>
+        <tbody>{render_stock_peer_rows(symbol)}</tbody>
+      </table>
     </div>
   </section>
   <section class="lp-section">
@@ -859,6 +1014,7 @@ def render_stock_seo_page(slug):
     </div>
   </section>
   {render_lp_footer()}
+  {render_stock_live_script(symbol)}
 </body>
 </html>"""
     return html
@@ -908,10 +1064,33 @@ def render_sector_seo_page(slug):
     <div class="lp-hero-actions"><a href="/heatmap" class="lp-btn-primary">Open Sector Heatmap</a><a href="/sector-analysis" class="lp-btn-secondary">All Sectors</a></div>
   </section>
   <section class="lp-section">
+    <div class="lp-eyebrow">Live Sector Pulse</div>
+    <h2>{escape(label)} Sector Breadth and Top Movers</h2>
+    <p class="lp-lead" data-sector-updated>Loading live sector movement from the Equilytics feed.</p>
+    <div class="lp-stat-row">
+      <div class="lp-stat-block"><span>Tracked Stocks</span><strong data-sector-count>{len(stocks)}</strong></div>
+      <div class="lp-stat-block"><span>Advancing</span><strong data-sector-advancing>--</strong></div>
+      <div class="lp-stat-block"><span>Declining</span><strong data-sector-declining>--</strong></div>
+      <div class="lp-stat-block"><span>Average Move</span><strong data-sector-avg>--</strong></div>
+    </div>
+    <div class="lp-table-wrap">
+      <table class="lp-table">
+        <thead><tr><th>Symbol</th><th>Last Price</th><th>Change</th><th>Volume</th></tr></thead>
+        <tbody data-sector-live-table><tr><td colspan="4">Live sector table is loading.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+  <section class="lp-section">
     <div class="lp-eyebrow">Sector Constituents</div>
     <h2>Key {escape(label)} Stocks to Track</h2>
     <p class="lp-lead">These stock pages give search engines and visitors a crawlable path into the live Equilytics dashboard, company financials, and market heatmap.</p>
     <div class="lp-related">{sample_links}</div>
+    <div class="lp-table-wrap">
+      <table class="lp-table">
+        <thead><tr><th>#</th><th>Company</th><th>Financials</th><th>Stock Page</th></tr></thead>
+        <tbody>{render_sector_static_rows(sector)}</tbody>
+      </table>
+    </div>
   </section>
   <section class="lp-section">
     <div class="lp-eyebrow">Analysis Workflow</div>
@@ -928,6 +1107,7 @@ def render_sector_seo_page(slug):
     <div class="lp-related"><a href="/market-overview" class="lp-related-link">Market Overview</a><a href="/top-gainers" class="lp-related-link">Top Gainers</a><a href="/top-losers" class="lp-related-link">Top Losers</a><a href="/blog" class="lp-related-link">Market Insights Blog</a></div>
   </section>
   {render_lp_footer()}
+  {render_sector_live_script(sector)}
 </body>
 </html>"""
     return html
