@@ -57,6 +57,8 @@ def static_files(path):
         "top-losers": "top-losers.html",
         "sector-analysis": "sector-analysis.html",
         "blog": "blog.html",
+        "blog-what-is-heatmap": "blog-what-is-heatmap.html",
+        "blog-nse-gainers-losers": "blog-nse-gainers-losers.html",
     }
     if path in seo_pages:
         return send_from_directory(FRONTEND_DIR, seo_pages[path])

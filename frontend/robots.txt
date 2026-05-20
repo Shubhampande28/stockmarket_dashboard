@@ -13,6 +13,8 @@ Allow: /top-gainers
 Allow: /top-losers
 Allow: /sector-analysis
 Allow: /blog
+Allow: /blog-what-is-heatmap
+Allow: /blog-nse-gainers-losers
 Allow: /blog-what-is-heatmap.html
 Allow: /blog-nse-gainers-losers.html
 Allow: /markets
