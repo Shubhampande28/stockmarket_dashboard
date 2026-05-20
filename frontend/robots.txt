@@ -17,6 +17,12 @@ Allow: /blog-what-is-heatmap
 Allow: /blog-nse-gainers-losers
 Allow: /blog-what-is-heatmap.html
 Allow: /blog-nse-gainers-losers.html
+Allow: /about
+Allow: /contact
+Allow: /privacy-policy
+Allow: /disclaimer
+Allow: /stocks/
+Allow: /sectors/
 Allow: /markets
 Allow: /heatmap
 Allow: /financials

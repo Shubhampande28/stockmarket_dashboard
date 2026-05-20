@@ -47,6 +47,25 @@ def home():
 
 @app.route("/<path:path>")
 def static_files(path):
+    clean_redirects = {
+        "market-overview.html": "/market-overview",
+        "nifty-50-heatmap.html": "/nifty-50-heatmap",
+        "top-gainers.html": "/top-gainers",
+        "top-losers.html": "/top-losers",
+        "sector-analysis.html": "/sector-analysis",
+        "blog.html": "/blog",
+        "blog-what-is-heatmap.html": "/blog-what-is-heatmap",
+        "blog-nse-gainers-losers.html": "/blog-nse-gainers-losers",
+    }
+    if path in clean_redirects:
+        return redirect(clean_redirects[path], code=301)
+
+    if path.startswith("stocks/"):
+        return render_stock_seo_page(path.split("/", 1)[1])
+
+    if path.startswith("sectors/"):
+        return render_sector_seo_page(path.split("/", 1)[1])
+
     if path in {"markets", "heatmap", "financials", "insights"}:
         return send_from_directory(FRONTEND_DIR, "index.html")
     # Clean URLs for SEO landing pages
@@ -59,6 +78,10 @@ def static_files(path):
         "blog": "blog.html",
         "blog-what-is-heatmap": "blog-what-is-heatmap.html",
         "blog-nse-gainers-losers": "blog-nse-gainers-losers.html",
+        "about": "about.html",
+        "contact": "contact.html",
+        "privacy-policy": "privacy-policy.html",
+        "disclaimer": "disclaimer.html",
     }
     if path in seo_pages:
         return send_from_directory(FRONTEND_DIR, seo_pages[path])
@@ -587,6 +610,280 @@ SECTOR_GROUPS = {
         "MIDHANI"
     ]
 }
+
+SECTOR_LABELS = {
+    "it": "Information Technology",
+    "bank": "Banking",
+    "finance": "Financial Services",
+    "auto": "Auto",
+    "pharma": "Pharma and Healthcare",
+    "fmcg": "FMCG",
+    "metal": "Metals",
+    "energy": "Energy",
+    "realty": "Real Estate",
+    "telecom": "Telecom",
+    "psu": "PSU",
+    "chemicals": "Chemicals",
+    "media": "Media",
+    "cement": "Cement",
+    "consumer": "Consumer",
+    "infra": "Infrastructure",
+}
+
+SECTOR_DESCRIPTIONS = {
+    "bank": "Track public and private sector banks, credit-sensitive stocks, and rate-cycle leaders in the Indian market.",
+    "it": "Follow Indian IT services, product technology, digital transformation, and export-oriented technology companies.",
+    "finance": "Analyse NBFCs, insurers, exchanges, housing finance companies, and other financial services stocks.",
+    "auto": "Track passenger vehicles, two-wheelers, commercial vehicles, ancillaries, tyres, and auto component makers.",
+    "pharma": "Follow drug makers, hospitals, diagnostics, and healthcare companies listed on NSE.",
+    "energy": "Monitor oil, gas, utilities, power generation, coal, and renewable energy-linked Indian stocks.",
+}
+
+STOCK_NAME_OVERRIDES = {
+    "RELIANCE": "Reliance Industries",
+    "TCS": "Tata Consultancy Services",
+    "HDFCBANK": "HDFC Bank",
+    "ICICIBANK": "ICICI Bank",
+    "INFY": "Infosys",
+    "ITC": "ITC",
+    "LT": "Larsen & Toubro",
+    "SBIN": "State Bank of India",
+    "BHARTIARTL": "Bharti Airtel",
+    "KOTAKBANK": "Kotak Mahindra Bank",
+    "AXISBANK": "Axis Bank",
+    "HINDUNILVR": "Hindustan Unilever",
+    "ASIANPAINT": "Asian Paints",
+    "MARUTI": "Maruti Suzuki",
+    "SUNPHARMA": "Sun Pharma",
+    "TITAN": "Titan Company",
+    "ULTRACEMCO": "UltraTech Cement",
+    "WIPRO": "Wipro",
+    "HCLTECH": "HCL Technologies",
+    "POWERGRID": "Power Grid Corporation",
+    "NTPC": "NTPC",
+    "ONGC": "ONGC",
+    "JSWSTEEL": "JSW Steel",
+    "TATASTEEL": "Tata Steel",
+    "ADANIPORTS": "Adani Ports",
+    "COALINDIA": "Coal India",
+}
+
+def normalize_seo_symbol(value):
+    return re.sub(r"[^A-Z0-9&-]", "", (value or "").upper().replace(".NS", ""))
+
+def stock_slug(symbol):
+    return symbol.lower().replace("&", "and")
+
+def symbol_from_stock_slug(slug):
+    raw = (slug or "").upper().replace("-AND-", "&")
+    return normalize_seo_symbol(raw.replace("-", ""))
+
+def stock_display_name(symbol):
+    return STOCK_NAME_OVERRIDES.get(symbol, symbol)
+
+def sectors_for_symbol(symbol):
+    return [
+        SECTOR_LABELS.get(sector, sector.title())
+        for sector, symbols in SECTOR_GROUPS.items()
+        if symbol in symbols
+    ]
+
+def index_memberships_for_symbol(symbol):
+    memberships = []
+    for index, symbols in INDEX_GROUPS.items():
+        if symbol in symbols:
+            memberships.append(index.upper().replace("NIFTY", " NIFTY").strip())
+    return memberships[:5]
+
+def render_lp_nav():
+    return """<header class="lp-nav">
+    <a href="/" class="lp-nav-brand"><div class="lp-nav-mark">EQ</div><span class="lp-nav-name">Equilytics</span></a>
+    <nav class="lp-nav-links">
+      <a href="/markets">Markets</a><a href="/heatmap">Heatmap</a><a href="/financials">Financials</a><a href="/blog">Blog</a><a href="/" class="lp-nav-cta">Open Dashboard</a>
+    </nav>
+  </header>"""
+
+def render_lp_footer():
+    return """<footer class="lp-footer">
+    <div class="lp-footer-copy">2026 Equilytics. Market data and tools are for informational and educational use only.</div>
+    <div class="lp-footer-links"><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy-policy">Privacy</a><a href="/disclaimer">Disclaimer</a></div>
+  </footer>"""
+
+def page_schema(name, url, description, breadcrumb_name, faq_items=None):
+    graph = [
+        {
+            "@type": "WebPage",
+            "name": name,
+            "url": url,
+            "description": description,
+            "inLanguage": "en-IN",
+            "breadcrumb": {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.equilytics.in/"},
+                    {"@type": "ListItem", "position": 2, "name": breadcrumb_name, "item": url},
+                ],
+            },
+        }
+    ]
+    if faq_items:
+        graph.append({
+            "@type": "FAQPage",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": q,
+                    "acceptedAnswer": {"@type": "Answer", "text": a},
+                }
+                for q, a in faq_items
+            ],
+        })
+    return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False)
+
+def render_stock_seo_page(slug):
+    symbol = symbol_from_stock_slug(slug)
+    instrument_map = load_instrument_map()
+    if symbol not in instrument_map:
+        return send_from_directory(FRONTEND_DIR, "index.html"), 404
+
+    name = stock_display_name(symbol)
+    sectors = sectors_for_symbol(symbol)
+    memberships = index_memberships_for_symbol(symbol)
+    sector_text = ", ".join(sectors) if sectors else "Indian equities"
+    index_text = ", ".join(memberships) if memberships else "NSE-listed stock universe"
+    canonical = f"https://www.equilytics.in/stocks/{stock_slug(symbol)}"
+    description = f"Track {name} ({symbol}) on Equilytics with live NSE heatmap context, sector signals, top mover checks, and company financials."
+    faq_items = [
+        (f"Where can I track {symbol} live?", f"You can open Equilytics to view {symbol} in the live market dashboard, heatmap, and financials search."),
+        (f"Does this page provide investment advice on {symbol}?", "No. Equilytics provides market data, visual tools, and educational context only. It is not investment advice."),
+    ]
+    related_sector_links = "".join(
+        f'<a href="/sectors/{sector}" class="lp-related-link">{escape(SECTOR_LABELS.get(sector, sector.title()))}</a>'
+        for sector, symbols in SECTOR_GROUPS.items()
+        if symbol in symbols
+    )
+    if not related_sector_links:
+        related_sector_links = '<a href="/sector-analysis" class="lp-related-link">Sector Analysis</a>'
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{escape(name)} Share Price, Heatmap & Financials | Equilytics</title>
+  <meta name="description" content="{escape(description)}">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{canonical}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{escape(name)} ({symbol}) | Equilytics">
+  <meta property="og:description" content="{escape(description)}">
+  <meta property="og:url" content="{canonical}">
+  <link rel="stylesheet" href="/lp-styles.css">
+  <script type="application/ld+json">{page_schema(f"{name} Share Price, Heatmap & Financials", canonical, description, symbol, faq_items)}</script>
+</head>
+<body>
+  {render_lp_nav()}
+  <section class="lp-hero">
+    <div class="lp-kicker">NSE Stock Page</div>
+    <h1>{escape(name)} <em>({symbol})</em> Stock Dashboard</h1>
+    <p>{escape(description)} Use this page as a quick entry point for price momentum, sector context, and fundamental checks.</p>
+    <div class="lp-hero-actions"><a href="/financials?q={quote_plus(symbol)}" class="lp-btn-primary">View Financials</a><a href="/heatmap" class="lp-btn-secondary">Open Heatmap</a></div>
+  </section>
+  <section class="lp-section">
+    <div class="lp-eyebrow">Market Context</div>
+    <h2>How to Analyse {escape(name)} on Equilytics</h2>
+    <div class="lp-card-grid">
+      <div class="lp-card"><h3>Sector Lens</h3><p>{escape(name)} is grouped under {escape(sector_text)} for market rotation and breadth analysis.</p></div>
+      <div class="lp-card"><h3>Index Context</h3><p>Watch {symbol} alongside {escape(index_text)} to see whether the move is stock-specific or part of a broader index trend.</p></div>
+      <div class="lp-card"><h3>Financial Check</h3><p>Use the financials view to review P&amp;L, balance sheet, cash flow, ratios, and recent business quality signals.</p></div>
+    </div>
+  </section>
+  <section class="lp-section">
+    <div class="lp-eyebrow">Related Pages</div>
+    <h2>Explore Related Market Views</h2>
+    <div class="lp-related">{related_sector_links}<a href="/top-gainers" class="lp-related-link">Top Gainers</a><a href="/top-losers" class="lp-related-link">Top Losers</a><a href="/nifty-50-heatmap" class="lp-related-link">NIFTY 50 Heatmap</a></div>
+  </section>
+  <section class="lp-section">
+    <div class="lp-eyebrow">FAQ</div>
+    <h2>{symbol} FAQ</h2>
+    <div class="lp-faq-list">
+      <details class="lp-faq-item"><summary>Where can I track {symbol} live?</summary><p>You can open the live dashboard, heatmap, or financials search from this page.</p></details>
+      <details class="lp-faq-item"><summary>Is this investment advice?</summary><p>No. Equilytics is for informational and educational use only.</p></details>
+    </div>
+  </section>
+  {render_lp_footer()}
+</body>
+</html>"""
+    return html
+
+def render_sector_seo_page(slug):
+    sector = re.sub(r"[^a-z0-9-]", "", (slug or "").lower())
+    if sector not in SECTOR_GROUPS:
+        return send_from_directory(FRONTEND_DIR, "sector-analysis.html"), 404
+
+    label = SECTOR_LABELS.get(sector, sector.title())
+    stocks = SECTOR_GROUPS[sector]
+    sample_links = "".join(
+        f'<a href="/stocks/{stock_slug(symbol)}" class="lp-related-link">{escape(stock_display_name(symbol))}</a>'
+        for symbol in stocks[:12]
+    )
+    canonical = f"https://www.equilytics.in/sectors/{sector}"
+    description = SECTOR_DESCRIPTIONS.get(
+        sector,
+        f"Track {label} sector stocks on Equilytics with live heatmap context, top movers, breadth, and rotation signals.",
+    )
+    faq_items = [
+        (f"What is included in the {label} sector page?", f"The page groups key NSE-listed {label} stocks and links them to live heatmap and financials tools."),
+        ("Does Equilytics recommend sector trades?", "No. Equilytics provides market tools and educational context only, not buy or sell recommendations."),
+    ]
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{escape(label)} Stocks India - NSE Sector Heatmap | Equilytics</title>
+  <meta name="description" content="{escape(description)}">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{canonical}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{escape(label)} Stocks India | Equilytics">
+  <meta property="og:description" content="{escape(description)}">
+  <meta property="og:url" content="{canonical}">
+  <link rel="stylesheet" href="/lp-styles.css">
+  <script type="application/ld+json">{page_schema(f"{label} Stocks India", canonical, description, label, faq_items)}</script>
+</head>
+<body>
+  {render_lp_nav()}
+  <section class="lp-hero">
+    <div class="lp-kicker">NSE Sector Page</div>
+    <h1>{escape(label)} <em>Stocks</em> India</h1>
+    <p>{escape(description)} Use this page to move from broad sector analysis into individual stock checks.</p>
+    <div class="lp-hero-actions"><a href="/heatmap" class="lp-btn-primary">Open Sector Heatmap</a><a href="/sector-analysis" class="lp-btn-secondary">All Sectors</a></div>
+  </section>
+  <section class="lp-section">
+    <div class="lp-eyebrow">Sector Constituents</div>
+    <h2>Key {escape(label)} Stocks to Track</h2>
+    <p class="lp-lead">These stock pages give search engines and visitors a crawlable path into the live Equilytics dashboard, company financials, and market heatmap.</p>
+    <div class="lp-related">{sample_links}</div>
+  </section>
+  <section class="lp-section">
+    <div class="lp-eyebrow">Analysis Workflow</div>
+    <h2>How to Read {escape(label)} Sector Moves</h2>
+    <div class="lp-card-grid">
+      <div class="lp-card"><h3>Breadth</h3><p>Check whether most stocks in the sector are moving together or only one heavyweight is driving the headline move.</p></div>
+      <div class="lp-card"><h3>Leadership</h3><p>Compare the strongest and weakest names to identify where momentum is concentrated during the session.</p></div>
+      <div class="lp-card"><h3>Confirmation</h3><p>Use company financials and news context before treating a sector move as a durable trend.</p></div>
+    </div>
+  </section>
+  <section class="lp-section">
+    <div class="lp-eyebrow">Related Pages</div>
+    <h2>Explore More Market Views</h2>
+    <div class="lp-related"><a href="/market-overview" class="lp-related-link">Market Overview</a><a href="/top-gainers" class="lp-related-link">Top Gainers</a><a href="/top-losers" class="lp-related-link">Top Losers</a><a href="/blog" class="lp-related-link">Market Insights Blog</a></div>
+  </section>
+  {render_lp_footer()}
+</body>
+</html>"""
+    return html
 
 INDEX_GROUPS = load_index_constituents()
 
