@@ -7977,11 +7977,12 @@ body:not(.experience-open) .hero-copy {
 
 body:not(.experience-open) .hero-section h1,
 body:not(.experience-open) .hero-copy h1 {
-    max-width: 14ch !important;
+    max-width: 16ch !important;
     margin-bottom: clamp(0.75rem, 1.8vw, 1.25rem) !important;
     font-size: var(--hero-title-size) !important;
-    line-height: 1.05 !important;
-    letter-spacing: -0.01em !important;
+    line-height: 1.08 !important;
+    letter-spacing: 0 !important;
+    word-spacing: 0.04em !important;
     text-wrap: balance;
 }
 

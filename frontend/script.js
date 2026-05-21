@@ -2089,6 +2089,20 @@ function loadView(type) {
     }
 }
 
+function openIndexHeatmap(indexView) {
+    if (!indexView) {
+        return;
+    }
+
+    if (indexView === "nifty50") {
+        window.location.href = "/nifty-50-heatmap";
+        return;
+    }
+
+    loadView(indexView);
+    navigateTo("heatmap");
+}
+
 function updateMarketFilterControls() {
     syncFilterDropdownOptions();
 
@@ -3946,7 +3960,7 @@ document.querySelectorAll(".tab-button").forEach(button => {
 });
 
 document.querySelectorAll("[data-index-view]").forEach(button => {
-    button.addEventListener("click", () => loadView(button.dataset.indexView));
+    button.addEventListener("click", () => openIndexHeatmap(button.dataset.indexView));
 });
 
 document.querySelectorAll("[data-hero-action]").forEach(button => {
@@ -4006,8 +4020,7 @@ document.addEventListener("click", event => {
 
     const marketIndexRow = event.target.closest("#marketIndexSummary [data-index-view]");
     if (marketIndexRow?.dataset.indexView) {
-        loadView(marketIndexRow.dataset.indexView);
-        navigateTo("heatmap");
+        openIndexHeatmap(marketIndexRow.dataset.indexView);
     }
 
     const trendTab = event.target.closest(".trend-tab");
