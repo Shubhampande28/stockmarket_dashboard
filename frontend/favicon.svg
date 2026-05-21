@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Dark circle background -->
-  <circle cx="16" cy="16" r="16" fill="#0f172a"/>
-  <!-- EQ text -->
-  <text x="16" y="21" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-1">EQ</text>
-  <!-- Green underline -->
-  <rect x="5" y="23" width="22" height="2" rx="1" fill="#4ade80"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Equilytics logo">
+  <rect width="512" height="512" rx="112" fill="#07111f"/>
+  <path d="M132 348h56V240h-56v108Z" fill="#22c55e"/>
+  <path d="M228 348h56V172h-56v176Z" fill="#38bdf8"/>
+  <path d="M324 348h56V104h-56v244Z" fill="#2563eb"/>
+  <path d="M108 384h296" stroke="#e2e8f0" stroke-width="28" stroke-linecap="round"/>
+  <path d="M128 200l88-64 80 44 88-104" fill="none" stroke="#4ade80" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
