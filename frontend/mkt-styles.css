@@ -255,6 +255,110 @@ body.markets-open .markets-page,
 .mkt-time-tab.active { background: #dbeafe; color: #1d4ed8; }
 
 /* Breadth chart */
+.mkt-breadth-gauge-card {
+    display: grid;
+    grid-template-columns: minmax(180px, 240px) 1fr;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+}
+
+.mkt-gauge-wrap {
+    position: relative;
+    min-height: 132px;
+}
+
+.mkt-gauge-svg {
+    width: 100%;
+    height: 132px;
+    display: block;
+}
+
+.mkt-gauge-track,
+.mkt-gauge-adv,
+.mkt-gauge-dec {
+    fill: none;
+    stroke-width: 18;
+    stroke-linecap: round;
+    path-length: 100;
+}
+
+.mkt-gauge-track { stroke: #e2e8f0; }
+.mkt-gauge-adv {
+    stroke: #16a34a;
+    stroke-dasharray: 0 100;
+    transition: stroke-dasharray 600ms ease;
+}
+.mkt-gauge-dec {
+    stroke: #dc2626;
+    stroke-dasharray: 0 100;
+    stroke-dashoffset: 0;
+    transform: scaleX(-1);
+    transform-origin: 110px 112px;
+    transition: stroke-dasharray 600ms ease, stroke-dashoffset 600ms ease;
+}
+
+.mkt-gauge-center {
+    position: absolute;
+    left: 50%;
+    top: 62%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.mkt-gauge-center strong {
+    display: block;
+    color: #0f172a;
+    font-size: clamp(1.45rem, 2.2vw, 2rem);
+    line-height: 1;
+}
+
+.mkt-gauge-center span {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.mkt-gauge-counts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.mkt-gauge-counts div {
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+.mkt-gauge-counts span {
+    display: block;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.mkt-gauge-counts strong {
+    display: block;
+    margin-top: 8px;
+    font-size: clamp(1.35rem, 2vw, 1.75rem);
+    line-height: 1;
+}
+
+.mkt-gauge-green { color: #16a34a; }
+.mkt-gauge-red { color: #dc2626; }
+
 .mkt-breadth-chart-wrap {
     flex: 1;
     border: 1px solid #e2e8f0;
@@ -295,4 +399,6 @@ body.markets-open .markets-page,
     .mkt-metric-card { border-right: none; border-bottom: 1px solid #e2e8f0; }
     .mkt-page-head { padding: 14px 16px; }
     .mkt-sector-list { grid-template-columns: 1fr; }
+    .mkt-breadth-gauge-card,
+    .mkt-gauge-counts { grid-template-columns: 1fr; }
 }

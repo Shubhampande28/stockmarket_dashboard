@@ -373,6 +373,23 @@ function setupPremiumExperience() {
                             <button class="mkt-time-tab" type="button">1Y</button>
                         </div>
                     </div>
+                    <div class="mkt-breadth-gauge-card" aria-label="Market breadth gauge">
+                        <div class="mkt-gauge-wrap">
+                            <svg class="mkt-gauge-svg" viewBox="0 0 220 132" aria-hidden="true">
+                                <path class="mkt-gauge-track" d="M30 112 A80 80 0 0 1 190 112"></path>
+                                <path class="mkt-gauge-adv" id="mktGaugeAdvArc" d="M30 112 A80 80 0 0 1 190 112"></path>
+                                <path class="mkt-gauge-dec" id="mktGaugeDecArc" d="M30 112 A80 80 0 0 1 190 112"></path>
+                            </svg>
+                            <div class="mkt-gauge-center">
+                                <strong id="mktGaugePct">--</strong>
+                                <span>Advancing</span>
+                            </div>
+                        </div>
+                        <div class="mkt-gauge-counts">
+                            <div><span>Advances</span><strong class="mkt-gauge-green" id="mktGaugeAdv">--</strong></div>
+                            <div><span>Declines</span><strong class="mkt-gauge-red" id="mktGaugeDec">--</strong></div>
+                        </div>
+                    </div>
                     <div class="mkt-breadth-chart-wrap">
                         <svg class="mkt-breadth-svg" id="mktBreadthSvg" viewBox="0 0 560 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
                         <div class="mkt-chart-labels" id="mktChartLabels"></div>
@@ -1094,6 +1111,7 @@ function renderMarketsPage() {
     const statAdv = document.getElementById("mktStatAdv");
     const statDec = document.getElementById("mktStatDec");
     const statUnch = document.getElementById("mktStatUnch");
+    updateMarketBreadthGauge(gainers.length, losers.length, stocks.length);
     if (statAdv && stocks.length) {
         statAdv.textContent = gainers.length.toLocaleString("en-IN");
         if (statDec) statDec.textContent = losers.length.toLocaleString("en-IN");
@@ -1115,6 +1133,27 @@ function renderMarketsPage() {
             unchDelta.textContent = "-" + unchanged.length + " (-" + pct + "%)";
         }
     }
+}
+
+function updateMarketBreadthGauge(advancing, declining, total) {
+    const gaugeAdv = document.getElementById("mktGaugeAdv");
+    const gaugeDec = document.getElementById("mktGaugeDec");
+    const gaugePct = document.getElementById("mktGaugePct");
+    const advArc = document.getElementById("mktGaugeAdvArc");
+    const decArc = document.getElementById("mktGaugeDecArc");
+    const activeTotal = advancing + declining;
+
+    if (!gaugeAdv || !gaugeDec || !gaugePct || !advArc || !decArc || !total || !activeTotal) {
+        return;
+    }
+
+    const advPct = Math.max(0, Math.min(100, (advancing / activeTotal) * 100));
+    const decPct = 100 - advPct;
+    gaugeAdv.textContent = advancing.toLocaleString("en-IN");
+    gaugeDec.textContent = declining.toLocaleString("en-IN");
+    gaugePct.textContent = `${Math.round(advPct)}%`;
+    advArc.style.strokeDasharray = `${advPct} ${100 - advPct}`;
+    decArc.style.strokeDasharray = `${decPct} ${100 - decPct}`;
 }
 
 function buildMiniSparklineSvg(avgChange, isPos) {
@@ -2091,11 +2130,6 @@ function loadView(type) {
 
 function openIndexHeatmap(indexView) {
     if (!indexView) {
-        return;
-    }
-
-    if (indexView === "nifty50") {
-        window.location.href = "/nifty-50-heatmap";
         return;
     }
 
