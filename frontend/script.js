@@ -2066,7 +2066,7 @@ function updateIndexCards() {
         if (priceNode) {
             priceNode.textContent = quote.price === null || quote.price === undefined
                 ? "--"
-                : formatRupeePrice(quote.price);
+                : formatPrice(quote.price);
         }
 
         if (changeNode) {
