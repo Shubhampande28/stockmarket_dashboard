@@ -166,6 +166,9 @@ const viewTitle = document.getElementById("viewTitle");
 const viewMeta = document.getElementById("viewMeta");
 const searchInput = document.getElementById("stockSearch");
 const searchSuggestions = document.getElementById("searchSuggestions");
+const landingStockSearchForm = document.getElementById("landingStockSearchForm");
+const landingStockSearch = document.getElementById("landingStockSearch");
+const landingSearchSuggestions = document.getElementById("landingSearchSuggestions");
 const viewSelect = document.getElementById("viewSelect");
 const filterButton = document.getElementById("filterButton");
 const filterDrawer = document.getElementById("filterDrawer");
@@ -2810,6 +2813,34 @@ function getSearchMatches(limit = 8) {
         .slice(0, limit);
 }
 
+function getStockSearchMatches(term, limit = 8) {
+    const normalizedTerm = String(term || "").trim().toLowerCase();
+    if (!normalizedTerm) {
+        return [];
+    }
+
+    return fullUniverse
+        .filter(stock => {
+            const symbol = stock.symbol.toLowerCase();
+            const cleanSymbol = stock.symbol.replace(".NS", "").toLowerCase();
+            const name = (stock.name || "").toLowerCase();
+            return symbol.includes(normalizedTerm) || cleanSymbol.includes(normalizedTerm) || name.includes(normalizedTerm);
+        })
+        .sort((a, b) => {
+            const aSymbol = a.symbol.replace(".NS", "").toLowerCase();
+            const bSymbol = b.symbol.replace(".NS", "").toLowerCase();
+            const aName = (a.name || "").toLowerCase();
+            const bName = (b.name || "").toLowerCase();
+            const aStarts = aSymbol.startsWith(normalizedTerm) || aName.startsWith(normalizedTerm);
+            const bStarts = bSymbol.startsWith(normalizedTerm) || bName.startsWith(normalizedTerm);
+            if (aStarts !== bStarts) {
+                return aStarts ? -1 : 1;
+            }
+            return Math.abs(Number(b.change || 0)) - Math.abs(Number(a.change || 0));
+        })
+        .slice(0, limit);
+}
+
 function renderSearchSuggestions() {
     if (!searchSuggestions || !searchInput) {
         return;
@@ -2850,6 +2881,58 @@ function closeSearchSuggestions() {
 
     searchSuggestions.hidden = true;
     searchInput.setAttribute("aria-expanded", "false");
+}
+
+function renderLandingSearchSuggestions() {
+    if (!landingStockSearch || !landingSearchSuggestions) {
+        return;
+    }
+
+    const matches = getStockSearchMatches(landingStockSearch.value);
+    landingStockSearch.setAttribute("aria-expanded", matches.length ? "true" : "false");
+
+    if (!matches.length) {
+        landingSearchSuggestions.hidden = true;
+        landingSearchSuggestions.innerHTML = "";
+        return;
+    }
+
+    landingSearchSuggestions.hidden = false;
+    landingSearchSuggestions.innerHTML = matches.map(stock => {
+        const symbol = stock.symbol.replace(".NS", "");
+        const isPositive = Number(stock.change || 0) >= 0;
+        return `
+            <button class="landing-search-suggestion" type="button" data-landing-symbol="${escapeAttribute(stock.symbol)}" role="option">
+                <span>
+                    <strong>${escapeHtml(symbol)}</strong>
+                    <small>${escapeHtml(stock.name || symbol)}</small>
+                </span>
+                <span>
+                    <strong>${formatRupeePrice(stock.price)}</strong>
+                    <small class="${isPositive ? "gain" : "loss"}">${formatChange(stock.change)}</small>
+                </span>
+            </button>
+        `;
+    }).join("");
+}
+
+function closeLandingSearchSuggestions() {
+    if (!landingStockSearch || !landingSearchSuggestions) {
+        return;
+    }
+
+    landingSearchSuggestions.hidden = true;
+    landingStockSearch.setAttribute("aria-expanded", "false");
+}
+
+function openLandingSearchResult(symbol) {
+    const stock = getStockBySymbol(symbol);
+    if (!stock) {
+        return;
+    }
+
+    closeLandingSearchSuggestions();
+    openStockPage(stock);
 }
 
 function getCardSize(stock, index) {
@@ -4147,9 +4230,36 @@ if (searchSuggestions) {
     });
 }
 
+if (landingStockSearch) {
+    landingStockSearch.addEventListener("input", renderLandingSearchSuggestions);
+    landingStockSearch.addEventListener("focus", renderLandingSearchSuggestions);
+}
+
+if (landingStockSearchForm) {
+    landingStockSearchForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const firstMatch = getStockSearchMatches(landingStockSearch?.value, 1)[0];
+        if (firstMatch) {
+            openLandingSearchResult(firstMatch.symbol);
+        }
+    });
+}
+
+if (landingSearchSuggestions) {
+    landingSearchSuggestions.addEventListener("click", event => {
+        const option = event.target.closest("[data-landing-symbol]");
+        if (option) {
+            openLandingSearchResult(option.dataset.landingSymbol);
+        }
+    });
+}
+
 document.addEventListener("click", event => {
     if (!event.target.closest(".search-wrap")) {
         closeSearchSuggestions();
+    }
+    if (!event.target.closest(".landing-stock-search")) {
+        closeLandingSearchSuggestions();
     }
     if (!event.target.closest(".financial-search-wrap")) {
         document.getElementById("financialSearchResults")?.setAttribute("hidden", "");

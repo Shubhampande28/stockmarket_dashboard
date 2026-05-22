@@ -10226,6 +10226,190 @@ body.heatmap-open .site-header {
     top: 0 !important;
 }
 
+/* Landing page stock search */
+body:not(.experience-open) .hero-section {
+    grid-template-columns: minmax(0, 0.95fr) minmax(300px, 0.8fr) !important;
+    align-items: center !important;
+}
+
+body:not(.experience-open) .hero-copy {
+    align-items: center !important;
+    text-align: center !important;
+    max-width: 860px !important;
+    margin: 0 auto !important;
+}
+
+.landing-stock-search {
+    position: relative;
+    z-index: 20;
+    width: min(760px, 100%);
+    margin: clamp(22px, 3vw, 34px) auto 0;
+}
+
+.landing-stock-search label {
+    display: block;
+    margin-bottom: 10px;
+    color: #2563eb;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.landing-search-box {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 68px;
+    padding: 8px 8px 8px 22px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.landing-search-box:focus-within {
+    border-color: rgba(37, 99, 235, 0.48);
+    box-shadow: 0 28px 80px rgba(37, 99, 235, 0.18), 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.landing-search-box svg {
+    color: #2563eb;
+    flex-shrink: 0;
+}
+
+.landing-search-box input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #0f172a;
+    font-size: clamp(1rem, 1.45vw, 1.2rem);
+    font-weight: 800;
+}
+
+.landing-search-box input::placeholder {
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.landing-search-box button {
+    height: 52px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #1367ef, #0f46c7);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 14px 28px rgba(19, 103, 239, 0.28);
+    transition: transform 160ms ease, box-shadow 160ms ease;
+    white-space: nowrap;
+}
+
+.landing-search-box button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 36px rgba(19, 103, 239, 0.34);
+}
+
+.landing-search-suggestions {
+    position: absolute;
+    inset: calc(100% + 12px) 0 auto 0;
+    z-index: 50;
+    display: grid;
+    gap: 6px;
+    max-height: min(380px, 62vh);
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.2);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.landing-search-suggestions[hidden] {
+    display: none;
+}
+
+.landing-search-suggestion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #0f172a;
+    text-align: left;
+    cursor: pointer;
+}
+
+.landing-search-suggestion:hover,
+.landing-search-suggestion:focus-visible {
+    border-color: rgba(37, 99, 235, 0.18);
+    background: #f8fbff;
+}
+
+.landing-search-suggestion span {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.landing-search-suggestion span:last-child {
+    justify-items: end;
+    flex-shrink: 0;
+}
+
+.landing-search-suggestion strong {
+    color: #0f172a;
+    font-size: 0.95rem;
+    font-weight: 900;
+}
+
+.landing-search-suggestion small {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.landing-search-suggestion small.gain {
+    color: #16a34a;
+}
+
+.landing-search-suggestion small.loss {
+    color: #dc2626;
+}
+
+@media (max-width: 860px) {
+    body:not(.experience-open) .hero-section {
+        grid-template-columns: 1fr !important;
+    }
+
+    .landing-search-box {
+        grid-template-columns: auto minmax(0, 1fr);
+        border-radius: 26px;
+        padding: 16px;
+    }
+
+    .landing-search-box button {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+}
+
 @media (max-width: 1180px) {
     body.heatmap-open .filter-pill-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
