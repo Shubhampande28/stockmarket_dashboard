@@ -491,46 +491,61 @@ function setupPremiumExperience() {
 
     if (trendsPanel && !trendsPanel.innerHTML.trim()) {
         trendsPanel.innerHTML = `
-            <div class="trend-hero-grid" id="trendHeroGrid"></div>
-            <section class="trend-section trend-timeline-section">
-                <p class="workspace-eyebrow">Intraday Timeline</p>
-                <div class="trend-timeline">
-                    <button type="button"><span>09:15</span><strong>Banking weak opening</strong></button>
-                    <button type="button"><span>10:20</span><strong>IT momentum pickup</strong></button>
-                    <button type="button"><span>11:05</span><strong>Reliance breakout</strong></button>
-                    <button type="button"><span>12:10</span><strong>Pharma reversal</strong></button>
+            <header class="insights-page-head">
+                <p class="workspace-eyebrow">Insights</p>
+                <h2>Market Mood</h2>
+                <p>A simple visual read of what is happening today, which areas are strong, and what a normal investor should watch next.</p>
+            </header>
+            <div class="trend-hero-grid insight-mood-grid" id="trendHeroGrid"></div>
+            <section class="trend-section insight-story-section">
+                <div class="trend-section-head">
+                    <div>
+                        <p class="workspace-eyebrow">Today's Story</p>
+                        <h3>What happened in simple words</h3>
+                    </div>
                 </div>
+                <div class="trend-timeline insight-storyline" id="insightStoryline"></div>
             </section>
-            <section class="trend-section">
-                <p class="workspace-eyebrow">Sector Momentum</p>
+            <section class="trend-section insight-sector-section">
+                <div class="trend-section-head">
+                    <div>
+                        <p class="workspace-eyebrow">Sector Heat</p>
+                        <h3>Where strength is showing</h3>
+                    </div>
+                </div>
                 <div class="sector-momentum-grid" id="sectorMomentumGrid"></div>
             </section>
-            <section class="trend-section">
+            <section class="trend-section insight-movers-section">
                 <div class="trend-section-head">
-                    <p class="workspace-eyebrow">Top Movers</p>
+                    <div>
+                        <p class="workspace-eyebrow">Stocks In Focus</p>
+                        <h3>Names moving the most</h3>
+                    </div>
                     <div class="trend-tabs" role="tablist" aria-label="Top movers">
-                        <button class="trend-tab active" type="button" data-trend-tab="gainers">Top Gainers</button>
-                        <button class="trend-tab" type="button" data-trend-tab="losers">Top Losers</button>
+                        <button class="trend-tab active" type="button" data-trend-tab="gainers">Rising</button>
+                        <button class="trend-tab" type="button" data-trend-tab="losers">Falling</button>
                         <button class="trend-tab" type="button" data-trend-tab="active">Most Active</button>
-                        <button class="trend-tab" type="button" data-trend-tab="breakouts">Breakouts</button>
                     </div>
                 </div>
                 <div class="trend-movers-list" id="trendMoversList"></div>
             </section>
-            <section class="ai-summary-card">
-                <p class="workspace-eyebrow">AI Market Summary</p>
-                <blockquote id="aiMarketSummary">Financials and Energy are leading today's market strength while IT remains under pressure. Breadth remains neutral with selective midcap participation.</blockquote>
-            </section>
-            <section class="trend-section">
+            <section class="ai-summary-card insight-summary-card">
                 <div class="trend-section-head">
-                    <p class="workspace-eyebrow">Research Desk</p>
-                    <h3>Research Cards</h3>
+                    <div>
+                        <p class="workspace-eyebrow">What This Means</p>
+                        <h3>Plain English Summary</h3>
+                    </div>
                 </div>
-                <div class="insight-research-grid">
-                    <article><span>Morning Note</span><strong>Large-cap breadth is improving while defensives stay selective.</strong></article>
-                    <article><span>AI Screen</span><strong>Volume expansion is clustered in banks, autos, and energy leaders.</strong></article>
-                    <article><span>Risk Watch</span><strong>Weak closes below VWAP remain concentrated in IT laggards.</strong></article>
+                <blockquote id="aiMarketSummary"></blockquote>
+            </section>
+            <section class="trend-section insight-watch-section">
+                <div class="trend-section-head">
+                    <div>
+                        <p class="workspace-eyebrow">What To Watch</p>
+                        <h3>Next simple checks</h3>
+                    </div>
                 </div>
+                <div class="insight-research-grid" id="insightWatchGrid"></div>
             </section>
         `;
         trendHeroGrid = document.getElementById("trendHeroGrid");
@@ -1495,6 +1510,136 @@ function renderIntelList(title, stocks) {
     `;
 }
 
+function buildMarketMood(stocks, gainers, losers) {
+    const total = stocks.length || 0;
+    const advancingPct = total ? (gainers.length / total) * 100 : 0;
+    const avgMove = total
+        ? stocks.reduce((sum, stock) => sum + Number(stock.change || 0), 0) / total
+        : 0;
+
+    if (!total) {
+        return {
+            label: "Loading",
+            className: "neutral",
+            score: 0,
+            summary: "Waiting for live market data to understand the mood.",
+            short: "Data is loading"
+        };
+    }
+
+    if (advancingPct >= 62 && avgMove >= 0.15) {
+        return {
+            label: "Strong Market",
+            className: "good",
+            score: Math.round(advancingPct),
+            summary: "Most stocks are moving up, so buyers are clearly active across the market.",
+            short: "Broad buying"
+        };
+    }
+
+    if (advancingPct >= 53) {
+        return {
+            label: "Positive Market",
+            className: "good",
+            score: Math.round(advancingPct),
+            summary: "More stocks are rising than falling. The market mood is positive, but still needs broad support.",
+            short: "More green than red"
+        };
+    }
+
+    if (advancingPct >= 43) {
+        return {
+            label: "Mixed Market",
+            className: "mixed",
+            score: Math.round(advancingPct),
+            summary: "The market is selective today. Some pockets are doing well, but the full market is not strongly positive.",
+            short: "Selective movement"
+        };
+    }
+
+    return {
+        label: "Weak Market",
+        className: "weak",
+        score: Math.round(advancingPct),
+        summary: "More stocks are falling than rising, so the market mood is cautious right now.",
+        short: "Selling pressure"
+    };
+}
+
+function getSimpleSectorState(change) {
+    const value = Number(change || 0);
+    if (value >= 0.8) return "Doing very well";
+    if (value >= 0.2) return "Improving";
+    if (value > -0.2) return "Mixed";
+    if (value > -0.8) return "Weak";
+    return "Under pressure";
+}
+
+function buildInsightStory(mood, sectors, gainers, losers, mostActive, advancingPct) {
+    const topSector = sectors[0];
+    const weakSector = [...sectors].reverse()[0];
+    const topStock = gainers[0] || mostActive;
+    const weakStock = losers[0];
+
+    return [
+        {
+            tag: mood.className === "weak" ? "Caution" : mood.className === "mixed" ? "Mixed" : "Good",
+            title: mood.summary,
+            meta: `${Math.round(advancingPct)}% of tracked stocks are advancing`
+        },
+        {
+            tag: "Sector",
+            title: topSector
+                ? `${viewLabels[topSector.key] || topSector.key} is the strongest area today.`
+                : "Sector leadership is still forming.",
+            meta: topSector ? `${formatChange(topSector.average)} average move` : "Waiting for sector data"
+        },
+        {
+            tag: "Stock",
+            title: topStock
+                ? `${topStock.symbol.replace(".NS", "")} is attracting attention on the upside.`
+                : "No clear upside stock leader yet.",
+            meta: topStock ? `${formatChange(topStock.change)} at ${formatRupeePrice(topStock.price)}` : "Waiting"
+        },
+        {
+            tag: "Watch",
+            title: weakSector
+                ? `Keep an eye on ${viewLabels[weakSector.key] || weakSector.key}; it is the softest area.`
+                : weakStock
+                    ? `Keep an eye on ${weakStock.symbol.replace(".NS", "")}; it is under pressure.`
+                    : "Watch whether more stocks turn green.",
+            meta: weakSector ? `${formatChange(weakSector.average)} average move` : "Market breadth matters"
+        }
+    ];
+}
+
+function buildInsightWatchItems(mood, sectors, gainers, losers, mostActive) {
+    const topSector = sectors[0];
+    const weakSector = [...sectors].reverse()[0];
+    const activeSymbol = mostActive?.symbol?.replace(".NS", "");
+
+    return [
+        {
+            label: "Breadth",
+            text: mood.className === "weak"
+                ? "Check if more stocks start recovering before trusting any bounce."
+                : "Check if the number of rising stocks keeps improving."
+        },
+        {
+            label: "Sector",
+            text: topSector && weakSector
+                ? `See if ${viewLabels[topSector.key] || topSector.key} stays strong while ${viewLabels[weakSector.key] || weakSector.key} improves.`
+                : "See which sector becomes the clear leader."
+        },
+        {
+            label: "Activity",
+            text: activeSymbol
+                ? `Watch ${activeSymbol}; high activity means many traders are focused there.`
+                : "Watch the most active stock once data loads."
+        }
+    ];
+}
+
 function renderTrendsExperience() {
     if (!trendHeroGrid || !sectorMomentumGrid || !trendMoversList) {
         return;
@@ -1505,21 +1650,66 @@ function renderTrendsExperience() {
     const losers = getRankedLosers([...stocks]);
     const sectors = getSectorRankings();
     const topSector = sectors[0];
+    const weakSector = [...sectors].reverse()[0];
     const mostActive = [...stocks].sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0))[0] || gainers[0];
-    const sentiment = stocks.length && gainers.length / stocks.length >= 0.55 ? "Constructive" : "Selective";
+    const mood = buildMarketMood(stocks, gainers, losers);
+    const advancingPct = stocks.length ? (gainers.length / stocks.length) * 100 : 0;
+    const decliningPct = stocks.length ? (losers.length / stocks.length) * 100 : 0;
+    const unchanged = Math.max(0, stocks.length - gainers.length - losers.length);
 
-    trendHeroGrid.innerHTML = [
-        ["Market Sentiment", sentiment, `${gainers.length}/${losers.length} breadth`],
-        ["Top Sector", topSector ? viewLabels[topSector.key] : "--", topSector ? formatChange(topSector.average) : "Waiting"],
-        ["Most Active Stock", mostActive ? mostActive.symbol.replace(".NS", "") : "--", mostActive ? formatRupeePrice(mostActive.price) : "Waiting"],
-        ["Volatility", losers.length > gainers.length ? "Elevated" : "Moderate", "Intraday range"]
-    ].map(item => `
-        <article class="trend-hero-card">
-            <span>${escapeHtml(item[0])}</span>
-            <strong>${escapeHtml(item[1])}</strong>
-            <small>${escapeHtml(item[2])}</small>
+    trendHeroGrid.innerHTML = `
+        <article class="insight-mood-card ${escapeAttribute(mood.className)}">
+            <div class="insight-mood-copy">
+                <span>Today</span>
+                <strong>${escapeHtml(mood.label)}</strong>
+                <p>${escapeHtml(mood.summary)}</p>
+                <div class="insight-mood-chips">
+                    <em>${escapeHtml(mood.short)}</em>
+                    <em>${gainers.length.toLocaleString("en-IN")} rising</em>
+                    <em>${losers.length.toLocaleString("en-IN")} falling</em>
+                </div>
+            </div>
+            <div class="insight-weather-meter" aria-label="${escapeAttribute(mood.score)} percent stocks advancing">
+                <div class="insight-meter-ring" style="--score:${mood.score}">
+                    <strong>${mood.score || "--"}%</strong>
+                    <span>stocks rising</span>
+                </div>
+            </div>
         </article>
-    `).join("");
+        <article class="insight-mini-card good">
+            <span>Stocks Going Up</span>
+            <strong>${gainers.length.toLocaleString("en-IN")}</strong>
+            <div class="insight-mini-bar"><i style="width:${Math.max(2, advancingPct).toFixed(1)}%"></i></div>
+            <small>More green means buyers are active.</small>
+        </article>
+        <article class="insight-mini-card weak">
+            <span>Stocks Going Down</span>
+            <strong>${losers.length.toLocaleString("en-IN")}</strong>
+            <div class="insight-mini-bar"><i style="width:${Math.max(2, decliningPct).toFixed(1)}%"></i></div>
+            <small>More red means sellers are stronger.</small>
+        </article>
+        <article class="insight-mini-card neutral">
+            <span>Best Sector</span>
+            <strong>${escapeHtml(topSector ? viewLabels[topSector.key] || topSector.key : "--")}</strong>
+            <small>${topSector ? `${escapeHtml(getSimpleSectorState(topSector.average))} ${escapeHtml(formatChange(topSector.average))}` : "Waiting for data"}</small>
+        </article>
+        <article class="insight-mini-card blue">
+            <span>Most Active</span>
+            <strong>${escapeHtml(mostActive ? mostActive.symbol.replace(".NS", "") : "--")}</strong>
+            <small>${mostActive ? `${escapeHtml(formatRupeePrice(mostActive.price))} · ${escapeHtml(formatVolume(mostActive.volume))} volume` : "Waiting for data"}</small>
+        </article>
+    `;
+
+    const storyLine = document.getElementById("insightStoryline");
+    if (storyLine) {
+        storyLine.innerHTML = buildInsightStory(mood, sectors, gainers, losers, mostActive, advancingPct).map(item => `
+            <article class="insight-story-item ${escapeAttribute(String(item.tag).toLowerCase())}">
+                <span>${escapeHtml(item.tag)}</span>
+                <strong>${escapeHtml(item.title)}</strong>
+                <small>${escapeHtml(item.meta)}</small>
+            </article>
+        `).join("");
+    }
 
     sectorMomentumGrid.innerHTML = (sectors.length ? sectors : [
         { key: "bank", average: 0.82, leader: { symbol: "HDFCBANK" } },
@@ -1530,14 +1720,32 @@ function renderTrendsExperience() {
         const score = Math.min(99, Math.max(40, Math.round(62 + Number(sector.average || 0) * 8)));
         const bullish = Number(sector.average || 0) >= 0;
         return `
-            <article class="sector-momentum-card">
-                <span>${escapeHtml(viewLabels[sector.key] || sector.key)}</span>
-                <strong>Strength ${score}</strong>
-                <em class="${bullish ? "gain" : "loss"}">${bullish ? "Up Bullish" : "Down Defensive"}</em>
-                <small>Leader: ${escapeHtml(sector.leader?.symbol?.replace(".NS", "") || "--")}</small>
+            <article class="sector-momentum-card insight-sector-card ${bullish ? "good" : "weak"}">
+                <div>
+                    <span>${escapeHtml(viewLabels[sector.key] || sector.key)}</span>
+                    <strong>${escapeHtml(getSimpleSectorState(sector.average))}</strong>
+                    <small>Leader: ${escapeHtml(sector.leader?.symbol?.replace(".NS", "") || "--")}</small>
+                </div>
+                <em class="${bullish ? "gain" : "loss"}">${escapeHtml(formatChange(sector.average))}</em>
+                <div class="insight-sector-bar"><i style="width:${score}%"></i></div>
             </article>
         `;
     }).join("");
+
+    const summary = document.getElementById("aiMarketSummary");
+    if (summary) {
+        summary.textContent = `${mood.label}: ${mood.summary} ${topSector ? `${viewLabels[topSector.key] || topSector.key} is leading.` : ""} ${weakSector ? `${viewLabels[weakSector.key] || weakSector.key} is the area to watch.` : ""} ${unchanged ? `${unchanged.toLocaleString("en-IN")} stocks are mostly unchanged.` : ""}`;
+    }
+
+    const watchGrid = document.getElementById("insightWatchGrid");
+    if (watchGrid) {
+        watchGrid.innerHTML = buildInsightWatchItems(mood, sectors, gainers, losers, mostActive).map(item => `
+            <article class="insight-watch-card">
+                <span>${escapeHtml(item.label)}</span>
+                <strong>${escapeHtml(item.text)}</strong>
+            </article>
+        `).join("");
+    }
 
     renderTrendMovers();
 }
@@ -1555,8 +1763,11 @@ function renderTrendMovers() {
             : getRankedGainers([...stocks]);
 
     trendMoversList.innerHTML = source.slice(0, 6).map(stock => `
-        <button class="trend-mover-row" type="button" data-symbol="${escapeAttribute(stock.symbol)}">
-            <span>${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
+        <button class="trend-mover-row insight-mover-row" type="button" data-symbol="${escapeAttribute(stock.symbol)}">
+            <span>
+                <strong>${escapeHtml(stock.symbol.replace(".NS", ""))}</strong>
+                <small>${escapeHtml(stock.name || stock.symbol)}</small>
+            </span>
             <strong>${formatRupeePrice(stock.price)}</strong>
             <em class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</em>
         </button>
