@@ -1714,6 +1714,8 @@ function renderFinancialPage() {
         const sourceNote = data.sourceNote || "Figures in INR crore where available";
         const sparkColor = isGain ? "#16a34a" : "#dc2626";
         const spark = generateDecorativeSparkline(isGain);
+        const tvSymbol = `NSE:${symbol}`;
+        const financialChartId = `financial-chart-${symbol.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
 
         financialContent.innerHTML = `
             <div class="fin-company-row">
@@ -1778,6 +1780,20 @@ function renderFinancialPage() {
                 </article>
             </div>
 
+            <section class="fin-chart-card" aria-labelledby="financialPriceChartTitle">
+                <div class="fin-chart-head">
+                    <div>
+                        <span class="fin-metric-eyebrow">Price Chart</span>
+                        <h3 id="financialPriceChartTitle">${escapeHtml(symbol)} live chart</h3>
+                    </div>
+                    <a href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tvSymbol)}" target="_blank" rel="noopener noreferrer">Open TradingView</a>
+                </div>
+                <div class="fin-chart-shell">
+                    <div id="${escapeAttribute(financialChartId)}" class="fin-tradingview-chart"></div>
+                </div>
+                <p class="fin-chart-note">Chart source: TradingView. Market data may be delayed.</p>
+            </section>
+
             <div class="fin-source-strip">
                 <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5L2 4v4c0 3.5 2.5 6.5 6 7.5 3.5-1 6-4 6-7.5V4L8 1.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
                 <span>Data: ${sourceUrl ? `<a href="${escapeAttribute(sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceText)}</a>` : escapeHtml(sourceText)}</span>
@@ -1803,6 +1819,7 @@ function renderFinancialPage() {
                 </div>
             </div>
         `;
+        loadTradingViewChart(tvSymbol, financialChartId);
         loadFinancialPageNews(stock);
         return;
     }
@@ -2932,7 +2949,7 @@ function openLandingSearchResult(symbol) {
     }
 
     closeLandingSearchSuggestions();
-    openStockPage(stock);
+    selectFinancialStock(stock, true);
 }
 
 function getCardSize(stock, index) {

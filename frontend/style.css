@@ -10866,6 +10866,73 @@ body.heatmap-open .panel-heading small {
     color: #94a3b8;
 }
 
+/* ---- Fundamentals chart ---- */
+.fin-chart-card {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+}
+
+.fin-chart-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.fin-chart-head h3 {
+    margin: 5px 0 0;
+    color: #0f172a;
+    font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+}
+
+.fin-chart-head a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid #dbeafe;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.fin-chart-head a:hover {
+    border-color: #bfdbfe;
+    background: #dbeafe;
+}
+
+.fin-chart-shell {
+    height: clamp(300px, 48vh, 520px);
+    min-height: 300px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.fin-tradingview-chart {
+    width: 100%;
+    height: 100%;
+}
+
+.fin-chart-note {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
 /* ---- Data source strip ---- */
 .fin-source-strip {
     display: flex;
@@ -10998,6 +11065,8 @@ body.heatmap-open .panel-heading small {
     .fin-news-grid { grid-template-columns: 1fr; }
     .fin-company-row { flex-direction: column; align-items: flex-start; }
     .fin-search-primary { min-height: 48px !important; }
+    .fin-chart-card { padding: 14px; }
+    .fin-chart-shell { height: 340px; }
 }
 
 /* ================================================================
