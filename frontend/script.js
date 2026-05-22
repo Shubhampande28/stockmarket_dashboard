@@ -948,11 +948,11 @@ function setupMarketHoverTip() {
         if (!stock) return;
 
         const rows = [
-            ["Open", stock.open ? "₹" + formatPrice(stock.open) : null],
-            ["High", stock.high ? "₹" + formatPrice(stock.high) : null],
-            ["Low", stock.low ? "₹" + formatPrice(stock.low) : null],
+            ["Open", stock.open ? formatRupeePrice(stock.open) : null],
+            ["High", stock.high ? formatRupeePrice(stock.high) : null],
+            ["Low", stock.low ? formatRupeePrice(stock.low) : null],
             ["Volume", stock.volume ? Number(stock.volume).toLocaleString("en-IN") : null],
-            ["VWAP", stock.vwap ? "₹" + formatPrice(stock.vwap) : null]
+            ["VWAP", stock.vwap ? formatRupeePrice(stock.vwap) : null]
         ].filter(([, v]) => v);
 
         if (!rows.length) return;
@@ -1081,7 +1081,7 @@ function renderMarketsPage() {
         const chgNum = Number(mostActive.change || 0);
         const isPos = chgNum >= 0;
         activeSymbol.textContent = escapeHtml(sym);
-        if (activePrice) activePrice.textContent = "₹" + formatPrice(mostActive.price);
+        if (activePrice) activePrice.textContent = formatRupeePrice(mostActive.price);
         if (activeChg) {
             activeChg.textContent = formatChange(mostActive.change);
             activeChg.className = "mkt-active-chg " + (isPos ? "mkt-val-gain" : "mkt-val-loss");
@@ -1508,7 +1508,7 @@ function renderTrendsExperience() {
     trendHeroGrid.innerHTML = [
         ["Market Sentiment", sentiment, `${gainers.length}/${losers.length} breadth`],
         ["Top Sector", topSector ? viewLabels[topSector.key] : "--", topSector ? formatChange(topSector.average) : "Waiting"],
-        ["Most Active Stock", mostActive ? mostActive.symbol.replace(".NS", "") : "--", mostActive ? formatPrice(mostActive.price) : "Waiting"],
+        ["Most Active Stock", mostActive ? mostActive.symbol.replace(".NS", "") : "--", mostActive ? formatRupeePrice(mostActive.price) : "Waiting"],
         ["Volatility", losers.length > gainers.length ? "Elevated" : "Moderate", "Intraday range"]
     ].map(item => `
         <article class="trend-hero-card">
@@ -1554,7 +1554,7 @@ function renderTrendMovers() {
     trendMoversList.innerHTML = source.slice(0, 6).map(stock => `
         <button class="trend-mover-row" type="button" data-symbol="${escapeAttribute(stock.symbol)}">
             <span>${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
-            <strong>₹${formatPrice(stock.price)}</strong>
+            <strong>${formatRupeePrice(stock.price)}</strong>
             <em class="${Number(stock.change || 0) >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</em>
         </button>
     `).join("") || "<p>Waiting for market data</p>";
@@ -2066,7 +2066,7 @@ function updateIndexCards() {
         if (priceNode) {
             priceNode.textContent = quote.price === null || quote.price === undefined
                 ? "--"
-                : formatPrice(quote.price);
+                : formatRupeePrice(quote.price);
         }
 
         if (changeNode) {
@@ -2655,7 +2655,7 @@ function createStockCard(stock, index, maxGain = 10, maxLoss = 10) {
     card.style.setProperty("--change-color", darkTile ? "rgba(255,255,255,0.95)" : movementColor);
     card.style.setProperty("--card-shadow", isPositive ? `rgba(22, 163, 74, ${shadowOpacity.toFixed(3)})` : `rgba(220, 38, 38, ${shadowOpacity.toFixed(3)})`);
     card.setAttribute("aria-label", `Select ${stock.name || symbol}`);
-    card.title = `${symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
+    card.title = `${symbol}: ${formatRupeePrice(stock.price)} (${formatChange(stock.change)})`;
 
     const textColor = darkTile ? "#ffffff" : "#111827";
     const changeTextColor = darkTile ? "#ffffff" : (isPositive ? "#16a34a" : "#dc2626");
@@ -2667,7 +2667,7 @@ function createStockCard(stock, index, maxGain = 10, maxLoss = 10) {
             <span class="stock-card-name" style="color:${textColor}">${escapeHtml(symbol)}</span>
         </div>
         <div class="stock-card-price-row">
-            <strong style="color:${textColor}">₹${formatPrice(stock.price)}</strong>
+            <strong style="color:${textColor}">${formatRupeePrice(stock.price)}</strong>
             <span class="stock-card-change ${isPositive ? "gain" : "loss"}" style="color:${changeTextColor}!important;opacity:1">
                 ${formatChange(stock.change)}
             </span>
@@ -2835,7 +2835,7 @@ function renderSearchSuggestions() {
                     <small>${escapeHtml(stock.name || symbol)}</small>
                 </span>
                 <span class="suggestion-price">
-                    <strong>₹${formatPrice(stock.price)}</strong>
+                    <strong>${formatRupeePrice(stock.price)}</strong>
                     <small class="${isPositive ? "gain" : "loss"}">${formatChange(stock.change)}</small>
                 </span>
             </button>
@@ -2949,7 +2949,7 @@ function renderPhoneGrid(stocks, intensityMap) {
         tile.dataset.symbol = stock.symbol;
         tile.setAttribute("aria-label", `Open financial statements for ${stock.name || stock.symbol}`);
         tile.style.background = getColor(stock.change, intensity);
-        tile.title = `${stock.symbol}: ${formatPrice(stock.price)} (${formatChange(stock.change)})`;
+        tile.title = `${stock.symbol}: ${formatRupeePrice(stock.price)} (${formatChange(stock.change)})`;
 
         tile.innerHTML = `
             <div class="mobile-tile-head">
@@ -2965,7 +2965,7 @@ function renderPhoneGrid(stocks, intensityMap) {
             <div class="mobile-tile-body">
                 <div class="mobile-tile-price">
                     <span>LTP</span>
-                    <strong>${formatPrice(stock.price)}</strong>
+                    <strong>${formatRupeePrice(stock.price)}</strong>
                 </div>
             </div>
         `;
@@ -3006,7 +3006,7 @@ function renderStockSnapshot(stock) {
     stockSnapshot.innerHTML = `
         <div class="snapshot-main">
             <span class="snapshot-symbol">${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
-            <strong>${formatPrice(stock.price)}</strong>
+            <strong>${formatRupeePrice(stock.price)}</strong>
             <span class="snapshot-change ${stock.change >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</span>
         </div>
         <div class="snapshot-metrics">
@@ -3040,7 +3040,7 @@ function renderStockSnapshotWithFinancials(stock, data) {
     stockSnapshot.innerHTML = `
         <div class="snapshot-main">
             <span class="snapshot-symbol">${escapeHtml(stock.symbol.replace(".NS", ""))}</span>
-            <strong>${formatPrice(stock.price)}</strong>
+            <strong>${formatRupeePrice(stock.price)}</strong>
             <span class="snapshot-change ${stock.change >= 0 ? "gain" : "loss"}">${formatChange(stock.change)}</span>
         </div>
         <div class="snapshot-metrics">
@@ -3096,12 +3096,12 @@ function formatSnapshotMarketCap(info, valuation) {
     if (marketCap !== undefined && marketCap !== null) {
         const num = Number(marketCap);
         if (!isNaN(num) && num > 0) {
-            return escapeHtml(num.toLocaleString("en-IN", { maximumFractionDigits: 0 }) + " Cr");
+            return escapeHtml("₹" + num.toLocaleString("en-IN", { maximumFractionDigits: 0 }) + " Cr");
         }
     }
     // Fall back to Screener info string (30-day cache — may be stale but better than nothing)
     if (info.marketCap) {
-        return formatInfoFallback(info.marketCap, "", "Cr");
+        return formatInfoFallback(info.marketCap, "₹", "Cr");
     }
     return "--";
 }
@@ -3784,6 +3784,10 @@ function formatPrice(value) {
     });
 }
 
+function formatRupeePrice(value) {
+    return `₹${formatPrice(value)}`;
+}
+
 function formatCompactPrice(value) {
     if (value === null || value === undefined || value === "") {
         return "--";
@@ -3794,9 +3798,9 @@ function formatCompactPrice(value) {
         return escapeHtml(String(value));
     }
 
-    return Number(value || 0).toLocaleString("en-IN", {
+    return `₹${Number(value || 0).toLocaleString("en-IN", {
         maximumFractionDigits: 2
-    });
+    })}`;
 }
 
 function formatCardMetric(value, suffix = "") {
@@ -3840,14 +3844,14 @@ function formatFinancialValue(value) {
 
     const absNumber = Math.abs(number);
     if (absNumber >= 10000000) {
-        return `${(number / 10000000).toLocaleString("en-IN", {
+        return `₹${(number / 10000000).toLocaleString("en-IN", {
             maximumFractionDigits: 2
         })} Cr`;
     }
 
-    return number.toLocaleString("en-IN", {
+    return `₹${number.toLocaleString("en-IN", {
         maximumFractionDigits: 2
-    });
+    })}`;
 }
 
 function formatRatio(value) {
@@ -3878,20 +3882,20 @@ function formatMarketCap(value) {
     }
 
     if (/cr\.?/i.test(text)) {
-        return `${number.toLocaleString("en-IN", {
+        return `₹${number.toLocaleString("en-IN", {
             maximumFractionDigits: 2
         })} Cr`;
     }
 
     if (Math.abs(number) >= 10000000) {
-        return `${(number / 10000000).toLocaleString("en-IN", {
+        return `₹${(number / 10000000).toLocaleString("en-IN", {
             maximumFractionDigits: 2
         })} Cr`;
     }
 
-    return number.toLocaleString("en-IN", {
+    return `₹${number.toLocaleString("en-IN", {
         maximumFractionDigits: 0
-    });
+    })}`;
 }
 
 function formatCurrencyValue(value) {

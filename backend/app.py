@@ -774,6 +774,10 @@ def format_metric_value(value, suffix=""):
     except (TypeError, ValueError):
         return escape(str(value))
 
+def format_currency_metric_value(value, suffix=""):
+    formatted = format_metric_value(value, suffix)
+    return formatted if formatted == "Not cached" else f"₹{formatted}"
+
 def render_stock_peer_rows(symbol):
     sector = primary_sector_for_symbol(symbol)
     if not sector:
@@ -995,7 +999,7 @@ def render_stock_seo_page(slug):
     <div class="lp-card-grid">
       <div class="lp-card"><h3>P/E Ratio</h3><p>{format_metric_value(cached_metrics.get("pe"))}</p></div>
       <div class="lp-card"><h3>ROE</h3><p>{format_metric_value(cached_metrics.get("roe"), "%")}</p></div>
-      <div class="lp-card"><h3>Market Cap</h3><p>{format_metric_value(cached_metrics.get("marketCap"))}</p></div>
+      <div class="lp-card"><h3>Market Cap</h3><p>{format_currency_metric_value(cached_metrics.get("marketCap"))}</p></div>
     </div>
   </section>
   <section class="lp-section">
