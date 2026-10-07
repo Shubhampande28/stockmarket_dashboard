@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>{% include "_head.html" %}</head>
+<body>
+{% include "_header.html" %}
+<main class="wrap">
+  <section>
+    <div class="sec-head"><div>
+      <div class="eyebrow">Daily Brief</div>
+      <h2>Equilytics Daily Brief archive</h2>
+      <p>What moved the Indian stock market, every trading day, written by the Equilytics desk.</p>
+    </div></div>
+    <ul class="archive">
+      {% for b in briefs %}
+      <li><span class="d">{{ b.date }}</span><a href="/brief/{{ b.date }}">{{ b.title }}</a><span class="mono">{{ b.data.mood.score if b.data and b.data.mood else '' }}</span></li>
+      {% endfor %}
+    </ul>
+    {% if briefs|length == 30 %}
+    <p class="fine"><a href="/brief?page={{ page + 1 }}">Older briefs &rarr;</a></p>
+    {% endif %}
+  </section>
+  {% include "_footer.html" %}
+</main>
+</body>
+</html>

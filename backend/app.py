@@ -1910,6 +1910,60 @@ def page_mood_history():
     )
 
 
+@app.route("/brief")
+def page_brief_index():
+    page = max(int(request.args.get("page", 1)), 1)
+    briefs = store.list_briefs(limit=30, offset=(page - 1) * 30)
+    return render_template(
+        "brief_index.html", active="brief",
+        title="Daily Brief Archive | Equilytics",
+        description="Every Equilytics Daily Brief: what moved the Indian stock market, day by day.",
+        canonical_url="https://www.equilytics.in/brief",
+        schema_json=None,
+        briefs=briefs, page=page,
+    )
+
+
+@app.route("/brief/<date>")
+def page_brief(date):
+    brief_result = store.get_brief(date)
+    if not brief_result:
+        return jsonify({"error": "NOT_FOUND"}), 404
+    nearby = [b for b in store.list_briefs(limit=6) if b["date"] != date][:5]
+    schema = page_schema(
+        brief_result["title"], f"https://www.equilytics.in/brief/{date}", brief_result["summary"], "Daily Brief"
+    )
+    return render_template(
+        "brief.html", active="brief",
+        title=f"{brief_result['title']} | Equilytics Daily Brief",
+        description=brief_result["summary"],
+        canonical_url=f"https://www.equilytics.in/brief/{date}",
+        og_title=brief_result["title"], og_type="article",
+        og_image=f"https://www.equilytics.in/og/mood/{date}.png",
+        schema_json=schema,
+        brief=brief_result, nearby_briefs=nearby,
+    )
+
+
+@app.route("/og/mood.png")
+def og_mood_latest():
+    import og_image as og_module
+    path = config.OG_DIR / "latest.png"
+    if not path.exists():
+        og_module.generate_today()
+    if not path.exists():
+        return jsonify({"error": "NOT_AVAILABLE"}), 404
+    return send_from_directory(config.OG_DIR, "latest.png", mimetype="image/png")
+
+
+@app.route("/og/mood/<date>.png")
+def og_mood_for_date(date):
+    path = config.OG_DIR / f"{date}.png"
+    if not path.exists():
+        return jsonify({"error": "NOT_FOUND"}), 404
+    return send_from_directory(config.OG_DIR, f"{date}.png", mimetype="image/png")
+
+
 @app.route("/methodology")
 def page_methodology():
     return render_template(

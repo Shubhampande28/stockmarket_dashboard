@@ -97,3 +97,36 @@ phase lands.
 - **Templates render path**: `app.py`'s Flask app uses Flask's default
   `templates/` folder (`backend/templates/`), not a custom path -- no config change
   needed, just adding `render_template` to the Flask import.
+
+## Phase 5 — Focus Lists, daily SEO pages, sitemap
+
+- Werkzeug's `any()` route converter needs its options quoted
+  (`any("a-b", "c-d")`), not bare (`any(a-b, c-d)`) -- a bare hyphenated option fails
+  to parse at import time. Used for the four Focus List routes sharing one view
+  function (`page_focus_list` in `app.py`).
+
+## Phase 6 — Daily Brief, OG image, share, poll
+
+- **Bundled fonts**: `backend/assets/fonts/Archivo-Black.ttf` and
+  `PublicSans-Regular.ttf` (brief sec 8.1) are not actually bundled -- fetching real
+  binary font files wasn't possible in this build pass. `og_image.py` falls back to
+  Pillow's built-in default font when those files are missing, so image generation
+  still works end-to-end (verified: renders a 1200x630 PNG), just not in the exact
+  brand typeface yet. Drop the real `.ttf` files (Google Fonts, Open Font License)
+  into `backend/assets/fonts/` to finish this -- no code change needed once they're
+  there, `_font()` already prefers them when present.
+- **AI brief fact-check**: `brief._passes_fact_check()` compares every standalone
+  number >= 1 in the AI-rewritten text against every number (rounded to whole and to
+  1 decimal) found anywhere in the `data` dict passed to the prompt. This is stricter
+  than the brief's "allowing formatting differences" language in spots (e.g. it
+  won't match "two thousand one hundred forty" against `2140`), by design -- a
+  missed match just means the template version ships instead of a slightly-off AI
+  one, which is the safe failure direction.
+- **Acceptance checklist's banned-word grep** ("no page contains buy/sell/target
+  price/recommend"): the SEBI disclaimer text itself -- required on every page --
+  necessarily contains "a recommendation to buy or sell any security" to disclaim
+  exactly that. A literal whole-page grep will always flag this. The real check
+  (done in Phase 10's final pass) should scope to generated content only: mood
+  signal `explain` text, brief `body_html`, and Focus List `rule` text -- not the
+  disclaimer/footer boilerplate that exists specifically to use those words
+  defensively.
