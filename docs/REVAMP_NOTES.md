@@ -147,3 +147,24 @@ phase lands.
   template so they share `_head.html`/`_header.html`/`_footer.html` is a bigger,
   separate pass -- out of scope here since no page's existing behavior broke by
   leaving it static.
+
+## Phase 9 — Token step (live check)
+
+- Real `UPSTOX_ACCESS_TOKEN` written to `backend/.env` (gitignored, never
+  printed/logged/committed). `jobs.py` didn't call `load_dotenv()` itself --
+  only `app.py` did -- so `python -m jobs selftest` initially failed with "no
+  token available" even with `.env` populated; fixed by adding the same
+  `load_dotenv()` call at the top of `jobs.py`, since it's meant to run
+  standalone, not only via the Flask app.
+- **Instrument keys verified for real** against Upstox's published instrument
+  master (`https://assets.upstox.com/market-quote/instruments/exchange/complete.json.gz`,
+  fetched 2026-10-07): `config.GOLDBEES_KEY` is `NSE_EQ|INF204KB17I5`
+  (matched by `trading_symbol == "GOLDBEES"` on `NSE_EQ`, not guessed). Of the
+  12 sector-index keys guessed in Phase 1 by pattern, 11 matched exactly;
+  `"infra"` did not -- there is no `"Nifty Infrastructure"` index, the real
+  name is `"Nifty Infra"` -- and `config.SECTOR_INDEX_KEYS["infra"]` was
+  corrected to `NSE_INDEX|Nifty Infra`.
+- `python -m jobs selftest` passes live: token valid, VIX+GOLDBEES quotes
+  fetched, a VIX candle series fetched, NSE FII/DII fetched.
+- `python -m jobs backfill` was run against the live token (400 days of
+  daily candles for all ~1,643 equities + 14 index/ETF series).

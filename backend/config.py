@@ -52,19 +52,18 @@ def zone_for_score(score: float) -> str:
 
 
 # Instrument keys beyond backend/instruments.json's 1,643 equities.
-# NOTE: the sector-index keys follow Upstox's documented "NSE_INDEX|Nifty <Sector>"
-# naming convention (same pattern as the existing nifty50/banknifty/finnifty entries
-# in app.py's INDEX_QUOTE_CONFIG) but have NOT been confirmed against a live
-# instrument-master fetch yet -- that needs the real Upstox token (Phase 9). Verify
-# each one with `python -m jobs selftest` before relying on it, and fix here if any
-# differ. See docs/REVAMP_NOTES.md.
+# All 13 keys below (VIX, GOLDBEES, 12 sector indices) were verified against
+# Upstox's published instrument master on 2026-10-07 (Phase 9). 11 of 12 sector
+# guesses matched the "NSE_INDEX|Nifty <Sector>" pattern exactly; "infra" did
+# not ("Nifty Infrastructure" doesn't exist -- the real name is "Nifty Infra")
+# and was corrected. See docs/REVAMP_NOTES.md.
 INDIA_VIX_KEY = "NSE_INDEX|India VIX"
 
-# GOLDBEES (NIPPON INDIA ETF GOLD BEES) instrument key is an NSE_EQ|<ISIN> key.
-# Deliberately left unresolved rather than guessed -- look it up in the Upstox
-# instrument master during Phase 9 and fill this in. selftest() should fail loudly
-# while this is None.
-GOLDBEES_KEY = None
+# GOLDBEES (NIPPON INDIA ETF GOLD BEES), looked up from Upstox's published
+# instrument master (assets.upstox.com/market-quote/instruments/exchange/
+# complete.json.gz) on 2026-10-07, matched by trading_symbol == "GOLDBEES" on
+# NSE_EQ -- not guessed. See docs/REVAMP_NOTES.md.
+GOLDBEES_KEY = "NSE_EQ|INF204KB17I5"
 
 SECTOR_INDEX_KEYS = {
     "bank": "NSE_INDEX|Nifty Bank",
@@ -77,7 +76,7 @@ SECTOR_INDEX_KEYS = {
     "energy": "NSE_INDEX|Nifty Energy",
     "psu_bank": "NSE_INDEX|Nifty PSU Bank",
     "media": "NSE_INDEX|Nifty Media",
-    "infra": "NSE_INDEX|Nifty Infrastructure",
+    "infra": "NSE_INDEX|Nifty Infra",
     "fin_service": "NSE_INDEX|Nifty Fin Service",
 }
 

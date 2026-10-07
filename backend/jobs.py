@@ -14,6 +14,9 @@ import logging
 import sys
 from datetime import datetime, timedelta, timezone
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import config
 from config import SAMPLE_MODE, FIXTURES_DIR
 import store

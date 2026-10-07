@@ -26,16 +26,26 @@ Create `/var/www/stock-dashboard/.env`:
 UPSTOX_CLIENT_ID=your_upstox_api_key
 UPSTOX_CLIENT_SECRET=your_upstox_api_secret
 UPSTOX_REDIRECT_URI=https://your-domain.com/callback
-ADMIN_USERNAME=shubham
+# 1-year Analytics Token (Upstox Developer Apps -> Analytics tab -> Generate
+# Token). Read first by token_manager.load_token(); the OAuth flow above is
+# now only an emergency fallback -- see section 7.
+UPSTOX_ACCESS_TOKEN=your_upstox_analytics_token
+ADMIN_USERNAME=use_a_real_username
 ADMIN_PASSWORD=use_a_fresh_strong_password
 FLASK_SECRET_KEY=use_a_long_random_secret
 OPENAI_API_KEY=optional_for_news_summaries
 APIFY_TOKEN=optional_for_screener_financials
 APIFY_SCREENER_ACTOR_ID=optional_actor_id_or_username/actor-name
+# Starts the in-process scheduler (snapshot/eod/fii/brief/premarket jobs) --
+# only gunicorn needs this, never a local dev run or `python -m jobs ...`.
+EQUILYTICS_RUN_SCHEDULER=1
 PORT=5000
 ```
 
-The same callback URL must be registered in your Upstox developer app.
+The same callback URL must be registered in your Upstox developer app. There
+is no hard-coded admin username/password fallback: ADMIN_USERNAME and
+ADMIN_PASSWORD must both be set, or the admin login route refuses every
+attempt.
 
 ## 4. Systemd service
 
@@ -103,15 +113,44 @@ sudo apt install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d your-domain.com -d www.your-domain.com
 ```
 
-## 7. Daily token refresh
+## 7. Token setup and renewal (once a year, not daily)
 
-When the Upstox token expires, open:
+The Analytics Token in `.env` replaces the old daily OAuth refresh -- it's valid
+for about a year. After first setting `UPSTOX_ACCESS_TOKEN` (or whenever you
+rotate it), run the one-time checks and backfill from the server:
 
-```text
-https://your-domain.com/admin
+```bash
+cd /var/www/stock-dashboard/backend
+../backend/venv/bin/python -m jobs selftest
+../backend/venv/bin/python -m jobs backfill
+../backend/venv/bin/python -m jobs eod --force
+../backend/venv/bin/python -m jobs brief --force
+cd ..
+sudo systemctl restart stock-dashboard
 ```
 
-Login as admin, click **Login with Upstox**, complete OTP/TOTP on Upstox, and the backend will save the new token.
+`selftest` checks the token, a quote batch, VIX, one candle series, and NSE
+FII/DII before you run the slower `backfill` (about 6 minutes for ~1,650
+instruments at the API's 5 req/s candle limit). `/admin`'s Status panel shows
+the token's expiry and a warning once it's 30 days or less from expiring.
+
+**Set a reminder for 11 months from whenever you generate the token** --
+generate a fresh one in the Upstox Developer Apps Analytics tab, replace the
+`UPSTOX_ACCESS_TOKEN` line in `.env`, and `sudo systemctl restart
+stock-dashboard`. The OAuth **Login with Upstox** flow at `/admin` still
+works as an emergency fallback if the Analytics Token is ever unavailable.
+
+## 7a. Routine redeploy (pulling new commits on this branch)
+
+```bash
+cd /var/www/stock-dashboard
+git fetch && git checkout revamp-mood && git pull
+backend/venv/bin/pip install -r backend/requirements.txt
+# add the UPSTOX_ACCESS_TOKEN line to .env if it's not there yet (section 3)
+cd backend && ../backend/venv/bin/python -m jobs selftest && ../backend/venv/bin/python -m jobs backfill && cd ..
+sudo chown -R www-data:www-data /var/www/stock-dashboard
+sudo systemctl restart stock-dashboard
+```
 
 ## 8. Optional Apify Screener financials
 
