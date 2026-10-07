@@ -1,0 +1,24 @@
+{# Shared sticky header: logo, nav, index ticker. `active` picks the highlighted nav link. #}
+{% if sample_mode %}
+<div class="sample">SAMPLE DATA &mdash; illustrative figures, not live market data.</div>
+{% endif %}
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="/">Equi<span>lytics</span></a>
+    <nav aria-label="Main">
+      <a href="/" class="{{ 'on' if active == 'today' else '' }}">Today</a>
+      <a href="/brief" class="{{ 'on' if active == 'brief' else '' }}">Daily Brief</a>
+      <a href="/#lists" class="{{ 'on' if active == 'lists' else '' }}">Focus Lists</a>
+      <a href="/heatmap" class="{{ 'on' if active == 'heatmap' else '' }}">Heatmap</a>
+      <a href="/markets" class="{{ 'on' if active == 'markets' else '' }}">Markets</a>
+      <a href="/blog" class="{{ 'on' if active == 'blog' else '' }}">Blog</a>
+    </nav>
+    {% if index_quotes %}
+    <div class="ticker mono">
+      {% for key, q in index_quotes.items() if q.get('price') %}
+      <span>{{ q.label }} <b>{{ '{:,.0f}'.format(q.price) }}</b> <span class="{{ 'up' if q.change >= 0 else 'down' }}">{{ '{:+.2f}'.format(q.change) }}%</span></span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</header>

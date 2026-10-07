@@ -1,0 +1,13 @@
+{# Reserved-height ad slot so layout never shifts. Renders a real AdSense unit
+   when ADSENSE_SLOT_<NAME> is set, else an empty container for Auto ads.
+   Usage: {% include "_ad.html" with context %} after setting `slot` and `tall`. #}
+{% set slot_id = adsense_slots.get(slot) %}
+<div class="ad-slot{{ ' tall' if tall else '' }}" aria-label="Advertisement">
+  {% if slot_id %}
+  <ins class="adsbygoogle" style="display:block;width:100%;height:100%"
+       data-ad-client="ca-pub-4327209189250322" data-ad-slot="{{ slot_id }}"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  {% else %}
+  Ad slot &middot; {{ slot }}
+  {% endif %}
+</div>

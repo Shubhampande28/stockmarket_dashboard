@@ -1,9 +1,10 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, jsonify, redirect, request, send_from_directory, session
+from flask import Flask, jsonify, redirect, render_template, request, send_from_directory, session
 from flask_cors import CORS
 import requests
+import hashlib
 import json
 import os
 import random
@@ -18,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote_plus, urlencode
 from token_manager import get_access_token, is_expired, load_token, save_token
+import config
 import snapshot
 import store
 from datetime import timezone as _timezone, timedelta as _timedelta
@@ -31,6 +33,26 @@ app = Flask(__name__, static_folder=str(FRONTEND_DIR))
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret-before-hosting")
 CORS(app)
 store.init_db()
+
+SEBI_DISCLAIMER = (
+    "Equilytics publishes market data and educational explanations. It is not "
+    "registered with SEBI as an investment adviser or research analyst, and "
+    "nothing on this site is a recommendation to buy or sell any security. "
+    "Market investments carry risk."
+)
+
+
+@app.context_processor
+def inject_shared_template_vars():
+    return {
+        "sample_mode": config.SAMPLE_MODE,
+        "sebi_disclaimer": SEBI_DISCLAIMER,
+        "adsense_slots": {
+            name[len("ADSENSE_SLOT_"):].lower(): value
+            for name, value in os.environ.items()
+            if name.startswith("ADSENSE_SLOT_")
+        },
+    }
 
 @app.before_request
 def redirect_to_canonical_host():
@@ -57,7 +79,112 @@ APIFY_RUN_TIMEOUT = 90
 # =========================
 @app.route("/")
 def home():
-    return send_from_directory(FRONTEND_DIR, "index.html")
+    return render_home_page()
+
+
+def _today_ist():
+    return datetime.now(IST).strftime("%Y-%m-%d")
+
+
+def _get_today_mood():
+    import mood as mood_module
+    live = store.get_mood_live() if _market_is_open_now() else None
+    if live:
+        return {**live, "kind": "live"}
+    result = store.get_mood(_today_ist(), "close") or store.latest_mood()
+    if result:
+        return result
+    try:
+        return mood_module.compute_mood(kind="close", date=_today_ist())
+    except mood_module.InsufficientDataError:
+        return None
+
+
+def _fallback_mood():
+    return {
+        "date": _today_ist(), "kind": "close", "score": 50, "zone": "Neutral",
+        "change": {"d1": None, "w1": None, "m1": None},
+        "compare": {"yesterday": None, "week_ago": None, "month_ago": None},
+        "components": [
+            {"id": sid, "name": name, "score": None, "reading": "Data delayed",
+             "explain": "This signal isn't available yet.", "available": False, "delta1d": None}
+            for sid, name in __import__("mood_text").SIGNAL_NAMES.items()
+        ],
+        "headline": "The Mood Index is still warming up -- check back after today's close.",
+        "verdict": "warming up",
+        "computed_at": datetime.now(IST).isoformat(),
+    }
+
+
+SECTOR_TILE_LABELS = {
+    "bank": "Bank", "it": "IT", "auto": "Auto", "pharma": "Pharma", "fmcg": "FMCG",
+    "metal": "Metal", "realty": "Realty", "energy": "Energy", "psu": "PSU Bank",
+    "media": "Media", "infra": "Infra", "finance": "Fin Service",
+}
+
+
+def _sector_tiles(cached_snapshot):
+    tiles = []
+    for key, label in SECTOR_TILE_LABELS.items():
+        stocks = (cached_snapshot or {}).get(key) or []
+        changes = [s["change"] for s in stocks if s.get("change") is not None]
+        avg = round(sum(changes) / len(changes), 1) if changes else None
+        tiles.append({"label": label, "change": avg})
+    return tiles
+
+
+def render_home_page():
+    cached_snapshot = snapshot.get_cached_snapshot()
+    mood_result = _get_today_mood() or _fallback_mood()
+
+    compare_rows = [("Today", mood_result["score"])]
+    for key, label in (("yesterday", "Yesterday"), ("week_ago", "Week ago"), ("month_ago", "Month ago")):
+        value = mood_result.get("compare", {}).get(key)
+        compare_rows.append((label, value))
+
+    history = store.get_mood_history("close", days=90) or store.get_mood_history("backfill", days=90)
+    nifty_bars = {b["date"]: b["close"] for b in store.get_index_bars("NSE_INDEX|Nifty 50", limit_sessions=90)}
+    mood_history = [
+        {"date": h["date"], "score": h["score"], "niftyClose": nifty_bars.get(h["date"])}
+        for h in history
+    ]
+
+    fii_rows = store.get_fii_dii(limit_sessions=10)
+    flows = [{"date": r["date"], "fii": r["fii_net"], "dii": r["dii_net"]} for r in fii_rows]
+
+    sector_tiles = _sector_tiles(cached_snapshot)
+
+    today = _today_ist()
+    latest_brief = store.get_brief(today) or (store.list_briefs(limit=1)[0] if store.list_briefs(limit=1) else None)
+    previous_briefs = store.list_briefs(limit=6, offset=1 if latest_brief else 0)
+
+    poll_counts = store.vote_counts(today)
+    poll_accuracy = store.recent_poll_accuracy(30)
+
+    movers = (cached_snapshot or {}).get("gainers", [])[:6] + (cached_snapshot or {}).get("losers", [])[:6]
+
+    return render_template(
+        "home.html",
+        active="today",
+        title="Stock Market Mood Today (India) – Fear & Greed, FII DII, VIX | Equilytics",
+        description=f"Equilytics Mood Index is {mood_result['score']}/100 ({mood_result['zone']}) today. "
+                    f"See the six signals behind India's market mood, FII/DII flows, VIX and more.",
+        og_title=f"Market mood today: {mood_result['score']}/100, {mood_result['zone']}",
+        index_quotes=(cached_snapshot or {}).get("indexQuotes", {}),
+        mood=mood_result,
+        compare_rows=compare_rows,
+        mood_history=mood_history,
+        flows=flows,
+        sector_tiles=sector_tiles,
+        latest_brief=latest_brief,
+        previous_briefs=previous_briefs,
+        poll_counts=poll_counts,
+        poll_accuracy=poll_accuracy,
+        poll_total=sum(poll_counts.values()),
+        movers=movers,
+        market_open=_market_is_open_now(),
+        snapshot_meta=(cached_snapshot or {}).get("_meta"),
+    )
 
 @app.route("/sitemap.xml")
 def sitemap_xml():
@@ -132,7 +259,7 @@ def static_files(path):
         return render_sector_seo_page(path.split("/", 1)[1])
 
     if path in {"markets", "heatmap", "financials", "insights"}:
-        return send_from_directory(FRONTEND_DIR, "index.html")
+        return send_from_directory(FRONTEND_DIR, "app.html")
     # Clean URLs for SEO landing pages
     seo_pages = {
         "market-overview": "market-overview.html",
@@ -924,7 +1051,7 @@ def render_stock_seo_page(slug):
     symbol = symbol_from_stock_slug(slug)
     instrument_map = load_instrument_map()
     if symbol not in instrument_map:
-        return send_from_directory(FRONTEND_DIR, "index.html"), 404
+        return send_from_directory(FRONTEND_DIR, "app.html"), 404
 
     name = stock_display_name(symbol)
     sectors = sectors_for_symbol(symbol)
@@ -1570,6 +1697,62 @@ def api_mood_history():
         {"date": h["date"], "score": h["score"], "zone": h["zone"], "niftyClose": nifty_bars.get(h["date"])}
         for h in history
     ])
+
+
+@app.route("/api/lists/<list_id>")
+def api_list(list_id):
+    import lists as lists_module
+    data = lists_module.get_list_for_api(list_id)
+    if data is None:
+        return jsonify({"error": "UNKNOWN_LIST"}), 404
+    return jsonify(data)
+
+
+_poll_ip_votes = {}  # {(date, ip_hash): count} -- in-memory token bucket, resets on restart
+
+
+def _poll_voter_id():
+    vid = request.cookies.get("eq_vid")
+    if not vid:
+        vid = secrets.token_hex(16)
+    digest = hashlib.sha256((vid + app.secret_key).encode()).hexdigest()
+    return vid, digest
+
+
+@app.route("/api/poll", methods=["GET", "POST"])
+def api_poll():
+    today = _today_ist()
+    vid, voter_hash = _poll_voter_id()
+
+    if request.method == "POST":
+        choice = (request.get_json(silent=True) or {}).get("choice")
+        if choice not in {"up", "flat", "down"}:
+            return jsonify({"error": "INVALID_CHOICE"}), 400
+
+        ip_hash = hashlib.sha256((request.remote_addr or "").encode()).hexdigest()
+        ip_key = (today, ip_hash)
+        if _poll_ip_votes.get(ip_key, 0) >= 5:
+            return jsonify({"error": "RATE_LIMITED"}), 429
+
+        if not store.has_voted(today, voter_hash):
+            store.record_vote(today, voter_hash, choice, datetime.now(IST).isoformat())
+            _poll_ip_votes[ip_key] = _poll_ip_votes.get(ip_key, 0) + 1
+
+        counts = store.vote_counts(today)
+        resp = jsonify({"counts": counts, "yourVote": choice})
+        resp.set_cookie("eq_vid", vid, max_age=60 * 60 * 24 * 365, samesite="Lax")
+        return resp
+
+    counts = store.vote_counts(today)
+    your_vote = None
+    with store.connect() as conn:
+        row = conn.execute(
+            "SELECT choice FROM poll_votes WHERE date = ? AND voter = ?", (today, voter_hash)
+        ).fetchone()
+        your_vote = row["choice"] if row else None
+    resp = jsonify({"counts": counts, "yourVote": your_vote, "accuracy30d": store.recent_poll_accuracy(30)})
+    resp.set_cookie("eq_vid", vid, max_age=60 * 60 * 24 * 365, samesite="Lax")
+    return resp
 
 
 def _market_is_open_now():
