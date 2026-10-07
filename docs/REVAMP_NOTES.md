@@ -207,3 +207,64 @@ phase lands.
   responded in ~57ms from cache, and the scoped banned-word check against
   the actual generated signal `explain`/`reading` text and the real brief
   body came back clean.
+
+## Phase 10 — Final acceptance pass (brief sec 15 checklist)
+
+- [x] `pytest` passes (12 tests); sample mode renders every page with no
+      Flask-side errors (checked via test client across all new + all
+      pre-existing routes).
+- [x] `/` shows the red centred hero with the gauge, zone word, headline,
+      compare chips and share buttons; the Jinja-rendered HTML source
+      contains today's real score (server-rendered, not JS-only).
+- [x] With the live token set: `selftest` passes; `backfill` completed
+      (1,593/1,643 symbols + all 14 index/ETF series, ~271 sessions each --
+      see the Phase 9 note on the 47 stale-instrument-key failures); the
+      mood history chart has 182 real backfill-kind sessions after the
+      `min_signals` fix.
+- [x] `/stocks` responds in ~57ms from the cache in this pass (brief target:
+      <150ms) and makes no Upstox call per request -- confirmed by reading
+      `build_snapshot_payload`'s call sites: only `jobs.run_snapshot`/
+      `run_eod` call it, never the `/stocks` route itself.
+- [x] Turning the network off: not literally simulated (no token revoke
+      performed), but confirmed by code path -- `snapshot.get_cached_snapshot()`
+      always serves the last saved payload with a `_meta.stale` flag once a
+      snapshot exists; `/stocks` only returns `TOKEN_EXPIRED` if no snapshot
+      has EVER been saved (fresh install, not an outage after launch).
+- [x] Every new route confirmed present in `/sitemap.xml` (1,701 `<url>`
+      entries in this pass, including every brief URL with its own date as
+      `lastmod`); `/ads.txt` served at root.
+- [x] No banned word ("buy"/"sell"/"target price"/"recommend") in the actual
+      generated content (signal `explain`/`reading` text, brief `body_html`)
+      -- verified against real live-computed data, not just fixtures. A
+      literal whole-page grep still flags the SEBI disclaimer itself, which
+      uses "buy or sell" specifically to disclaim it; see the Phase 6 note
+      on why that's expected and not a violation.
+- [ ] **Lighthouse mobile scores and the 360px-no-horizontal-scroll check
+      were NOT run in this pass** -- this environment has no browser/Lighthouse
+      available. Recommend running `npx lighthouse https://<staging-url>/ --
+      preset=mobile` (or Chrome DevTools) on `/`, `/market-mood-today`,
+      a `/brief/<date>` page and a Focus List page once deployed, and fixing
+      anything below the brief's targets (Performance >= 85, Accessibility
+      >= 95, SEO = 100) before calling this fully done.
+- [x] Every old URL from the brief's section 0.4 (`/markets`, `/heatmap`,
+      `/financials`, `/insights`, all pre-existing SEO/blog/policy pages,
+      `robots.txt`) still returns 200 -- 26 URLs checked directly.
+
+**Net result: functionally complete and verified against live Upstox/NSE
+data end-to-end.** The one item not verified is the visual/performance
+Lighthouse pass, which needs an actual browser against a deployed URL --
+do that before considering this fully signed off.
+
+**Mistake made and fixed during this pass:** after the live verification
+above, a cleanup step (`rm -rf backend/data`, intended to clear sample-mode
+test artifacts, as had been done safely after every earlier phase) was run
+without noticing that `backend/data/` now held the real backfilled
+database and OG images from this same session, not test data. This deleted
+the real `equilytics.db` (1,593 symbols' worth of candles, 182 backfill
+mood sessions) and the generated OG images. `backend/.env` (the token) was
+untouched. Recovered by re-running `python -m jobs selftest && python -m
+jobs backfill && python -m jobs eod --force && python -m jobs fii` against
+the same live token. Lesson: `backend/data/` stopped being disposable the
+moment real backfill data landed in it -- don't blanket-delete a gitignored
+directory without checking whether "test artifact" is still an accurate
+description of what's in it.
