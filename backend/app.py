@@ -18,6 +18,11 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote_plus, urlencode
 from token_manager import get_access_token, is_expired, load_token, save_token
+import snapshot
+import store
+from datetime import timezone as _timezone, timedelta as _timedelta
+
+IST = _timezone(_timedelta(hours=5, minutes=30))
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
@@ -25,6 +30,7 @@ FRONTEND_DIR = BASE_DIR.parent / "frontend"
 app = Flask(__name__, static_folder=str(FRONTEND_DIR))
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret-before-hosting")
 CORS(app)
+store.init_db()
 
 @app.before_request
 def redirect_to_canonical_host():
@@ -327,17 +333,6 @@ def matches_index_symbol(stock, index_symbol):
     stock_symbol = to_nse_base_symbol(stock.get("symbol"))
     return stock_symbol in index_member_aliases(index_symbol)
 
-# def fetch_upstox_quotes(headers, instrument_keys):
-#     if not instrument_keys:
-#         return {}
-
-#     url = "https://api.upstox.com/v2/market-quote/quotes"
-#     params = {"instrument_key": ",".join(unique_values(instrument_keys))}
-#     res = requests.get(url, headers=headers, params=params, timeout=15)
-#     res.raise_for_status()
-#     return res.json().get("data", {}) or {}
-
-
 def fetch_upstox_quotes(headers, instrument_keys):
     url = "https://api.upstox.com/v2/market-quote/quotes"
 
@@ -382,15 +377,6 @@ def fetch_upstox_quotes(headers, instrument_keys):
             all_data.update(future.result())
 
     return all_data
-
-def fetch_index_quotes(headers):
-    quotes = {}
-    for config in INDEX_QUOTE_CONFIG.values():
-        try:
-            quotes.update(fetch_upstox_quotes(headers, [config["instrumentKey"]]))
-        except requests.RequestException:
-            continue
-    return quotes
 
 def build_index_quote_payload(index_quotes):
     by_instrument_key = {}
@@ -1379,13 +1365,14 @@ NSE_HEADERS = {
 # =========================
 # STOCK API
 # =========================
-@app.route("/stocks")
-def get_stocks():
+def build_snapshot_payload(access_token):
+    """Fetch quotes for every instrument + index and shape the /stocks payload.
 
-    access_token = get_access_token()
-    if not access_token:
-        return jsonify({"error": "TOKEN_EXPIRED"})
-
+    Called only by the scheduled `snapshot`/`eod` jobs (backend/jobs.py), never
+    from inside a request -- `/stocks` itself just serves the cache snapshot.py
+    keeps on disk. Raises requests.RequestException on a hard Upstox failure so
+    the caller can decide whether to keep serving the last good cache.
+    """
     headers = {
         "Authorization": f"Bearer {access_token}"
     }
@@ -1394,10 +1381,7 @@ def get_stocks():
     instrument_keys = unique_values(instrument_map.values())
     card_metrics = load_card_metrics()
 
-    try:
-        data = fetch_upstox_quotes(headers, instrument_keys)
-    except requests.RequestException:
-        return jsonify({"all": [], "gainers": [], "losers": []})
+    data = fetch_upstox_quotes(headers, instrument_keys)
 
     market_stats = {}
     index_quote_data = fetch_index_quotes(headers)
@@ -1496,8 +1480,7 @@ def get_stocks():
         for index, symbols in INDEX_GROUPS.items()
     }
 
-    return jsonify({
-        "debug_index_quotes": index_quote_data,
+    return {
         "movers": movers,
         "all": sort_by_change_desc(stocks_data),
         "gainers": gainers,
@@ -1506,7 +1489,95 @@ def get_stocks():
         **index_stocks,
         "indexQuotes": build_index_quote_payload(index_quote_data),
         "others": sort_by_change_desc(others)
-    })
+    }
+
+
+def build_sample_snapshot_payload():
+    """Sample-mode stand-in for build_snapshot_payload, built from
+    backend/fixtures/sample_daily_bars.json instead of calling Upstox."""
+    import json
+    from config import FIXTURES_DIR
+
+    fixture = json.loads((FIXTURES_DIR / "sample_daily_bars.json").read_text())
+    stocks_data = []
+    for symbol, bars in fixture["symbols"].items():
+        last, prev = bars[-1], bars[-2] if len(bars) > 1 else bars[-1]
+        change = round(((last["close"] - prev["close"]) / prev["close"]) * 100, 2)
+        stocks_data.append({
+            "symbol": symbol + ".NS",
+            "name": STOCK_NAMES.get(symbol, symbol),
+            "price": last["close"], "open": last["open"], "close": last["close"],
+            "previousClose": prev["close"], "high": last["high"], "low": last["low"],
+            "change": change, "netChange": round(last["close"] - prev["close"], 2),
+            "volume": last["volume"],
+        })
+
+    positive = [s for s in stocks_data if s["change"] > 0]
+    negative = [s for s in stocks_data if s["change"] < 0]
+    gainers = sorted(positive, key=lambda x: x["change"], reverse=True)[:10]
+    losers = sorted(negative, key=lambda x: x["change"])[:10]
+
+    nifty = fixture["indices"]["NSE_INDEX|Nifty 50"]
+    nifty_last, nifty_prev = nifty[-1], nifty[-2]
+    nifty_change = round(((nifty_last["close"] - nifty_prev["close"]) / nifty_prev["close"]) * 100, 2)
+
+    return {
+        "movers": sort_by_abs_change_desc(gainers + losers),
+        "all": sort_by_change_desc(stocks_data),
+        "gainers": gainers,
+        "losers": losers,
+        "others": [],
+        "indexQuotes": {
+            "nifty50": {
+                "label": "NIFTY 50", "price": nifty_last["close"],
+                "netChange": round(nifty_last["close"] - nifty_prev["close"], 2),
+                "change": nifty_change,
+            }
+        },
+    }
+
+
+@app.route("/stocks")
+def get_stocks():
+    cached = snapshot.get_cached_snapshot()
+    if cached is None:
+        return jsonify({"error": "TOKEN_EXPIRED"})
+    return jsonify(cached)
+
+
+@app.route("/api/mood")
+def api_mood():
+    import mood as mood_module
+    live = store.get_mood_live() if _market_is_open_now() else None
+    if live:
+        return jsonify({**live, "kind": "live"})
+    today = datetime.now(IST).strftime("%Y-%m-%d")
+    result = store.get_mood(today, "close") or store.latest_mood()
+    if not result:
+        try:
+            result = mood_module.compute_mood(kind="close", date=today)
+        except mood_module.InsufficientDataError:
+            return jsonify({"error": "MOOD_UNAVAILABLE"}), 503
+    return jsonify(result)
+
+
+@app.route("/api/mood/history")
+def api_mood_history():
+    days = min(int(request.args.get("days", 90)), 400)
+    history = store.get_mood_history("close", days=days) or store.get_mood_history("backfill", days=days)
+    nifty_bars = {b["date"]: b["close"] for b in store.get_index_bars("NSE_INDEX|Nifty 50", limit_sessions=days)}
+    return jsonify([
+        {"date": h["date"], "score": h["score"], "zone": h["zone"], "niftyClose": nifty_bars.get(h["date"])}
+        for h in history
+    ])
+
+
+def _market_is_open_now():
+    now = datetime.now(IST)
+    if now.weekday() >= 5:
+        return False
+    minutes = now.hour * 60 + now.minute
+    return 9 * 60 + 15 <= minutes <= 15 * 60 + 35
 
 @app.route("/market-stats", methods=["POST"])
 def get_market_stats():
@@ -2626,6 +2697,17 @@ def fetch_index_quotes(headers):
     except requests.RequestException as e:
         print("INDEX FETCH FAILED", e)
     return quotes
+
+# =========================
+# SCHEDULER
+# =========================
+# Guarded by an explicit env flag (set in Procfile) rather than always-on import,
+# so pytest / `python -m jobs ...` / a plain `import app` never spins up a
+# background scheduler thread by accident.
+if os.environ.get("EQUILYTICS_RUN_SCHEDULER") == "1":
+    import scheduler as _scheduler_module
+    _scheduler_module.start_scheduler()
+
 # =========================
 # RUN
 # =========================
