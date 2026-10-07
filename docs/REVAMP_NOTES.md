@@ -167,4 +167,43 @@ phase lands.
 - `python -m jobs selftest` passes live: token valid, VIX+GOLDBEES quotes
   fetched, a VIX candle series fetched, NSE FII/DII fetched.
 - `python -m jobs backfill` was run against the live token (400 days of
-  daily candles for all ~1,643 equities + 14 index/ETF series).
+  daily candles for all ~1,643 equities + 14 index/ETF series). Result: 1,593
+  of 1,643 symbols backfilled (271 sessions each); 47 symbols (~2.9%) failed
+  with Upstox's `UDAPI100011 "Invalid Instrument key"` -- these are stale/
+  incorrect `NSE_EQ|<ISIN>` entries already present in `backend/instruments.json`
+  (pre-existing data quality in that file, not something this revamp
+  introduced or can safely "fix" by guessing a replacement ISIN). Handled
+  gracefully already: `upstox_client.backfill_candles` catches the exception
+  per-symbol and continues, so those 47 symbols simply have no `daily_bars`
+  history and are skipped by the mood/Focus-List engines rather than
+  crashing anything. Regenerating `instruments.json` from the live
+  instrument master would fix this properly but is a separate, bigger task.
+- **Found and fixed two real bugs while running the live chain end-to-end**
+  (both caught by actually exercising the live data, not by code review):
+  1. `mood.backfill_history()` always returned 0 computed sessions. Backfill
+     mode structurally only ever has 3 computable signals (vix, momentum,
+     gold -- fii needs pre-launch NSE history that doesn't exist, breadth/
+     highs_lows need a full-universe daily snapshot that isn't backfilled),
+     but `_score_from_components` was hard-coded to require
+     `config.MIN_AVAILABLE_SIGNALS` (4), so backfill mood could never clear
+     the bar. Fixed by adding a `min_signals` parameter, with
+     `backfill_history()` passing `min_signals=3`. After the fix: 182
+     backfill-kind mood sessions computed from the real backfilled data.
+  2. `/market-mood-today` 500'd with `KeyError: 'date'` during market hours.
+     `store.mood_live` only ever stored `score`/`zone`/`components`/
+     `computed_at` as separate columns -- missing `date`, `change`,
+     `compare`, `headline`, `verdict`, all of which `page_mood_today`/
+     `home.html` assume exist on any mood object. Fixed by changing
+     `mood_live` to store the *entire* mood dict `compute_mood(kind="live")`
+     returns as one JSON blob (migrated via a one-time `DROP TABLE` in
+     `store.init_db()`, safe since it's always-recomputed live state, never
+     historical data worth preserving).
+- After both fixes, ran the full live chain end-to-end against real data:
+  `snapshot` (1,569 live quotes cached), `eod --force` (real close mood:
+  score 37, Fear, 5/6 signals available -- FII correctly unavailable on day
+  one since NSE flow history hasn't accumulated yet), `fii` (real NSE FII/DII
+  fetched: FII net -2,961 cr, DII net +5,089 cr; regenerated the brief and OG
+  image). Every route hit with a test client returned 200, `/stocks`
+  responded in ~57ms from cache, and the scoped banned-word check against
+  the actual generated signal `explain`/`reading` text and the real brief
+  body came back clean.

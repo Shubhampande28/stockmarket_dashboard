@@ -67,7 +67,7 @@ def run_snapshot():
 def _recompute_live_mood():
     try:
         result = mood.compute_mood(kind="live")
-        store.save_mood_live(result["score"], result["zone"], result["components"], result["computed_at"])
+        store.save_mood_live(result)
     except mood.InsufficientDataError as exc:
         logger.info("live mood skipped: %s", exc)
 

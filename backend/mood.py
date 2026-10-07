@@ -197,9 +197,10 @@ def _assemble_components(raw_signals, previous_components_by_id, rng):
     return components
 
 
-def _score_from_components(components):
+def _score_from_components(components, min_signals=None):
+    min_signals = config.MIN_AVAILABLE_SIGNALS if min_signals is None else min_signals
     available = [c for c in components if c["available"] and c["score"] is not None]
-    if len(available) < config.MIN_AVAILABLE_SIGNALS:
+    if len(available) < min_signals:
         return None, available
     score = round(sum(c["score"] for c in available) / len(available))
     return score, available
@@ -338,7 +339,12 @@ def backfill_history():
             "gold": _gold_signal(gold_bars, window_nifty),
         }
         components = _assemble_components(raw_signals, {}, random)
-        score, _ = _score_from_components(components)
+        # Backfill structurally only ever has 3 computable signals (vix,
+        # momentum, gold) -- fii needs NSE history we don't have pre-launch,
+        # breadth/highs_lows need a full-universe daily snapshot we don't
+        # backfill. Requiring the live MIN_AVAILABLE_SIGNALS (4) here would
+        # always fail, so require all 3 instead.
+        score, _ = _score_from_components(components, min_signals=3)
         if score is None:
             continue
         zone = config.zone_for_score(score)

@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS mood (
     PRIMARY KEY (date, kind)
 );
 CREATE TABLE IF NOT EXISTS mood_live (
-    id INTEGER PRIMARY KEY CHECK (id = 1), score REAL, zone TEXT, components TEXT, computed_at TEXT
+    id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT, computed_at TEXT
 );
 CREATE TABLE IF NOT EXISTS lists (
     date TEXT, list_id TEXT, rows TEXT,
@@ -63,6 +63,17 @@ def connect():
 def init_db():
     with connect() as conn:
         conn.executescript(SCHEMA)
+        # Migration: mood_live used to store score/zone/components/computed_at as
+        # separate columns; it now stores the whole mood object as one `data`
+        # JSON blob so live mood carries date/change/compare/headline/verdict
+        # too, not just a partial shape. Safe to drop and recreate -- it's
+        # always-recomputed live state, never historical.
+        cols = {row["name"] for row in conn.execute("PRAGMA table_info(mood_live)")}
+        if "score" in cols:
+            conn.execute("DROP TABLE mood_live")
+            conn.execute(
+                "CREATE TABLE mood_live (id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT, computed_at TEXT)"
+            )
 
 
 # ---- daily_bars / index_bars ----
@@ -200,20 +211,20 @@ def _mood_row_to_dict(row):
     return d
 
 
-def save_mood_live(score, zone, components, computed_at):
+def save_mood_live(mood_obj):
+    """mood_obj: the full dict compute_mood(kind="live") returns."""
     with connect() as conn:
         conn.execute(
-            "INSERT INTO mood_live (id, score, zone, components, computed_at) VALUES (1,?,?,?,?) "
-            "ON CONFLICT(id) DO UPDATE SET score=excluded.score, zone=excluded.zone, "
-            "components=excluded.components, computed_at=excluded.computed_at",
-            (score, zone, json.dumps(components), computed_at),
+            "INSERT INTO mood_live (id, data, computed_at) VALUES (1,?,?) "
+            "ON CONFLICT(id) DO UPDATE SET data=excluded.data, computed_at=excluded.computed_at",
+            (json.dumps(mood_obj), mood_obj.get("computed_at")),
         )
 
 
 def get_mood_live():
     with connect() as conn:
-        row = conn.execute("SELECT * FROM mood_live WHERE id = 1").fetchone()
-        return _mood_row_to_dict(row)
+        row = conn.execute("SELECT data FROM mood_live WHERE id = 1").fetchone()
+    return json.loads(row["data"]) if row and row["data"] else None
 
 
 # ---- lists ----
