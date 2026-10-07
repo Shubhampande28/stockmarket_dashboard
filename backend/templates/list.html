@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>{% include "_head.html" %}</head>
+<body>
+{% include "_header.html" %}
+<main class="wrap">
+  <section>
+    <div class="sec-head"><div>
+      <div class="eyebrow">{{ date }} &middot; Refreshed after every close</div>
+      <h2>{{ list_data.label }}</h2>
+      <p class="why">{{ list_data.rule }}</p>
+    </div></div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>{% for c in list_data.cols %}<th{{ ' class="n"' | safe if loop.index0 >= 2 else '' }}>{{ c }}</th>{% endfor %}</tr></thead>
+          <tbody>
+            {% for row in list_data.rows %}
+            <tr>{% for v in row %}<td{{ ' class="n"' | safe if loop.index0 >= 2 else '' }}>{{ v }}</td>{% endfor %}</tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="fine">{{ list_data.disclaimer }}</p>
+    </div>
+  </section>
+
+  <section class="tint">
+    <div class="panel">
+      <h2>About this list</h2>
+      <p>{{ list_data.label }} is a rule-based screen computed fresh after every market close, over the full tracked
+      stock universe. The rule shown above is applied exactly as written -- there's no manual curation or judgment
+      call involved, so you can verify any stock's place on the list yourself from its price and volume history.
+      These screens surface stocks matching a pattern in the data; they are not a signal to buy or sell, and
+      Equilytics is not a SEBI-registered investment adviser or research analyst.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tools">
+      {% for other_id, other_label in other_lists %}
+      <a class="tool" href="/{{ other_id }}"><b>{{ other_label }}</b></a>
+      {% endfor %}
+    </div>
+  </section>
+  {% include "_footer.html" %}
+</main>
+</body>
+</html>

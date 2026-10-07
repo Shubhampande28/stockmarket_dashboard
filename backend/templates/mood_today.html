@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>{% include "_head.html" %}</head>
+<body>
+{% include "_header.html" %}
+<main class="wrap">
+  <section>
+    <div class="sec-head"><div>
+      <div class="eyebrow">{{ mood.date }} &middot; Last updated {{ mood.computed_at }}</div>
+      <h2>India's stock market mood today: {{ mood.score }}/100, {{ mood.zone }}</h2>
+      <p>{{ mood.headline }} So the market is <b>{{ mood.verdict }}</b>.</p>
+    </div></div>
+
+    <div class="panel" style="max-width:520px;margin:0 auto">
+      <svg id="gauge" viewBox="-40 0 480 290" role="img" aria-label="Mood gauge at {{ mood.score }}, {{ mood.zone }}"></svg>
+    </div>
+
+    <div class="signals" id="sigGrid" style="margin-top:24px">
+      {% for c in mood.components %}
+      <div class="sig{{ '' if c.available else ' unavailable' }}">
+        <div class="sig-top"><h3>{{ c.name }}</h3>{% if c.available %}<span class="score">{{ c.score }}</span>{% else %}<span class="score">&mdash;</span>{% endif %}</div>
+        {% if c.available %}<div class="bar"><i style="left:calc({{ c.score }}% - 2px)"></i></div>{% endif %}
+        <div class="reading">{{ c.reading }}</div>
+        <p>{{ c.explain }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="tint">
+    <div class="panel">
+      <h2>What is the Equilytics Mood Index?</h2>
+      <p>The Equilytics Mood Index is a daily 0-100 reading of how Indian stock market participants are feeling,
+      built from six signals: foreign investor (FII) flows, India VIX volatility, Nifty 50 price momentum, market
+      breadth (how many stocks are rising versus falling), the balance of 52-week highs versus lows, and how gold
+      is performing relative to the Nifty 50. Each signal is converted to a 0-100 score by ranking today's reading
+      against the last 250 trading sessions, then averaged. A score near 0 means Extreme Fear; near 100 means
+      Extreme Greed. The exact formulas, data sources and update schedule are on the <a href="/methodology">methodology page</a>.</p>
+      <p>The index updates live every two minutes while the market is open, and settles into a final "close" reading
+      after FII/DII data arrives each evening. It is a descriptive signal about current market sentiment, not a
+      prediction and not investment advice -- Equilytics is not a SEBI-registered investment adviser or research analyst.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div><div class="eyebrow">History</div><h2>Mood Index vs Nifty 50</h2></div></div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th class="n">Mood score</th><th>Zone</th><th class="n">Nifty 50 close</th></tr></thead>
+          <tbody>
+            {% for h in history[-30:] | reverse %}
+            <tr><td>{{ h.date }}</td><td class="n">{{ h.score }}</td><td>{{ h.zone }}</td><td class="n">{{ '{:,.0f}'.format(h.niftyClose) if h.niftyClose else '—' }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="fine"><a href="/mood-history">Full history &rarr;</a></p>
+    </div>
+  </section>
+
+  <section class="tint">
+    <h2>Frequently asked questions</h2>
+    {% for q, a in faq %}
+    <div class="panel" style="margin-bottom:10px"><b>{{ q }}</b><p style="margin-top:6px">{{ a }}</p></div>
+    {% endfor %}
+  </section>
+
+  <section>
+    <div class="tools">
+      <a class="tool" href="/fii-dii-data-today"><b>FII DII data today</b><small>30-day table and chart</small></a>
+      <a class="tool" href="/india-vix-today"><b>India VIX today</b><small>Level, change, range</small></a>
+      <a class="tool" href="/market-breadth-today"><b>Market breadth today</b><small>Advances vs declines</small></a>
+      <a class="tool" href="/brief"><b>Daily Brief archive</b><small>What moved the market, every day</small></a>
+    </div>
+  </section>
+
+  {% include "_footer.html" %}
+</main>
+<script>window.__gauge_score = {{ mood.score }};</script>
+<script src="/mood_gauge_only.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>{% include "_head.html" %}</head>
+<body>
+{% include "_header.html" %}
+<main class="wrap">
+  <section>
+    <div class="sec-head"><div>
+      <div class="eyebrow">Methodology</div>
+      <h2>How the Equilytics Mood Index is built</h2>
+      <p>Every formula, data source, update time and known limitation -- nothing here is hidden.</p>
+    </div></div>
+
+    <div class="panel">
+      <h3 style="font-family:var(--f-display);font-size:1.2rem;font-weight:800">The six signals</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Signal</th><th>Raw value</th><th>Direction</th><th>Fallback scale (&lt;60 sessions)</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Foreign investors (FII)</td><td>Sum of FII net cash flow, last 5 sessions, &#8377; cr</td><td>Higher = greed</td><td>&minus;15,000 &rarr; 0, +15,000 &rarr; 100</td></tr>
+            <tr><td>2</td><td>Volatility (India VIX)</td><td>India VIX close</td><td>Inverted (higher VIX = fear)</td><td>25 &rarr; 0, 10 &rarr; 100</td></tr>
+            <tr><td>3</td><td>Momentum</td><td>(EMA30 &minus; EMA90) / EMA90 &times; 100 on Nifty 50 closes</td><td>Higher = greed</td><td>&minus;4% &rarr; 0, +4% &rarr; 100</td></tr>
+            <tr><td>4</td><td>Market breadth</td><td>advances / (advances + declines), today</td><td>Higher = greed</td><td>ratio &times; 100 (always, no percentile)</td></tr>
+            <tr><td>5</td><td>52-week highs vs lows</td><td>(H &minus; L) / max(H+L, 1)</td><td>Higher = greed</td><td>50 + 50 &times; value (always, no percentile)</td></tr>
+            <tr><td>6</td><td>Gold vs Nifty</td><td>10-session return: GOLDBEES &minus; Nifty 50</td><td>Inverted (gold beating stocks = fear)</td><td>+5% &rarr; 0, &minus;5% &rarr; 100</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Signals 1, 2, 3 and 6 are converted to a 0-100 sub-score by ranking today's raw value against the trailing
+      250 trading sessions of that same raw value, once at least 60 sessions of history exist; before that, the
+      fixed fallback scale above is used. Signals 4 and 5 are already bounded between 0 and 100 by their own
+      formula and are never percentile-ranked. The final score is the simple average of whichever sub-scores are
+      available that day, rounded to a whole number. A signal is treated as unavailable if its data is missing or
+      stale for more than 3 sessions; if fewer than 4 of the 6 signals are available, the site keeps showing the
+      last valid score with a "data delayed" note rather than publishing a number built on too little.</p>
+      <p><b>Zones:</b> 0&ndash;24 Extreme Fear &middot; 25&ndash;44 Fear &middot; 45&ndash;55 Neutral &middot; 56&ndash;75 Greed &middot; 76&ndash;100 Extreme Greed.</p>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h3 style="font-family:var(--f-display);font-size:1.2rem;font-weight:800">Data sources &amp; update schedule</h3>
+      <ul>
+        <li><b>Quotes, candles, VIX, GOLDBEES, index data:</b> Upstox Market Data API, refreshed every 2 minutes during market hours (9:15am&ndash;3:35pm IST), a final close snapshot at 3:45pm.</li>
+        <li><b>FII/DII flows:</b> NSE's daily FII/DII disclosure, fetched at 6:30pm IST with retries at 7:30pm and 9:00pm if the data hasn't been published yet.</li>
+        <li><b>Daily Brief:</b> generated automatically after the FII/DII fetch (or by 9:15pm if FII data is still missing), from a template, with an optional AI rewrite pass that is fact-checked against the same numbers before publishing.</li>
+      </ul>
+      <p>The site always serves the last good snapshot and mood score if a data source is temporarily unavailable, with a "Last updated" note rather than an empty page.</p>
+    </div>
+
+    <div class="panel" style="margin-top:16px" id="brief">
+      <h3 style="font-family:var(--f-display);font-size:1.2rem;font-weight:800">How the Daily Brief is made</h3>
+      <p>Every brief starts as a template: the day's Nifty/Sensex/Bank Nifty moves, top and bottom sectors, FII/DII,
+      VIX, breadth and Focus List counts are dropped into a fixed structure (What happened, Why, What it means for
+      long-term investors, What to watch). If an AI rewrite is enabled, it may only polish the wording for
+      clarity -- every number in the AI version is checked against the source data, and any banned word ("buy",
+      "sell", "target price", "recommend", "should invest", "guaranteed") causes the system to fall back to the
+      plain template version instead of publishing.</p>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h3 style="font-family:var(--f-display);font-size:1.2rem;font-weight:800">Limitations</h3>
+      <ul>
+        <li>FII/DII history only exists from the site's launch day onward -- NSE's endpoint has no historical API.</li>
+        <li>The Mood Index describes current sentiment; it does not predict future returns.</li>
+        <li>Surcharge and most tax/regulatory nuances are out of scope for the free calculators elsewhere on the site.</li>
+      </ul>
+      <p>{{ sebi_disclaimer }}</p>
+    </div>
+  </section>
+  {% include "_footer.html" %}
+</main>
+</body>
+</html>

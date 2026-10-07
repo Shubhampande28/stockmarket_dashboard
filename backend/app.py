@@ -216,17 +216,31 @@ def sitemap_xml():
         ("/corrections-policy", "monthly", "0.5"),
         ("/privacy-policy", "yearly", "0.4"),
         ("/disclaimer", "yearly", "0.4"),
+        ("/market-mood-today", "daily", "0.95"),
+        ("/fii-dii-data-today", "daily", "0.9"),
+        ("/india-vix-today", "daily", "0.9"),
+        ("/market-breadth-today", "daily", "0.85"),
+        ("/nifty-52-week-high-stocks", "daily", "0.8"),
+        ("/nifty-52-week-low-stocks", "daily", "0.8"),
+        ("/volume-shockers-today", "daily", "0.8"),
+        ("/steady-climbers", "daily", "0.8"),
+        ("/mood-history", "daily", "0.7"),
+        ("/methodology", "monthly", "0.6"),
+        ("/brief", "daily", "0.8"),
     ]
     urls = list(static_urls)
     urls.extend((f"/sectors/{sector}", "daily", "0.75") for sector in sorted(SECTOR_GROUPS))
     urls.extend((f"/stocks/{stock_slug(symbol)}", "daily", "0.7") for symbol in sorted(load_instrument_map()))
+    urls.extend((f"/brief/{b['date']}", "weekly", "0.6", b["date"]) for b in store.list_briefs(limit=400))
 
     entries = []
-    for path, changefreq, priority in urls:
+    for entry in urls:
+        path, changefreq, priority = entry[0], entry[1], entry[2]
+        lastmod = entry[3] if len(entry) > 3 else today
         entries.append(
             "  <url>\n"
             f"    <loc>https://www.equilytics.in{escape(path)}</loc>\n"
-            f"    <lastmod>{today}</lastmod>\n"
+            f"    <lastmod>{lastmod}</lastmod>\n"
             f"    <changefreq>{changefreq}</changefreq>\n"
             f"    <priority>{priority}</priority>\n"
             "  </url>"
@@ -1761,6 +1775,150 @@ def _market_is_open_now():
         return False
     minutes = now.hour * 60 + now.minute
     return 9 * 60 + 15 <= minutes <= 15 * 60 + 35
+
+
+# =========================
+# DAILY SEO DATA PAGES
+# =========================
+
+@app.route("/market-mood-today")
+def page_mood_today():
+    mood_result = _get_today_mood() or _fallback_mood()
+    history = store.get_mood_history("close", days=30) or store.get_mood_history("backfill", days=30)
+    nifty_bars = {b["date"]: b["close"] for b in store.get_index_bars("NSE_INDEX|Nifty 50", limit_sessions=30)}
+    history = [{"date": h["date"], "score": h["score"], "zone": h["zone"], "niftyClose": nifty_bars.get(h["date"])} for h in history]
+    faq = [
+        ("What is the Equilytics Mood Index?", "A daily 0-100 score of Indian stock market sentiment, built from six signals. See the full breakdown above and the formulas on the methodology page."),
+        ("Is this the same as the Fear and Greed Index?", "It's the same idea -- fear versus greed in markets -- applied to Indian data (FII flows, India VIX, Nifty breadth, gold vs Nifty) rather than US inputs."),
+        ("How often does it update?", "Every 2 minutes while the market is open, with a final close reading after FII/DII data arrives in the evening."),
+        ("Is a low score a buy signal?", "No. It's a description of current sentiment, not a recommendation. Equilytics is not a SEBI-registered investment adviser or research analyst."),
+    ]
+    return render_template(
+        "mood_today.html", active="today",
+        title=f"Stock Market Mood Today (India): {mood_result['score']}/100, {mood_result['zone']} | Equilytics",
+        description=f"India's Fear & Greed-style Mood Index is {mood_result['score']}/100 ({mood_result['zone']}) on {mood_result['date']}. See all six signals behind the score.",
+        canonical_url="https://www.equilytics.in/market-mood-today",
+        schema_json=page_schema("Market Mood Today", "https://www.equilytics.in/market-mood-today",
+                                 "Daily Equilytics Mood Index with all six signals explained.", "Market mood today", faq_items=faq),
+        mood=mood_result, history=history, faq=faq,
+    )
+
+
+@app.route("/fii-dii-data-today")
+def page_fii_dii():
+    rows = store.get_fii_dii(limit_sessions=30)
+    latest = rows[-1] if rows else None
+    date = latest["date"] if latest else _today_ist()
+    summary_line = (
+        f"FIIs net {'bought' if latest['fii_net'] >= 0 else 'sold'} ₹{abs(round(latest['fii_net'])):,} cr"
+        if latest else "data pending"
+    )
+    return render_template(
+        "fii_dii.html", active="today",
+        title=f"FII DII Data Today ({date}): {summary_line} | Equilytics",
+        description=f"Today's FII and DII net cash-market flows in India, plus a 30-day table and chart. {summary_line}.",
+        canonical_url="https://www.equilytics.in/fii-dii-data-today",
+        schema_json=page_schema("FII DII Data Today", "https://www.equilytics.in/fii-dii-data-today",
+                                 "Daily FII and DII net flow data for the Indian stock market.", "FII DII data today"),
+        date=date, updated_at=datetime.now(IST).strftime("%H:%M IST"), latest=latest, rows=rows, summary_line=summary_line,
+    )
+
+
+@app.route("/india-vix-today")
+def page_vix():
+    bars = store.get_index_bars(config.INDIA_VIX_KEY, limit_sessions=260)
+    vix = bars[-1]["close"] if bars else None
+    prev = bars[-2]["close"] if len(bars) > 1 else None
+    change_pct = ((vix - prev) / prev * 100) if (vix and prev) else None
+    closes = [b["close"] for b in bars]
+    return render_template(
+        "vix.html", active="today",
+        title=f"India VIX Today: {'{:.1f}'.format(vix) if vix else '—'} | Equilytics",
+        description="Today's India VIX level and change, its 1-year range, and what rising or falling volatility means for the market.",
+        canonical_url="https://www.equilytics.in/india-vix-today",
+        schema_json=page_schema("India VIX Today", "https://www.equilytics.in/india-vix-today",
+                                 "Today's India VIX reading and what it means.", "India VIX today"),
+        date=_today_ist(), updated_at=datetime.now(IST).strftime("%H:%M IST"),
+        vix=vix, change_pct=change_pct, year_high=max(closes) if closes else None, year_low=min(closes) if closes else None,
+    )
+
+
+@app.route("/market-breadth-today")
+def page_breadth():
+    cached_snapshot = snapshot.get_cached_snapshot() or {}
+    stocks = cached_snapshot.get("all", [])
+    advances = sum(1 for s in stocks if s.get("change", 0) > 0)
+    declines = sum(1 for s in stocks if s.get("change", 0) < 0)
+    sector_breadth = []
+    for key, label in SECTOR_TILE_LABELS.items():
+        sector_stocks = cached_snapshot.get(key) or []
+        sector_breadth.append({
+            "label": label,
+            "advances": sum(1 for s in sector_stocks if s.get("change", 0) > 0),
+            "declines": sum(1 for s in sector_stocks if s.get("change", 0) < 0),
+        })
+    return render_template(
+        "breadth.html", active="today",
+        title=f"Market Breadth Today (India): {advances} Advances, {declines} Declines | Equilytics",
+        description=f"Today's NSE market breadth: {advances} stocks advanced and {declines} declined, broken down by sector.",
+        canonical_url="https://www.equilytics.in/market-breadth-today",
+        schema_json=page_schema("Market Breadth Today", "https://www.equilytics.in/market-breadth-today",
+                                 "Today's advances vs declines across the Indian stock market.", "Market breadth today"),
+        date=_today_ist(), updated_at=datetime.now(IST).strftime("%H:%M IST"),
+        advances=advances, declines=declines, sector_breadth=sector_breadth,
+    )
+
+
+FOCUS_LIST_ROUTES = {
+    "nifty-52-week-high-stocks": "near-52w-high",
+    "nifty-52-week-low-stocks": "near-52w-low",
+    "volume-shockers-today": "volume-shockers",
+    "steady-climbers": "steady-climbers",
+}
+
+
+@app.route('/<any("nifty-52-week-high-stocks", "nifty-52-week-low-stocks", "volume-shockers-today", "steady-climbers"):route_name>')
+def page_focus_list(route_name):
+    import lists as lists_module
+    list_id = FOCUS_LIST_ROUTES[route_name]
+    list_data = lists_module.get_list_for_api(list_id)
+    if list_data is None:
+        return jsonify({"error": "NOT_FOUND"}), 404
+    other_lists = [(r, lists_module.LABELS[lid]) for r, lid in FOCUS_LIST_ROUTES.items() if lid != list_id]
+    return render_template(
+        "list.html", active="lists",
+        title=f"{list_data['label']} – Indian Stocks Today | Equilytics",
+        description=f"{list_data['label']}: {list_data['rule']}",
+        canonical_url=f"https://www.equilytics.in/{route_name}",
+        schema_json=page_schema(list_data["label"], f"https://www.equilytics.in/{route_name}", list_data["rule"], list_data["label"]),
+        date=_today_ist(), list_data=list_data, other_lists=other_lists,
+    )
+
+
+@app.route("/mood-history")
+def page_mood_history():
+    history = store.get_mood_history("close", days=400) or store.get_mood_history("backfill", days=400)
+    nifty_bars = {b["date"]: b["close"] for b in store.get_index_bars("NSE_INDEX|Nifty 50", limit_sessions=400)}
+    history = [{"date": h["date"], "score": h["score"], "zone": h["zone"], "niftyClose": nifty_bars.get(h["date"])} for h in history]
+    return render_template(
+        "mood_history.html", active="today",
+        title="Equilytics Mood Index History | Equilytics",
+        description="Full history of the Equilytics Mood Index score alongside the Nifty 50 close.",
+        canonical_url="https://www.equilytics.in/mood-history",
+        schema_json=None,
+        history=history,
+    )
+
+
+@app.route("/methodology")
+def page_methodology():
+    return render_template(
+        "methodology.html", active="today",
+        title="Methodology | Equilytics",
+        description="How the Equilytics Mood Index is calculated: every formula, data source and limitation.",
+        canonical_url="https://www.equilytics.in/methodology",
+        schema_json=None,
+    )
 
 @app.route("/market-stats", methods=["POST"])
 def get_market_stats():

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>{% include "_head.html" %}</head>
+<body>
+{% include "_header.html" %}
+<main class="wrap">
+  <section>
+    <div class="sec-head"><div>
+      <div class="eyebrow">{{ date }} &middot; Last updated {{ updated_at }}</div>
+      <h2>FII DII data today: {{ summary_line }}</h2>
+      <p>Foreign institutional investors (FII) and domestic institutional investors (DII) net cash-market flows,
+      in &#8377; crore, from NSE's daily disclosure.</p>
+    </div></div>
+    <div class="panel">
+      <div class="two" style="grid-template-columns:1fr 1fr">
+        <div><div class="eyebrow">FII net</div><p class="mono {{ 'up' if latest and latest.fii_net >= 0 else 'down' }}" style="font-size:1.8rem;margin:4px 0">{{ '{:+,.0f}'.format(latest.fii_net) if latest else '—' }}</p></div>
+        <div><div class="eyebrow">DII net</div><p class="mono {{ 'up' if latest and latest.dii_net >= 0 else 'down' }}" style="font-size:1.8rem;margin:4px 0">{{ '{:+,.0f}'.format(latest.dii_net) if latest else '—' }}</p></div>
+      </div>
+      {% if latest and latest.stale %}<p class="fine">Today's figure hadn't arrived from NSE when this page last updated -- showing the previous session's value.</p>{% endif %}
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div><div class="eyebrow">Last 30 sessions</div><h2>FII vs DII flows</h2></div></div>
+    <div class="panel">
+      <svg id="flows" viewBox="0 0 640 260" role="img" aria-label="FII and DII net flows, last 30 sessions"></svg>
+      <div class="legend"><span style="--c:var(--down)">Foreign (FII)</span><span style="--c:var(--up)">Domestic (DII)</span></div>
+      <div class="tbl-wrap" style="margin-top:16px">
+        <table>
+          <thead><tr><th>Date</th><th class="n">FII net (₹cr)</th><th class="n">DII net (₹cr)</th></tr></thead>
+          <tbody>
+            {% for r in rows | reverse %}
+            <tr><td>{{ r.date }}</td><td class="n {{ 'up' if r.fii_net >= 0 else 'down' }}">{{ '{:+,.0f}'.format(r.fii_net) }}</td><td class="n {{ 'up' if r.dii_net >= 0 else 'down' }}">{{ '{:+,.0f}'.format(r.dii_net) }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="tint">
+    <div class="panel">
+      <h2>FII vs DII: who moves the Indian stock market?</h2>
+      <p>Foreign institutional investors (FIIs) are overseas funds -- pension funds, hedge funds, sovereign wealth
+      funds -- that buy and sell Indian stocks through registered custodians. Domestic institutional investors
+      (DIIs) are India-based funds: mutual funds, insurance companies like LIC, and pension funds such as EPFO.
+      NSE publishes each day's net buying or selling by both groups after market close.</p>
+      <p>FIIs tend to move in and out of India based on global factors -- US interest rates, the dollar, and risk
+      appetite worldwide -- so their flows can swing quickly. DII flows, heavily driven by retail SIP money flowing
+      into mutual funds, have been steadier and have repeatedly offset FII selling in recent years. Watching both
+      side by side, as in the table above, shows whether a weak day was broad-based selling or just one group
+      stepping back while the other kept buying.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tools">
+      <a class="tool" href="/market-mood-today"><b>Market mood today</b><small>All six signals</small></a>
+      <a class="tool" href="/india-vix-today"><b>India VIX today</b><small>Volatility level</small></a>
+    </div>
+  </section>
+  {% include "_footer.html" %}
+</main>
+<script>window.__flows_rows = {{ rows | tojson }};</script>
+<script src="/flows_chart_only.js"></script>
+</body>
+</html>

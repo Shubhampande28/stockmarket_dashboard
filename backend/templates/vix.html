@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>{% include "_head.html" %}</head>
+<body>
+{% include "_header.html" %}
+<main class="wrap">
+  <section>
+    <div class="sec-head"><div>
+      <div class="eyebrow">{{ date }} &middot; Last updated {{ updated_at }}</div>
+      <h2>India VIX today: {{ '{:.1f}'.format(vix) if vix else '—' }}{% if change_pct is not none %} ({{ '{:+.1f}'.format(change_pct) }}% today){% endif %}</h2>
+      <p>India VIX measures how much traders expect the Nifty 50 to swing over the next 30 days, based on option prices. A higher VIX means more expected turbulence.</p>
+    </div></div>
+    <div class="panel" style="max-width:680px">
+      <div class="two" style="grid-template-columns:1fr 1fr 1fr">
+        <div><div class="eyebrow">Today</div><p class="mono" style="font-size:1.6rem">{{ '{:.1f}'.format(vix) if vix else '—' }}</p></div>
+        <div><div class="eyebrow">1-year high</div><p class="mono" style="font-size:1.6rem">{{ '{:.1f}'.format(year_high) if year_high else '—' }}</p></div>
+        <div><div class="eyebrow">1-year low</div><p class="mono" style="font-size:1.6rem">{{ '{:.1f}'.format(year_low) if year_low else '—' }}</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tint">
+    <div class="panel">
+      <h2>India VIX explained in plain English</h2>
+      <p>India VIX is a volatility index computed by the NSE from the prices traders are paying for Nifty 50 options.
+      When traders expect big price swings -- up or down -- they pay more for options that protect them, and VIX
+      rises. When the market feels calm, VIX tends to sit low. VIX does not say which direction the market will
+      move, only how much movement is expected.</p>
+      <p>As a rough guide, India VIX has historically spent much of its time between 11 and 18. Readings above 20
+      often coincide with sharp selloffs or major news events (elections, global shocks, interest-rate surprises).
+      Readings below 11 usually accompany calm, steadily rising markets. VIX is one of the six inputs to the
+      <a href="/market-mood-today">Equilytics Mood Index</a>, where a rising VIX pulls the score toward Fear.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tools">
+      <a class="tool" href="/market-mood-today"><b>Market mood today</b><small>All six signals</small></a>
+      <a class="tool" href="/fii-dii-data-today"><b>FII DII data today</b><small>Who's buying, selling</small></a>
+    </div>
+  </section>
+  {% include "_footer.html" %}
+</main>
+</body>
+</html>

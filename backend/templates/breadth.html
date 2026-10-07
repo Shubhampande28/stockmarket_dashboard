@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>{% include "_head.html" %}</head>
+<body>
+{% include "_header.html" %}
+<main class="wrap">
+  <section>
+    <div class="sec-head"><div>
+      <div class="eyebrow">{{ date }} &middot; Last updated {{ updated_at }}</div>
+      <h2>Market breadth today: {{ advances }} advances, {{ declines }} declines</h2>
+      <p>Market breadth compares how many stocks rose versus fell today, across the tracked universe -- a check on
+      whether a move is broad-based or driven by just a few large stocks.</p>
+    </div></div>
+    <div class="panel" style="max-width:420px">
+      <div class="two" style="grid-template-columns:1fr 1fr">
+        <div><div class="eyebrow">Advances</div><p class="mono up" style="font-size:1.8rem">{{ advances }}</p></div>
+        <div><div class="eyebrow">Declines</div><p class="mono down" style="font-size:1.8rem">{{ declines }}</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div><div class="eyebrow">By sector</div><h2>Where the breadth is</h2></div></div>
+    <div class="tbl-wrap panel">
+      <table>
+        <thead><tr><th>Sector</th><th class="n">Advances</th><th class="n">Declines</th></tr></thead>
+        <tbody>
+          {% for s in sector_breadth %}
+          <tr><td>{{ s.label }}</td><td class="n up">{{ s.advances }}</td><td class="n down">{{ s.declines }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="tint">
+    <div class="panel">
+      <h2>How to read market breadth</h2>
+      <p>If the Nifty 50 rises but breadth is weak -- more stocks falling than rising -- the gain is likely coming
+      from a handful of heavyweight stocks, while the broader market is quietly weaker. Conversely, strong breadth
+      on a flat index day suggests underlying strength that the index number alone doesn't show. Traders and
+      analysts use breadth as a cross-check against index-level moves precisely because the Nifty 50 is
+      weighted toward its largest companies.</p>
+      <p>Breadth is one of the six inputs to the <a href="/market-mood-today">Equilytics Mood Index</a>, scored
+      directly as advances divided by (advances + declines), with no historical ranking needed since the ratio is
+      already bounded between 0 and 100.</p>
+    </div>
+  </section>
+  {% include "_footer.html" %}
+</main>
+</body>
+</html>

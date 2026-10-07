@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>{% include "_head.html" %}</head>
+<body>
+{% include "_header.html" %}
+<main class="wrap">
+  <section>
+    <div class="sec-head"><div>
+      <div class="eyebrow">Full history</div>
+      <h2>Equilytics Mood Index history</h2>
+      <p>Every session's Mood Index score since launch, alongside the Nifty 50 close. See <a href="/methodology">how it's calculated</a>.</p>
+    </div></div>
+    <div class="panel">
+      <svg id="history" viewBox="0 0 900 320" role="img" aria-label="Mood index history vs Nifty 50"></svg>
+    </div>
+  </section>
+  <section>
+    <div class="panel tbl-wrap">
+      <table>
+        <thead><tr><th>Date</th><th class="n">Score</th><th>Zone</th><th class="n">Nifty 50 close</th></tr></thead>
+        <tbody>
+          {% for h in history | reverse %}
+          <tr><td>{{ h.date }}</td><td class="n">{{ h.score }}</td><td>{{ h.zone }}</td><td class="n">{{ '{:,.0f}'.format(h.niftyClose) if h.niftyClose else '—' }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% include "_footer.html" %}
+</main>
+<script>window.__mood_history = {{ history | tojson }};</script>
+<script src="/mood_history_chart_only.js"></script>
+</body>
+</html>
