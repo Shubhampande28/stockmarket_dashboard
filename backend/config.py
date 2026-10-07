@@ -25,6 +25,25 @@ ZONES = [
 ]
 
 
+def setup_logging():
+    """Rotating file handler (5MB x 3) for every backend/jobs.py + scheduler.py
+    logger, per the brief's "one failing job must never stop the scheduler,
+    exceptions are logged" requirement. Safe to call more than once."""
+    import logging
+    import logging.handlers
+
+    logger = logging.getLogger("equilytics")
+    if any(isinstance(h, logging.handlers.RotatingFileHandler) for h in logger.handlers):
+        return
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    handler = logging.handlers.RotatingFileHandler(
+        JOBS_LOG_PATH, maxBytes=5 * 1024 * 1024, backupCount=3
+    )
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
+
 def zone_for_score(score: float) -> str:
     for upper, name in ZONES:
         if score <= upper:

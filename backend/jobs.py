@@ -27,6 +27,7 @@ import og_image
 from token_manager import get_access_token
 
 logging.basicConfig(level=logging.INFO)
+config.setup_logging()
 logger = logging.getLogger("equilytics.jobs")
 
 IST = timezone(timedelta(hours=5, minutes=30))

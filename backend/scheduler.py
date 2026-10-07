@@ -15,8 +15,10 @@ import threading
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+import config
 from config import SCHEDULER_LOCK_PATH
 
+config.setup_logging()
 logger = logging.getLogger("equilytics.scheduler")
 _scheduler = None
 _dev_lock = threading.Lock()

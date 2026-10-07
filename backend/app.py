@@ -31,7 +31,12 @@ FRONTEND_DIR = BASE_DIR.parent / "frontend"
 
 app = Flask(__name__, static_folder=str(FRONTEND_DIR))
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret-before-hosting")
-CORS(app)
+CORS(app, origins=[
+    "https://www.equilytics.in",
+    "https://equilytics.in",
+    re.compile(r"^http://localhost:\d+$"),
+    re.compile(r"^http://127\.0\.0\.1:\d+$"),
+])
 store.init_db()
 
 SEBI_DISCLAIMER = (
@@ -58,6 +63,25 @@ def inject_shared_template_vars():
 def redirect_to_canonical_host():
     if request.host == "equilytics.in":
         return redirect(f"https://www.equilytics.in{request.full_path}".rstrip("?"), code=301)
+
+
+_api_rate_buckets = {}  # {ip_hash: [timestamps]} -- in-memory token bucket, resets on restart
+_API_RATE_LIMIT = 20
+_API_RATE_WINDOW_SECONDS = 60
+
+
+@app.before_request
+def rate_limit_api_posts():
+    if request.method != "POST" or not request.path.startswith("/api/"):
+        return None
+    ip_hash = hashlib.sha256((request.remote_addr or "").encode()).hexdigest()
+    now = time.time()
+    bucket = [t for t in _api_rate_buckets.get(ip_hash, []) if now - t < _API_RATE_WINDOW_SECONDS]
+    if len(bucket) >= _API_RATE_LIMIT:
+        return jsonify({"error": "RATE_LIMITED"}), 429
+    bucket.append(now)
+    _api_rate_buckets[ip_hash] = bucket
+    return None
 
 NEWS_CACHE_PATH = BASE_DIR / "news_cache.json"
 AI_CACHE_PATH = BASE_DIR / "ai_cache.json"
@@ -604,9 +628,13 @@ def token_profile():
     }
 
 def admin_credentials():
+    # No hard-coded fallback: a real username/password baked into source is a
+    # live credential checked into git. ADMIN_USERNAME/ADMIN_PASSWORD must be
+    # set in the environment; an empty value here just means login can never
+    # succeed, which is the safe failure direction.
     return {
-        "username": os.environ.get("ADMIN_USERNAME", "shubham"),
-        "password": os.environ.get("ADMIN_PASSWORD", "shreya@0304")
+        "username": os.environ.get("ADMIN_USERNAME", ""),
+        "password": os.environ.get("ADMIN_PASSWORD", "")
     }
 
 def admin_required(view):
@@ -639,6 +667,57 @@ def exchange_upstox_code(code):
     save_token(token_data)
     return token_data
 
+def _format_bytes(num_bytes):
+    for unit in ("B", "KB", "MB", "GB"):
+        if num_bytes < 1024:
+            return f"{num_bytes:.0f} {unit}"
+        num_bytes /= 1024
+    return f"{num_bytes:.1f} TB"
+
+
+def _status_panel_html():
+    import upstox_client as upstox_client_module
+
+    access_token = get_access_token()
+    expiry = upstox_client_module.token_expiry(access_token) if access_token else None
+    expiry_text = "n/a (not a JWT)"
+    expiry_warn = False
+    if expiry:
+        days_left = round((expiry - time.time()) / 86400)
+        expiry_text = f"{days_left} days left"
+        expiry_warn = days_left <= 30
+
+    mood_live = store.get_mood_live()
+    mood_close = store.latest_mood()
+    mood_kind = "live" if mood_live else ("close" if mood_close else "none")
+    mood_score = (mood_live or mood_close or {}).get("score", "—")
+
+    fii = store.latest_fii_dii()
+    fii_text = f"{fii['date']} ({'stale' if fii.get('stale') else 'fresh'})" if fii else "no data yet"
+
+    db_size = _format_bytes(config.DB_PATH.stat().st_size) if config.DB_PATH.exists() else "0 B"
+
+    job_rows = ""
+    for job_key, label in (
+        ("last_snapshot_at", "Snapshot"), ("last_eod_at", "EOD"), ("last_premarket_at", "Pre-market"),
+    ):
+        last_run = store.get_meta(job_key, "never")
+        failed = store.get_meta(f"job_failed:{job_key.replace('last_', '').replace('_at', '')}")
+        status = " (FAILED)" if failed and failed.get("failed") else ""
+        job_rows += f"<div><span>{escape(label)}</span><strong>{escape(str(last_run))}{escape(status)}</strong></div>"
+
+    warn_style = "color:#991b1b" if expiry_warn else ""
+    return f"""
+            <h2>Status</h2>
+            <div class="status-grid">
+                <div><span>Token expiry</span><strong style="{warn_style}">{escape(expiry_text)}</strong></div>
+                <div><span>Mood</span><strong>{escape(str(mood_kind))} · {escape(str(mood_score))}</strong></div>
+                <div><span>FII/DII</span><strong>{escape(fii_text)}</strong></div>
+                <div><span>Database size</span><strong>{escape(db_size)}</strong></div>
+                {job_rows}
+            </div>"""
+
+
 def render_admin_page(message="", error=False):
     creds = admin_credentials()
     is_logged_in = session.get("admin_authenticated")
@@ -649,6 +728,7 @@ def render_admin_page(message="", error=False):
     configured_text = "Configured" if config["client_id"] and config["client_secret"] else "Missing Upstox env vars"
     token_text = "Connected" if profile.get("connected") else ("Expired" if profile.get("expired") else "Not connected")
     message_class = "error" if error else "success"
+    status_panel_html = _status_panel_html() if is_logged_in else ""
 
     if not is_logged_in:
         return f"""<!doctype html>
@@ -697,6 +777,8 @@ def render_admin_page(message="", error=False):
                 <a class="primary-button" href="/auth/login">Login with Upstox</a>
                 <a class="link-button" href="/">Open dashboard</a>
             </div>
+
+            {status_panel_html}
 
             <form method="post" action="/admin/token" class="manual-form">
                 <h2>Manual auth code</h2>
@@ -2969,7 +3051,11 @@ def admin_login():
     credentials = admin_credentials()
     username = request.form.get("username", "")
     password = request.form.get("password", "")
-    if secrets.compare_digest(username, credentials["username"]) and secrets.compare_digest(password, credentials["password"]):
+    # ADMIN_USERNAME/ADMIN_PASSWORD unset -> both sides would be "" and an
+    # empty submission would match; refuse outright rather than allow that.
+    if credentials["username"] and credentials["password"] and \
+       secrets.compare_digest(username, credentials["username"]) and \
+       secrets.compare_digest(password, credentials["password"]):
         session["admin_authenticated"] = True
         return redirect("/admin")
 
