@@ -268,3 +268,32 @@ the same live token. Lesson: `backend/data/` stopped being disposable the
 moment real backfill data landed in it -- don't blanket-delete a gitignored
 directory without checking whether "test artifact" is still an accurate
 description of what's in it.
+
+## Post-deploy — scheduler silently running on UTC, not IST
+
+**Found live on the production server, not caught locally**: after deploying
+to equilytics.in and restarting `stock-dashboard.service`, `/stocks` served
+fine (from the manually-run `jobs eod --force` snapshot) but the `snapshot`
+cron job never fired during a 25+ minute window inside real IST market
+hours. Root cause: `scheduler.py` passed `timezone="Asia/Kolkata"` to the
+`BackgroundScheduler` constructor but NOT to each individual `CronTrigger(...)`
+call -- and APScheduler's `CronTrigger` does **not** inherit the scheduler's
+default timezone; confirmed directly (`CronTrigger(...).timezone` reads back
+as `Etc/UTC` even after `add_job()` on an IST-configured scheduler). Every
+job's `hour=` range was silently being evaluated against UTC, i.e. ~5h30m
+off from the intended IST window (hour 9-15 UTC = ~14:30-20:30 IST) -- so
+`snapshot`/`eod`/`premarket`/`brief` would all have eventually fired, just at
+the wrong wall-clock times, rather than erroring or logging anything
+suspicious. No test caught this because the test suite never exercises
+`scheduler.py`'s actual trigger objects, only `mood.py`'s pure functions.
+
+Fixed by passing `timezone=IST` explicitly to every `CronTrigger(...)` call
+in `scheduler.py`. Verified in isolation (`job.trigger.timezone` now reads
+`Asia/Kolkata`, next-fire computed correctly a minute out) before
+redeploying. **Lesson: don't trust a scheduler library's top-level default
+to propagate to child objects -- verify the actual resolved timezone on the
+trigger itself, not just what was passed to the constructor you called.**
+Also worth adding, as follow-up (not done in this pass): a test that
+constructs `scheduler.py`'s real trigger objects and asserts
+`trigger.timezone` is IST for each job, so this class of bug fails loudly in
+CI instead of silently in production.

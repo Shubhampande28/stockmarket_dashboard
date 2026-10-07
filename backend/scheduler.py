@@ -18,6 +18,8 @@ from apscheduler.triggers.cron import CronTrigger
 import config
 from config import SCHEDULER_LOCK_PATH
 
+IST = "Asia/Kolkata"
+
 config.setup_logging()
 logger = logging.getLogger("equilytics.scheduler")
 _scheduler = None
@@ -77,33 +79,38 @@ def start_scheduler():
 
     import jobs  # deferred import: jobs.py imports app.py lazily inside each fn
 
-    sched = BackgroundScheduler(timezone="Asia/Kolkata")
+    sched = BackgroundScheduler(timezone=IST)
     weekday = "mon-fri"
 
+    # CronTrigger does NOT inherit the scheduler's default timezone -- it
+    # defaults to UTC unless given its own `timezone=` explicitly. Without
+    # this, every job below silently runs ~5h30m off from IST market hours
+    # (caught live: nothing fired for 25+ minutes during market hours on the
+    # production server -- see docs/REVAMP_NOTES.md).
     sched.add_job(
         lambda: _run_locked("snapshot", jobs.run_snapshot),
-        CronTrigger(day_of_week=weekday, hour="9-15", minute="*/2"),
+        CronTrigger(day_of_week=weekday, hour="9-15", minute="*/2", timezone=IST),
         id="snapshot",
     )
     sched.add_job(
         lambda: _run_locked("eod", jobs.run_eod),
-        CronTrigger(day_of_week=weekday, hour=15, minute=45),
+        CronTrigger(day_of_week=weekday, hour=15, minute=45, timezone=IST),
         id="eod",
     )
     for hour, minute in ((18, 30), (19, 30), (21, 0)):
         sched.add_job(
             lambda: _run_locked("fii", jobs.run_fii),
-            CronTrigger(day_of_week=weekday, hour=hour, minute=minute),
+            CronTrigger(day_of_week=weekday, hour=hour, minute=minute, timezone=IST),
             id=f"fii_{hour}{minute}",
         )
     sched.add_job(
         lambda: _run_locked("brief", jobs.run_brief),
-        CronTrigger(day_of_week=weekday, hour=21, minute=15),
+        CronTrigger(day_of_week=weekday, hour=21, minute=15, timezone=IST),
         id="brief",
     )
     sched.add_job(
         lambda: _run_locked("premarket", jobs.run_premarket),
-        CronTrigger(day_of_week=weekday, hour=8, minute=45),
+        CronTrigger(day_of_week=weekday, hour=8, minute=45, timezone=IST),
         id="premarket",
     )
 
