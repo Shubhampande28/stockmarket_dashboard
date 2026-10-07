@@ -1,0 +1,42 @@
+{
+  "_comment": "Sample-mode fixture: ~5 trading sessions of daily bars for a couple of symbols and the Nifty 50 index, enough to exercise store.py and upstox_client.py's shapes without hitting the network. Phase 2/3 will extend this with a full 250-session fixture for the mood engine's golden test.",
+  "symbols": {
+    "RELIANCE": [
+      {"date": "2026-10-01", "open": 2940.0, "high": 2965.0, "low": 2930.0, "close": 2958.0, "volume": 5123400},
+      {"date": "2026-10-02", "open": 2958.0, "high": 2980.0, "low": 2945.0, "close": 2970.0, "volume": 4987600},
+      {"date": "2026-10-03", "open": 2970.0, "high": 2975.0, "low": 2900.0, "close": 2912.0, "volume": 6210300},
+      {"date": "2026-10-06", "open": 2912.0, "high": 2930.0, "low": 2895.0, "close": 2905.0, "volume": 5544100},
+      {"date": "2026-10-07", "open": 2905.0, "high": 2918.0, "low": 2880.0, "close": 2890.0, "volume": 5888200}
+    ],
+    "TCS": [
+      {"date": "2026-10-01", "open": 4180.0, "high": 4210.0, "low": 4165.0, "close": 4202.0, "volume": 1823400},
+      {"date": "2026-10-02", "open": 4202.0, "high": 4225.0, "low": 4190.0, "close": 4215.0, "volume": 1790600},
+      {"date": "2026-10-03", "open": 4215.0, "high": 4230.0, "low": 4180.0, "close": 4190.0, "volume": 2010300},
+      {"date": "2026-10-06", "open": 4190.0, "high": 4205.0, "low": 4160.0, "close": 4172.0, "volume": 1944100},
+      {"date": "2026-10-07", "open": 4172.0, "high": 4188.0, "low": 4150.0, "close": 4161.0, "volume": 2088200}
+    ]
+  },
+  "indices": {
+    "NSE_INDEX|Nifty 50": [
+      {"date": "2026-10-01", "close": 24980.0},
+      {"date": "2026-10-02", "close": 25010.0},
+      {"date": "2026-10-03", "close": 24905.0},
+      {"date": "2026-10-06", "close": 24880.0},
+      {"date": "2026-10-07", "close": 24862.0}
+    ],
+    "NSE_INDEX|India VIX": [
+      {"date": "2026-10-01", "close": 14.2},
+      {"date": "2026-10-02", "close": 14.6},
+      {"date": "2026-10-03", "close": 15.8},
+      {"date": "2026-10-06", "close": 16.1},
+      {"date": "2026-10-07", "close": 16.8}
+    ]
+  },
+  "fii_dii": [
+    {"date": "2026-10-01", "fii_net": -850.0, "dii_net": 900.0},
+    {"date": "2026-10-02", "fii_net": 430.0, "dii_net": 200.0},
+    {"date": "2026-10-03", "fii_net": -1650.0, "dii_net": 1900.0},
+    {"date": "2026-10-06", "fii_net": -1880.0, "dii_net": 1600.0},
+    {"date": "2026-10-07", "fii_net": -2140.0, "dii_net": 2310.0}
+  ]
+}

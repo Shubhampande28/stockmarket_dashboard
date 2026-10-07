@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, jsonify, redirect, request, send_from_directory, session
 from flask_cors import CORS
 import requests
