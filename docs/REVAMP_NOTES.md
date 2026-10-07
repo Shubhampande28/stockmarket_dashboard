@@ -130,3 +130,20 @@ phase lands.
   signal `explain` text, brief `body_html`, and Focus List `rule` text -- not the
   disclaimer/footer boilerplate that exists specifically to use those words
   defensively.
+
+## Phase 8 — Content & SEO
+
+- **Homepage `/#tools` calculator cards** (and the matching "SIP Calculator" link
+  added to `blog-sip-investors-market-fear.html`) are placeholder anchors, same as
+  the prototype's own `#tools` links -- this repo has no calculator pages. Not
+  something this phase was asked to build; flagging so it doesn't look like an
+  oversight if someone clicks through expecting a working calculator.
+- The 4 new posts and the site's existing posts stay as plain static HTML files
+  (matching the existing blog pattern exactly: inline `<style>`/`lp-styles.css`,
+  hand-written JSON-LD, manual nav/footer markup) rather than converting to Jinja
+  templates -- full AdSense/GA4 tags were added directly to each new file and to
+  `about.html` (data-sources.html/editorial-policy.html already loaded `lp-styles.css`
+  and got content updates only). Converting every legacy static page to a Jinja
+  template so they share `_head.html`/`_header.html`/`_footer.html` is a bigger,
+  separate pass -- out of scope here since no page's existing behavior broke by
+  leaving it static.
