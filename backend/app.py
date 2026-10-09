@@ -1110,7 +1110,7 @@ def render_lp_nav():
     return """<header class="lp-nav">
     <a href="/" class="lp-nav-brand"><div class="lp-nav-mark">EQ</div><span class="lp-nav-name">Equilytics</span></a>
     <nav class="lp-nav-links">
-      <a href="/markets">Markets</a><a href="/heatmap">Heatmap</a><a href="/financials">Financials</a><a href="/blog">Blog</a><a href="/" class="lp-nav-cta">Open Dashboard</a>
+      <a href="/market-mood-today">Today</a><a href="/brief">Daily Brief</a><a href="/blog">Blog</a><a href="/" class="lp-nav-cta">See today's mood</a>
     </nav>
   </header>"""
 
