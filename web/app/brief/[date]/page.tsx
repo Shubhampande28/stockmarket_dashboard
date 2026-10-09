@@ -9,9 +9,25 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { date } = await params;
   const result = await getBriefByDate(date).catch(() => null);
   if (!result || "error" in result) return { title: "Daily Brief" };
+  const { brief } = result;
+  const url = `https://www.equilytics.in/brief/${date}`;
   return {
-    title: result.brief.title,
-    description: result.brief.summary,
+    title: brief.title,
+    description: brief.summary,
+    alternates: { canonical: url },
+    openGraph: {
+      title: brief.title,
+      description: brief.summary,
+      url,
+      type: "article",
+      images: [`https://www.equilytics.in/og/mood/${date}.png`],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: brief.title,
+      description: brief.summary,
+      images: [`https://www.equilytics.in/og/mood/${date}.png`],
+    },
   };
 }
 
@@ -22,9 +38,23 @@ export default async function BriefPage({ params }: { params: Params }) {
   if (!result || "error" in result) notFound();
 
   const { brief, nearby } = result;
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: brief.title,
+    description: brief.summary,
+    datePublished: brief.published_at,
+    author: { "@type": "Organization", name: "Equilytics" },
+    publisher: { "@type": "Organization", name: "Equilytics", url: "https://www.equilytics.in" },
+    mainEntityOfPage: `https://www.equilytics.in/brief/${date}`,
+  };
 
   return (
     <div className="mx-auto max-w-[900px] px-5 py-8 lg:px-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-ink">
         Daily Brief · {brief.date} · {brief.source}
       </p>

@@ -368,3 +368,46 @@ vitest tests clean; dev-server smoke test of `/`, `/heatmap`, `/markets`,
 `/financials?symbol=RELIANCE`, `/insights` (307 -> `/brief`), `/focus-lists`,
 `/brief`, and `/brief/<real-date>` all return 200 (or the expected redirect)
 with real data and no application errors.
+
+## Post-rewrite cleanup
+
+Once `/`, `/heatmap`, `/markets`, `/financials`, `/insights`, `/focus-lists`
+and `/brief*` were confirmed live on the Next.js rewrite (nginx routes all
+of them there in production), removed the now-dead Flask code those routes
+made unreachable:
+
+- `frontend/app.html`, `frontend/script.js` (the old SPA), plus
+  `frontend/mkt-styles.css` and `frontend/market-pulse.mjs` (only ever
+  loaded by `app.html`; `market-pulse.mjs` was already confirmed dead back
+  in Phase 4 of the backend revamp).
+- `frontend/mood.js` (only loaded by the now-deleted `home.html`).
+- Flask's `home()` route, `render_home_page()`, `_sector_tiles()` (confirmed
+  single-caller before deleting), and `templates/home.html`.
+- Flask's `page_brief_index()`/`page_brief()` Jinja routes and
+  `templates/brief.html`/`brief_index.html`. `/api/brief` and
+  `/api/brief/<date>` (the JSON versions Next.js actually calls) were kept.
+- The `static_files()` branch that used to fall through `/markets`,
+  `/heatmap`, `/financials`, `/insights` to `app.html`.
+- Fixed the now-broken `app.html` 404 fallback in
+  `render_stock_seo_page()` (an unknown stock slug) to a plain `abort(404)`
+  instead of referencing a deleted file.
+
+**Deliberately kept** despite looking similar: `_get_today_mood()`,
+`_fallback_mood()`, and `SECTOR_TILE_LABELS` are still used by
+`/market-mood-today` and `/market-breadth-today`, which were never ported
+to Next.js and remain live Flask pages -- checked every call site before
+removing anything shared.
+
+**SEO regression fixed in the same pass**: deleting `page_brief()` lost its
+JSON-LD `NewsArticle` schema and canonical/OG tags, which Next's
+`/brief/[date]` page didn't have yet. Added them there (`generateMetadata`
+with `alternates.canonical`/`openGraph`/`twitter`, plus an inline
+`<script type="application/ld+json">`) rather than just deleting the old
+SEO value.
+
+Verified: Python syntax check, `pytest` (13 tests), and a clean Flask
+restart confirm the removed routes now correctly 404 when hit directly on
+port 5000 (bypassing nginx) while every still-active Flask page (blog,
+policy, stock/sector SEO pages, `/market-mood-today`, etc.) still returns
+200. Next.js `tsc --noEmit`/lint/build still clean after the metadata
+addition.

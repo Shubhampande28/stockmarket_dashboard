@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, jsonify, redirect, render_template, request, send_from_directory, session
+from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, session
 from flask_cors import CORS
 import requests
 import hashlib
@@ -101,9 +101,8 @@ APIFY_RUN_TIMEOUT = 90
 # =========================
 # SERVE FRONTEND
 # =========================
-@app.route("/")
-def home():
-    return render_home_page()
+# "/" is served by the Next.js rewrite (web/) in production -- nginx routes
+# it there directly, never reaching Flask. No Flask route for "/" anymore.
 
 
 def _today_ist():
@@ -146,69 +145,6 @@ SECTOR_TILE_LABELS = {
     "media": "Media", "infra": "Infra", "finance": "Fin Service",
 }
 
-
-def _sector_tiles(cached_snapshot):
-    tiles = []
-    for key, label in SECTOR_TILE_LABELS.items():
-        stocks = (cached_snapshot or {}).get(key) or []
-        changes = [s["change"] for s in stocks if s.get("change") is not None]
-        avg = round(sum(changes) / len(changes), 1) if changes else None
-        tiles.append({"label": label, "change": avg})
-    return tiles
-
-
-def render_home_page():
-    cached_snapshot = snapshot.get_cached_snapshot()
-    mood_result = _get_today_mood() or _fallback_mood()
-
-    compare_rows = [("Today", mood_result["score"])]
-    for key, label in (("yesterday", "Yesterday"), ("week_ago", "Week ago"), ("month_ago", "Month ago")):
-        value = mood_result.get("compare", {}).get(key)
-        compare_rows.append((label, value))
-
-    history = store.get_mood_history("close", days=90) or store.get_mood_history("backfill", days=90)
-    nifty_bars = {b["date"]: b["close"] for b in store.get_index_bars("NSE_INDEX|Nifty 50", limit_sessions=90)}
-    mood_history = [
-        {"date": h["date"], "score": h["score"], "niftyClose": nifty_bars.get(h["date"])}
-        for h in history
-    ]
-
-    fii_rows = store.get_fii_dii(limit_sessions=10)
-    flows = [{"date": r["date"], "fii": r["fii_net"], "dii": r["dii_net"]} for r in fii_rows]
-
-    sector_tiles = _sector_tiles(cached_snapshot)
-
-    today = _today_ist()
-    latest_brief = store.get_brief(today) or (store.list_briefs(limit=1)[0] if store.list_briefs(limit=1) else None)
-    previous_briefs = store.list_briefs(limit=6, offset=1 if latest_brief else 0)
-
-    poll_counts = store.vote_counts(today)
-    poll_accuracy = store.recent_poll_accuracy(30)
-
-    movers = (cached_snapshot or {}).get("gainers", [])[:6] + (cached_snapshot or {}).get("losers", [])[:6]
-
-    return render_template(
-        "home.html",
-        active="today",
-        title="Stock Market Mood Today (India) – Fear & Greed, FII DII, VIX | Equilytics",
-        description=f"Equilytics Mood Index is {mood_result['score']}/100 ({mood_result['zone']}) today. "
-                    f"See the six signals behind India's market mood, FII/DII flows, VIX and more.",
-        og_title=f"Market mood today: {mood_result['score']}/100, {mood_result['zone']}",
-        index_quotes=(cached_snapshot or {}).get("indexQuotes", {}),
-        mood=mood_result,
-        compare_rows=compare_rows,
-        mood_history=mood_history,
-        flows=flows,
-        sector_tiles=sector_tiles,
-        latest_brief=latest_brief,
-        previous_briefs=previous_briefs,
-        poll_counts=poll_counts,
-        poll_accuracy=poll_accuracy,
-        poll_total=sum(poll_counts.values()),
-        movers=movers,
-        market_open=_market_is_open_now(),
-        snapshot_meta=(cached_snapshot or {}).get("_meta"),
-    )
 
 @app.route("/sitemap.xml")
 def sitemap_xml():
@@ -300,8 +236,10 @@ def static_files(path):
     if path.startswith("sectors/"):
         return render_sector_seo_page(path.split("/", 1)[1])
 
-    if path in {"markets", "heatmap", "financials", "insights"}:
-        return send_from_directory(FRONTEND_DIR, "app.html")
+    # markets/heatmap/financials/insights used to fall through here to the
+    # old SPA (app.html) -- all four are now served by the Next.js rewrite
+    # (web/), which nginx routes to directly in production, so this branch
+    # and app.html/script.js were removed.
     # Clean URLs for SEO landing pages
     seo_pages = {
         "market-overview": "market-overview.html",
@@ -1155,7 +1093,7 @@ def render_stock_seo_page(slug):
     symbol = symbol_from_stock_slug(slug)
     instrument_map = load_instrument_map()
     if symbol not in instrument_map:
-        return send_from_directory(FRONTEND_DIR, "app.html"), 404
+        abort(404)
 
     name = stock_display_name(symbol)
     sectors = sectors_for_symbol(symbol)
@@ -2000,39 +1938,11 @@ def page_mood_history():
     )
 
 
-@app.route("/brief")
-def page_brief_index():
-    page = max(int(request.args.get("page", 1)), 1)
-    briefs = store.list_briefs(limit=30, offset=(page - 1) * 30)
-    return render_template(
-        "brief_index.html", active="brief",
-        title="Daily Brief Archive | Equilytics",
-        description="Every Equilytics Daily Brief: what moved the Indian stock market, day by day.",
-        canonical_url="https://www.equilytics.in/brief",
-        schema_json=None,
-        briefs=briefs, page=page,
-    )
-
-
-@app.route("/brief/<date>")
-def page_brief(date):
-    brief_result = store.get_brief(date)
-    if not brief_result:
-        return jsonify({"error": "NOT_FOUND"}), 404
-    nearby = [b for b in store.list_briefs(limit=6) if b["date"] != date][:5]
-    schema = page_schema(
-        brief_result["title"], f"https://www.equilytics.in/brief/{date}", brief_result["summary"], "Daily Brief"
-    )
-    return render_template(
-        "brief.html", active="brief",
-        title=f"{brief_result['title']} | Equilytics Daily Brief",
-        description=brief_result["summary"],
-        canonical_url=f"https://www.equilytics.in/brief/{date}",
-        og_title=brief_result["title"], og_type="article",
-        og_image=f"https://www.equilytics.in/og/mood/{date}.png",
-        schema_json=schema,
-        brief=brief_result, nearby_briefs=nearby,
-    )
+# /brief and /brief/<date> are served by the Next.js rewrite (web/) in
+# production -- nginx routes that prefix there directly. The Jinja
+# brief_index.html/brief.html templates and their Flask routes were removed
+# as dead code; /api/brief and /api/brief/<date> below are what the Next.js
+# pages actually call for data.
 
 
 @app.route("/api/brief")
