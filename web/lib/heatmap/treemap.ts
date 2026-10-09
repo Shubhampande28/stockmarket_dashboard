@@ -124,13 +124,20 @@ export interface SectorGroup {
 }
 
 export interface TwoLevelLayout {
+  /** Sector blocks, sized by the sum of their stocks' weights, as % of the
+   * whole map container -- rendered as CSS grid/flex blocks, not absolute
+   * positioning (so each becomes its own `position: relative` box). */
   sectorRects: TreemapRect[];
-  stockRectsBySector: Record<string, TreemapRect[]>; // in the SAME container-percentage units as sectorRects
+  /** Each sector's stock tiles in LOCAL 0-100 coordinates *relative to that
+   * sector's own box* (not the outer map) -- render these absolutely
+   * positioned inside the matching sector block, where CSS percentages are
+   * naturally relative to that nearest positioned ancestor. */
+  stockRectsBySector: Record<string, TreemapRect[]>;
 }
 
-/** Lays out sectors into the full 0-100 x 0-100 container, then lays out
- * each sector's stocks within that sector's own rect (output still in the
- * outer container's percentage units, ready to render absolutely). */
+/** Lays out sectors by weight, then lays out each sector's own stocks
+ * independently in a fresh 0-100 local space (brief: "a two-level
+ * treemap... sized by weight" at each level, each level self-contained). */
 export function buildTwoLevelLayout(groups: SectorGroup[]): TwoLevelLayout {
   const sectorItems: WeightedItem[] = groups.map((g) => ({
     id: g.sectorId,
@@ -139,16 +146,8 @@ export function buildTwoLevelLayout(groups: SectorGroup[]): TwoLevelLayout {
   const sectorRects = squarify(sectorItems, 0, 0, 100, 100);
 
   const stockRectsBySector: Record<string, TreemapRect[]> = {};
-  for (const sectorRect of sectorRects) {
-    const group = groups.find((g) => g.sectorId === sectorRect.id);
-    if (!group) continue;
-    stockRectsBySector[sectorRect.id] = squarify(
-      group.stocks,
-      sectorRect.xPct,
-      sectorRect.yPct,
-      sectorRect.widthPct,
-      sectorRect.heightPct
-    );
+  for (const group of groups) {
+    stockRectsBySector[group.sectorId] = squarify(group.stocks, 0, 0, 100, 100);
   }
 
   return { sectorRects, stockRectsBySector };

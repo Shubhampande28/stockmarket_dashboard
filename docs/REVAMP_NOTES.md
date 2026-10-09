@@ -297,3 +297,44 @@ Also worth adding, as follow-up (not done in this pass): a test that
 constructs `scheduler.py`'s real trigger objects and asserts
 `trigger.timezone` is IST for each job, so this class of bug fails loudly in
 CI instead of silently in production.
+
+## Next.js rewrite -- heatmap page (docs/heatmap-redesign.md)
+
+Deviations from the brief, all deliberate given time/scope, flagged honestly:
+
+- **Tile weight**: no index-weight field exists anywhere in the data layer.
+  Per the brief's own fallback rule, `lib/market/adapter.ts` uses market cap
+  (already present on `/stocks` rows) as a weight proxy when at least half
+  the index's stocks have it, else equal weight -- never silently guessed,
+  and the page caption says which one is in effect ("approximated from
+  market cap" / "unavailable today, tiles are equal size").
+- **1W/1M period toggle**: not built at all, not just hidden -- there's no
+  per-stock historical %-change API yet (daily_bars exist in the DB but
+  aren't exposed that way). Matches the brief's "don't fake it, hide the
+  feature" instruction, just at the build stage rather than a runtime check.
+- **Sector zoom**: clicking a sector does NOT do the brief's FLIP
+  scale-to-full-map animation with `?sector=` URL state -- not implemented
+  in this pass. Revisit if wanted; the two-level treemap data is already
+  structured to support it (`buildTwoLevelLayout` in `lib/heatmap/treemap.ts`
+  separates sector rects from each sector's own local-coordinate stock rects).
+- **Tick-flash animation** (brief section 8, "white overlay flashes on
+  changed tiles"): not implemented. Colour-ease transitions on
+  background-color are (`Tile.tsx`'s `transition-colors duration-[550ms]`).
+- **Mobile inspector**: renders as an inline panel below the map, not the
+  brief's fixed bottom-sheet overlay with a drag handle. Same data/buttons,
+  different container.
+- **"Add to Focus List" button**: rendered disabled with an explanatory
+  `title`, per the brief's own fallback -- Focus Lists are auto-computed
+  rule-based screens with no user-editable "add this stock" capability in
+  the backend at all, so there's nothing to wire this button to.
+- **Treemap structure clarification**: `buildTwoLevelLayout` lays out each
+  sector's own stocks in a *fresh local 0-100 coordinate space*, not nested
+  inside the sector's outer-map coordinates -- this matches how the sector
+  blocks render as their own `position: relative` CSS boxes (header + tiles
+  inside), which is simpler and more correct for a two-level nested treemap
+  than computing one giant absolute coordinate space.
+
+Verified: `npx tsc --noEmit`, `npm run lint`, `npm run build`, `npx vitest run`
+(12 tests) all clean; a real dev-server render of `/heatmap` against the
+local Flask instance shows real tiles (HDFCBANK, RELIANCE, TCS, ...) with no
+console/hydration errors.

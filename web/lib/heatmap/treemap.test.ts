@@ -83,7 +83,7 @@ describe("squarify", () => {
 });
 
 describe("buildTwoLevelLayout", () => {
-  it("keeps every stock rect inside its sector's rect inside the 0-100 container", () => {
+  it("sizes sector blocks by their stocks' total weight, within the 0-100 map", () => {
     const groups = [
       { sectorId: "Financials", stocks: [{ id: "HDFCBANK", weight: 40 }, { id: "ICICIBANK", weight: 20 }] },
       { sectorId: "IT", stocks: [{ id: "TCS", weight: 25 }, { id: "INFY", weight: 15 }] },
@@ -93,16 +93,19 @@ describe("buildTwoLevelLayout", () => {
     assertWithinContainer(sectorRects, 0, 0, 100, 100);
     assertNoOverlaps(sectorRects);
 
+    const financials = sectorRects.find((r) => r.id === "Financials")!;
+    const it = sectorRects.find((r) => r.id === "IT")!;
+    const financialsArea = financials.widthPct * financials.heightPct;
+    const itArea = it.widthPct * it.heightPct;
+    expect(financialsArea / itArea).toBeCloseTo(60 / 40, 0); // (40+20) vs (25+15)
+
+    // Each sector's own stocks lay out in a fresh LOCAL 0-100 space (not
+    // nested in the sector's outer-map coordinates) -- rendered inside a
+    // `position: relative` sector box in the component layer.
     for (const sectorRect of sectorRects) {
       const stockRects = stockRectsBySector[sectorRect.id];
       assertNoOverlaps(stockRects);
-      assertWithinContainer(
-        stockRects,
-        sectorRect.xPct,
-        sectorRect.yPct,
-        sectorRect.widthPct,
-        sectorRect.heightPct
-      );
+      assertWithinContainer(stockRects, 0, 0, 100, 100);
     }
   });
 });
