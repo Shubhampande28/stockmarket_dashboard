@@ -130,8 +130,40 @@ export interface FocusListData {
   disclaimer: string;
 }
 
+export const FOCUS_LIST_IDS = [
+  "near-52w-high",
+  "near-52w-low",
+  "volume-shockers",
+  "steady-climbers",
+] as const;
+export type FocusListId = (typeof FOCUS_LIST_IDS)[number];
+
 export function getFocusList(id: string) {
   return getJSON<FocusListData | { error: string }>(`/api/lists/${id}`);
+}
+
+// ---- Daily Brief ----
+
+export interface BriefSummary {
+  date: string;
+  slug: string;
+  title: string;
+  summary: string;
+  source: "ai" | "template";
+  published_at: string;
+  data?: { mood?: { score: number; zone: string } };
+}
+
+export interface BriefDetail extends BriefSummary {
+  body_html: string;
+}
+
+export function getBriefIndex(page = 1) {
+  return getJSON<{ briefs: BriefSummary[]; page: number }>(`/api/brief?page=${page}`);
+}
+
+export function getBriefByDate(date: string) {
+  return getJSON<{ brief: BriefDetail; nearby: BriefSummary[] } | { error: string }>(`/api/brief/${date}`);
 }
 
 // ---- Poll ----
@@ -144,6 +176,47 @@ export interface PollState {
 
 export async function getPoll(): Promise<PollState> {
   const res = await fetch(`${baseUrl()}/api/poll`, { cache: "no-store", credentials: "include" });
+  return res.json();
+}
+
+// ---- Financials & News ----
+
+export interface StatementRow {
+  key: string;
+  label: string;
+  values: (number | null)[];
+}
+
+export interface Statement {
+  periods: string[];
+  rows: StatementRow[];
+}
+
+export interface FinancialsData {
+  name: string;
+  currency: string;
+  info: Record<string, string>;
+  source: { label: string; provider: string; url: string; annualReport?: { url: string; year: string; label: string } };
+  sourceNote: string;
+  statements: Record<string, Statement>;
+  valuation?: Record<string, unknown>;
+}
+
+export async function getFinancials(symbol: string): Promise<FinancialsData | { error: string }> {
+  const res = await fetch(`${baseUrl()}/financials/${encodeURIComponent(symbol)}`, { cache: "no-store" });
+  return res.json();
+}
+
+export interface NewsItem {
+  title: string;
+  link: string;
+  publisher?: string;
+  summary?: string;
+  sentiment?: "positive" | "negative" | "neutral";
+}
+
+export async function getNews(symbol: string): Promise<{ items: NewsItem[] } | { error: string }> {
+  const res = await fetch(`${baseUrl()}/news/${encodeURIComponent(symbol)}`, { cache: "no-store" });
   return res.json();
 }
 

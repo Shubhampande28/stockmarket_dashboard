@@ -2035,6 +2035,22 @@ def page_brief(date):
     )
 
 
+@app.route("/api/brief")
+def api_brief_index():
+    page = max(int(request.args.get("page", 1)), 1)
+    briefs = store.list_briefs(limit=30, offset=(page - 1) * 30)
+    return jsonify({"briefs": briefs, "page": page})
+
+
+@app.route("/api/brief/<date>")
+def api_brief(date):
+    brief_result = store.get_brief(date)
+    if not brief_result:
+        return jsonify({"error": "NOT_FOUND"}), 404
+    nearby = [b for b in store.list_briefs(limit=6) if b["date"] != date][:5]
+    return jsonify({"brief": brief_result, "nearby": nearby})
+
+
 @app.route("/og/mood.png")
 def og_mood_latest():
     import og_image as og_module

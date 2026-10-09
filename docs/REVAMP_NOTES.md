@@ -338,3 +338,33 @@ Verified: `npx tsc --noEmit`, `npm run lint`, `npm run build`, `npx vitest run`
 (12 tests) all clean; a real dev-server render of `/heatmap` against the
 local Flask instance shows real tiles (HDFCBANK, RELIANCE, TCS, ...) with no
 console/hydration errors.
+
+## Next.js rewrite -- Markets/Financials/Insights/Focus Lists/Brief
+
+- **Backend additions**: `/api/brief` and `/api/brief/<date>` (plain JSON
+  versions of the existing `page_brief_index`/`page_brief` Jinja routes,
+  which stay as-is for now). `/financials/<symbol>` and `/news/<symbol>`
+  were already JSON -- reused directly, no backend change needed.
+- **Insights**: the old SPA's heuristic "insights"/"trends" feed
+  (`buildMarketMood`, `buildInsightStory` in the old `script.js`) is not
+  rebuilt. `/insights` in the Next.js app just redirects to `/brief` --
+  the Mood Index (home page) and the Daily Brief are the modern
+  replacement for what that feed was trying to do, and duplicating it
+  would mean maintaining two separate "what's happening" narratives.
+- **Markets page**: a new overview (index quotes, breadth, sector
+  performance tiles, gainers/losers) built from `/stocks` -- not a port of
+  the old SPA's Markets panel layout, which this session never had time to
+  fully read out of the ~4,700-line `script.js`. If the old panel's exact
+  layout mattered for a reason not captured here, flag it.
+- **Financials page**: a generic renderer over whatever `/financials/<symbol>`
+  returns (`info` key-value grid + one table per statement type) rather than
+  a layout hard-coded to today's exact fields, so it keeps working if the
+  backend's scraped field set changes.
+- **Focus Lists**: client-side tabs, one `/api/lists/<id>` fetch per tab,
+  cached per-tab in state so switching back doesn't refetch.
+
+Verified: `tsc --noEmit`, lint, build (10 routes, all dynamic) and all 12
+vitest tests clean; dev-server smoke test of `/`, `/heatmap`, `/markets`,
+`/financials?symbol=RELIANCE`, `/insights` (307 -> `/brief`), `/focus-lists`,
+`/brief`, and `/brief/<real-date>` all return 200 (or the expected redirect)
+with real data and no application errors.
