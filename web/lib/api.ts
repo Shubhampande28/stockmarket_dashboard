@@ -213,10 +213,52 @@ export interface NewsItem {
   publisher?: string;
   summary?: string;
   sentiment?: "positive" | "negative" | "neutral";
+  published?: string; // RFC 2822 date string
 }
 
 export async function getNews(symbol: string): Promise<{ items: NewsItem[] } | { error: string }> {
   const res = await fetch(`${baseUrl()}/news/${encodeURIComponent(symbol)}`, { cache: "no-store" });
+  return res.json();
+}
+
+// ---- Stock summary & price history ----
+
+export interface StockSummary {
+  symbol: string;
+  name: string;
+  sector: string | null;
+  sectorKey: string | null;
+  indexMemberships: string[];
+  quote: StockRow | null;
+}
+
+export async function getStockSummary(symbol: string): Promise<StockSummary | { error: string }> {
+  const res = await fetch(`${baseUrl()}/api/stock/${encodeURIComponent(symbol)}`, { cache: "no-store" });
+  return res.json();
+}
+
+export const STOCK_HISTORY_RANGES = ["1W", "1M", "1Y"] as const;
+export type StockHistoryRange = (typeof STOCK_HISTORY_RANGES)[number];
+
+export interface StockHistoryPoint {
+  date: string;
+  close: number;
+}
+
+export interface StockHistory {
+  range: StockHistoryRange;
+  availableRanges: StockHistoryRange[];
+  points: StockHistoryPoint[];
+}
+
+export async function getStockHistory(
+  symbol: string,
+  range?: StockHistoryRange
+): Promise<StockHistory | { error: string }> {
+  const query = range ? `?range=${range}` : "";
+  const res = await fetch(`${baseUrl()}/api/stock/${encodeURIComponent(symbol)}/history${query}`, {
+    cache: "no-store",
+  });
   return res.json();
 }
 

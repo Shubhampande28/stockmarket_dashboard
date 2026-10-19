@@ -1714,6 +1714,68 @@ def get_stocks():
     return jsonify(cached)
 
 
+@app.route("/api/stock/<symbol>")
+def api_stock_summary(symbol):
+    """Sector, index membership and the latest cached quote for one symbol
+    (search-first redesign, stock details page summary row). Reuses the
+    same sector/index lookups and display-name map as the SEO stock pages."""
+    base_symbol = to_nse_base_symbol(symbol)
+    if not re.fullmatch(r"[A-Z0-9&.-]{1,24}", base_symbol):
+        return jsonify({"error": "Invalid stock symbol."}), 400
+
+    cached = snapshot.get_cached_snapshot()
+    quote = None
+    if cached:
+        nse_symbol = to_nse_symbol(base_symbol)
+        quote = next((s for s in cached.get("all", []) if s.get("symbol") == nse_symbol), None)
+
+    sector_key = primary_sector_for_symbol(base_symbol)
+    memberships = index_memberships_for_symbol(base_symbol)
+
+    if quote is None and sector_key is None and not memberships:
+        return jsonify({"error": "UNKNOWN_SYMBOL"}), 404
+
+    return jsonify({
+        "symbol": base_symbol,
+        "name": stock_display_name(base_symbol),
+        "sector": SECTOR_LABELS.get(sector_key) if sector_key else None,
+        "sectorKey": sector_key,
+        "indexMemberships": memberships,
+        "quote": quote,
+    })
+
+
+STOCK_HISTORY_RANGE_SESSIONS = {"1W": 5, "1M": 21, "1Y": 272}
+
+
+@app.route("/api/stock/<symbol>/history")
+def api_stock_history(symbol):
+    """Daily close history for the stock page's price chart (brief section
+    5). Ranges are only ever reported as available when the DB actually has
+    that many sessions -- the frontend hides any range this doesn't list."""
+    base_symbol = to_nse_base_symbol(symbol)
+    if not re.fullmatch(r"[A-Z0-9&.-]{1,24}", base_symbol):
+        return jsonify({"error": "Invalid stock symbol."}), 400
+
+    bars = store.get_daily_bars(base_symbol)
+    if not bars:
+        return jsonify({"error": "NO_HISTORY"}), 404
+
+    available_ranges = [r for r, n in STOCK_HISTORY_RANGE_SESSIONS.items() if len(bars) >= min(n, 2)]
+    requested_range = (request.args.get("range") or "").upper()
+    if requested_range not in available_ranges:
+        requested_range = available_ranges[-1] if available_ranges else "1W"
+
+    limit = STOCK_HISTORY_RANGE_SESSIONS.get(requested_range, len(bars))
+    windowed = bars[-limit:]
+
+    return jsonify({
+        "range": requested_range,
+        "availableRanges": available_ranges,
+        "points": [{"date": b["date"], "close": b["close"]} for b in windowed],
+    })
+
+
 @app.route("/api/mood")
 def api_mood():
     import mood as mood_module
