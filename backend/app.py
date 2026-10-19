@@ -191,6 +191,8 @@ def sitemap_xml():
         ("/mood-history", "daily", "0.7"),
         ("/methodology", "monthly", "0.6"),
         ("/brief", "daily", "0.8"),
+        ("/market-mood", "daily", "0.9"),
+        ("/ipos", "daily", "0.85"),
     ]
     urls = list(static_urls)
     urls.extend((f"/sectors/{sector}", "daily", "0.75") for sector in sorted(SECTOR_GROUPS))
