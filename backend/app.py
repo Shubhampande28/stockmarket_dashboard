@@ -1776,6 +1776,54 @@ def api_stock_history(symbol):
     })
 
 
+@app.route("/api/fundamentals/<symbol>")
+def api_fundamentals(symbol):
+    """Bundles the Upstox Company Fundamentals calls a stock page needs
+    into one response (brief section 10). Each sub-call falls back to its
+    own cache independently, so one failing Upstox call doesn't blank out
+    the whole page -- `stale` is true if any of them came from a fallback."""
+    import upstox_fundamentals as uf
+
+    base_symbol = to_nse_base_symbol(symbol)
+    if not re.fullmatch(r"[A-Z0-9&.-]{1,24}", base_symbol):
+        return jsonify({"error": "Invalid stock symbol."}), 400
+
+    isin = uf.symbol_to_isin(base_symbol)
+    if not isin:
+        return jsonify({"error": "UNKNOWN_SYMBOL"}), 404
+
+    calls = {
+        "profile": uf.get_profile(isin),
+        "keyRatios": uf.get_key_ratios(isin),
+        "balanceSheet": uf.get_balance_sheet(isin, fs=True),
+        "cashFlow": uf.get_cash_flow(isin, fs=True),
+        "incomeStatementQuarterly": uf.get_income_statement(isin, time_period="quarterly"),
+        "incomeStatementAnnual": uf.get_income_statement(isin, fs=True),
+        "shareHoldings": uf.get_share_holdings(isin),
+        "corporateActions": uf.get_corporate_actions(isin),
+        "competitors": uf.get_competitors(base_symbol),
+    }
+
+    metas = [meta for _, meta in calls.values()]
+    stale = any(m.get("stale") for m in metas)
+    cached_ats = [m.get("cachedAt") for m in metas if m.get("cachedAt")]
+
+    results = {name: data for name, (data, _meta) in calls.items()}
+    competitors = results.get("competitors")
+    if isinstance(competitors, list):
+        for comp in competitors:
+            comp_isin = (comp.get("instrument_key") or "").split("|")[-1]
+            comp["symbol"] = uf.isin_to_symbol(comp_isin)
+
+    return jsonify({
+        "symbol": base_symbol,
+        "isin": isin,
+        "stale": stale,
+        "asOf": min(cached_ats) if cached_ats else None,
+        **results,
+    })
+
+
 @app.route("/api/mood")
 def api_mood():
     import mood as mood_module

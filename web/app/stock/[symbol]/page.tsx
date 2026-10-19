@@ -12,11 +12,16 @@ import {
   type StockRow,
 } from "@/lib/api";
 import PriceChart from "@/components/stock/PriceChart";
+import { getFundamentals } from "@/lib/stock/upstox";
 import {
+  AboutCard,
   Actions,
+  DividendsPanel,
   FinancialsPanel,
-  KeyNumbers,
+  KeyRatios,
   NewsPanel,
+  PeersPanel,
+  ShareholdingPanel,
   SummaryRow,
   TodayVsMarket,
 } from "@/components/stock/StockSections";
@@ -71,17 +76,20 @@ export default async function StockPage({
   const summary = await loadSummary(symbol);
   if (!summary) notFound();
 
-  const [snapshotResult, historyResult, financialsResult, newsResult] = await Promise.allSettled([
+  const [snapshotResult, historyResult, financialsResult, newsResult, fundamentalsResult] = await Promise.allSettled([
     getSnapshot(),
     getStockHistory(symbol, requestedRange),
     getFinancials(symbol),
     getNews(symbol),
+    getFundamentals(symbol),
   ]);
 
   const snapshot = snapshotResult.status === "fulfilled" && !("error" in snapshotResult.value) ? snapshotResult.value : null;
   const history = historyResult.status === "fulfilled" && !("error" in historyResult.value) ? historyResult.value : null;
   const financials = financialsResult.status === "fulfilled" && !("error" in financialsResult.value) ? financialsResult.value : null;
   const news = newsResult.status === "fulfilled" && !("error" in newsResult.value) ? newsResult.value.items : [];
+  const fundamentals =
+    fundamentalsResult.status === "fulfilled" && !("error" in fundamentalsResult.value) ? fundamentalsResult.value : null;
 
   const sectorRows = snapshot && summary.sectorKey ? ((snapshot[summary.sectorKey] as StockRow[] | undefined) ?? []) : [];
   const sectorChange = sectorRows.length
@@ -119,23 +127,42 @@ export default async function StockPage({
       <div className="py-6">
         {activeTab === "overview" && (
           <div className="flex flex-wrap gap-5">
-            <div className="min-w-0" style={{ flex: "999 1 640px" }}>
+            <div className="flex min-w-0 flex-col gap-5" style={{ flex: "999 1 640px" }}>
               <PriceChart symbol={summary.symbol} history={history} />
+              <AboutCard description={fundamentals?.profile?.company_profile} />
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <PeersPanel competitors={fundamentals?.competitors ?? null} />
+                <ShareholdingPanel shareHoldings={fundamentals?.shareHoldings ?? null} />
+              </div>
             </div>
             <div className="flex flex-col gap-5" style={{ flex: "1 1 300px" }}>
-              <KeyNumbers info={financials?.info ?? null} />
+              <KeyRatios
+                keyRatios={fundamentals?.keyRatios ?? null}
+                bookValue={financials?.info?.bookValue}
+                faceValue={financials?.info?.faceValue}
+                asOf={fundamentals?.asOf ?? null}
+                stale={fundamentals?.stale ?? false}
+              />
               <TodayVsMarket
                 stockChange={summary.quote?.change ?? null}
                 sectorChange={sectorChange}
                 sectorLabel={summary.sector}
                 niftyChange={niftyChange}
               />
+              <DividendsPanel actions={fundamentals?.corporateActions ?? null} />
             </div>
           </div>
         )}
 
         {activeTab === "financials" && (
-          <FinancialsPanel data={financials} statementKey={sp.statement ?? "profitLoss"} symbol={summary.symbol} />
+          <FinancialsPanel
+            incomeStatementQuarterly={fundamentals?.incomeStatementQuarterly ?? null}
+            incomeStatementAnnual={fundamentals?.incomeStatementAnnual ?? null}
+            balanceSheet={fundamentals?.balanceSheet ?? null}
+            cashFlow={fundamentals?.cashFlow ?? null}
+            statementKey={sp.statement ?? "quarterly"}
+            symbol={summary.symbol}
+          />
         )}
 
         {activeTab === "news" && <NewsPanel items={news} symbol={summary.symbol} />}
