@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import SearchBox from "./SearchBox";
+import { getMood } from "@/lib/api";
+import { colorForScore } from "@/lib/mood/zones";
 
 const LEFT_NAV = [
   { href: "/market-mood", label: "Market Mood" },
@@ -42,6 +44,16 @@ export default function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const isHome = pathname === "/";
+  const [moodLabel, setMoodLabel] = useState<{ zone: string; score: number } | null>(null);
+
+  useEffect(() => {
+    if (!isHome) return;
+    getMood()
+      .then((result) => {
+        if (!("error" in result)) setMoodLabel({ zone: result.zone, score: result.score });
+      })
+      .catch(() => {});
+  }, [isHome]);
 
   if (isHome) {
     return (
@@ -52,6 +64,19 @@ export default function Header() {
               <NavLink key={item.href} {...item} active={isActive(pathname, item.href)} />
             ))}
           </nav>
+          {moodLabel && (
+            <Link
+              href="/market-mood"
+              className="flex items-center gap-1.5 text-sm font-medium text-ink-2 lg:hidden"
+            >
+              <span
+                className="inline-block h-[7px] w-[7px] rounded-full"
+                style={{ background: colorForScore(moodLabel.score) }}
+                aria-hidden="true"
+              />
+              Mood: {moodLabel.zone}
+            </Link>
+          )}
           <nav aria-label="More" className="hidden items-center gap-1 lg:flex">
             {RIGHT_NAV.map((item) => (
               <NavLink key={item.href} {...item} active={isActive(pathname, item.href)} />

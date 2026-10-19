@@ -35,11 +35,13 @@ export default function HomeClient({
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             <span className="font-tabular text-[12.5px] font-semibold text-ink-4">Popular</span>
-            {POPULAR_SYMBOLS.map((symbol) => (
+            {POPULAR_SYMBOLS.map((symbol, i) => (
               <Link
                 key={symbol}
                 href={`/stock/${symbol}`}
-                className="flex h-9 items-center rounded-full border px-3 font-tabular text-[12.5px] font-semibold text-ink-2 transition-colors hover:bg-surface-2"
+                className={`flex h-9 items-center rounded-full border px-3 font-tabular text-[12.5px] font-semibold text-ink-2 transition-colors hover:bg-surface-2 ${
+                  i === 4 ? "hidden sm:flex" : ""
+                }`}
                 style={{ borderColor: "var(--line-2)" }}
               >
                 {symbol}
@@ -59,7 +61,10 @@ export default function HomeClient({
             {open ? "Market open" : "Market closed"}
           </span>
           {stripEntries.map(([key, q]) => (
-            <span key={key} className="whitespace-nowrap">
+            <span
+              key={key}
+              className={`whitespace-nowrap ${q.label === "BANK NIFTY" || q.label === "MIDCAP 150" ? "hidden sm:inline" : ""}`}
+            >
               <span className="text-ink-4">{q.label}</span>{" "}
               <b className="font-semibold">{q.price!.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</b>{" "}
               <span className={Math.abs(q.change ?? 0) <= 0.2 ? "text-ink-3" : (q.change ?? 0) >= 0 ? "up" : "down"}>

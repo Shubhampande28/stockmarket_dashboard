@@ -39,7 +39,9 @@ export default function MoodHistoryChart({
         .join(" ");
     }
 
-    return { W, H, moodPath, niftyPath, L, iw, T, ih };
+    const redBandY = T + ih * (1 - 25 / 100);
+
+    return { W, H, moodPath, niftyPath, L, iw, T, ih, redBandY };
   }, [history]);
 
   if (loading) return <Skeleton height={220} />;
@@ -53,22 +55,35 @@ export default function MoodHistoryChart({
   }
 
   return (
-    <svg viewBox={`0 0 ${path.W} ${path.H}`} role="img" aria-label="Mood index vs Nifty 50, last sessions" className="w-full">
-      {[0, 25, 50, 75, 100].map((v) => (
-        <line
-          key={v}
-          x1={path.L}
-          x2={path.L + path.iw}
-          y1={path.T + path.ih * (1 - v / 100)}
-          y2={path.T + path.ih * (1 - v / 100)}
-          stroke="var(--line)"
-          strokeWidth={1}
-        />
-      ))}
-      {path.niftyPath && (
-        <path d={path.niftyPath} fill="none" stroke="var(--ink-4)" strokeWidth={1.3} strokeDasharray="4 3" />
-      )}
-      <path d={path.moodPath} fill="none" stroke="var(--brand)" strokeWidth={2.5} strokeLinejoin="round" />
-    </svg>
+    <div>
+      <div className="mb-2 flex items-center gap-4 text-xs font-semibold text-ink-3">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-[2.5px] w-4 rounded-full" style={{ background: "var(--brand-ink)" }} />
+          Mood score
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-[1.3px] w-4" style={{ background: "var(--ink)", borderTop: "1.3px dashed var(--ink)" }} />
+          Nifty 50
+        </span>
+      </div>
+      <svg viewBox={`0 0 ${path.W} ${path.H}`} role="img" aria-label="Mood index vs Nifty 50, last sessions" className="w-full">
+        <rect x={path.L} y={path.T} width={path.iw} height={path.redBandY - path.T} fill="#F4C4C1" opacity={0.35} />
+        {[0, 25, 50, 75, 100].map((v) => (
+          <line
+            key={v}
+            x1={path.L}
+            x2={path.L + path.iw}
+            y1={path.T + path.ih * (1 - v / 100)}
+            y2={path.T + path.ih * (1 - v / 100)}
+            stroke="var(--line)"
+            strokeWidth={1}
+          />
+        ))}
+        {path.niftyPath && (
+          <path d={path.niftyPath} fill="none" stroke="var(--ink)" strokeWidth={1.3} strokeDasharray="4 3" />
+        )}
+        <path d={path.moodPath} fill="none" stroke="var(--brand-ink)" strokeWidth={2.5} strokeLinejoin="round" />
+      </svg>
+    </div>
   );
 }
