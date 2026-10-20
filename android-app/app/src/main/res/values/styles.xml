@@ -1,5 +1,5 @@
 <resources>
-    <!-- Built-in Material theme, not AppCompat -- keeps the dependency list
+    <!-- Built-in Material theme, not AppCompat - keeps the dependency list
          to just androidbrowserhelper, since this app has no other UI. -->
     <style name="Theme.Equilytics.Launcher" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/statusBarColor</item>

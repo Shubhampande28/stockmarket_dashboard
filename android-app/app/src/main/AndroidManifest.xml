@@ -12,7 +12,7 @@
 
         <!-- Declares which web origin this app is allowed to open full-screen
              (no URL bar) without Chrome re-verifying every launch. Matched
-             against frontend/.well-known/assetlinks.json on the server --
+             against frontend/.well-known/assetlinks.json on the server -
              see android-app/README.md for how that pairing works. -->
         <meta-data
             android:name="asset_statements"
