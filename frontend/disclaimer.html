@@ -7,7 +7,9 @@
   <meta name="description" content="Read the Equilytics disclaimer. Market data, heatmaps, financials, and articles are informational only and are not investment advice.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.equilytics.in/disclaimer">
-  <link rel="stylesheet" href="./lp-styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -17,30 +19,92 @@
     "description": "Market data, heatmaps, financials, and articles on Equilytics are informational only and are not investment advice."
   }
   </script>
+  <style>
+    :root {
+      --ink: #111114; --ink-2: #3A3B40; --ink-3: #55565C; --ink-4: #6B6C72;
+      --line: #ECECEF; --line-2: #E4E4E8; --surface: #FFFFFF; --surface-2: #F6F6F7; --surface-3: #F2F2F4;
+      --brand: #D21F35; --brand-ink: #B81A2E;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font-family: "Geist", -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+
+    header { border-bottom: 1px solid var(--line); }
+    .nav { max-width: 1360px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 16px; }
+    .brand { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; }
+    .brand .lytics { color: var(--brand); }
+    .nav-links { margin-left: auto; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .nav-links a { font-size: 14px; font-weight: 500; color: var(--ink-2); padding: 9px 12px; border-radius: 9px; }
+    .nav-links a:hover { background: var(--surface-2); }
+    .nav-cta { background: var(--ink); color: #fff !important; font-weight: 600; }
+    .nav-cta:hover { background: var(--ink) !important; opacity: 0.9; }
+
+    .hero { padding: 56px 0 40px; }
+    .kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-ink); margin-bottom: 10px; }
+    h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 16px; }
+    .lead { font-size: 17px; color: var(--ink-3); max-width: 62ch; line-height: 1.55; }
+
+    section.block { padding: 36px 0; border-top: 1px solid var(--line); }
+    .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-4); margin-bottom: 8px; }
+    h2 { font-size: 1.5rem; font-weight: 700; margin: 0 0 12px; }
+    p { line-height: 1.6; color: var(--ink-2); }
+    a.inline { color: var(--brand-ink); text-decoration: underline; }
+
+    .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+    @media (max-width: 720px) { .card-grid { grid-template-columns: 1fr; } }
+    .card { border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+    .card h3 { font-size: 15px; font-weight: 700; margin: 0 0 6px; }
+    .card p { font-size: 14px; margin: 0; color: var(--ink-3); }
+
+    footer { background: var(--surface-2); margin-top: 40px; padding: 28px 0; }
+    .footer-inner { max-width: 1360px; margin: 0 auto; padding: 0 20px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--ink-4); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+  </style>
 </head>
 <body>
-  <header class="lp-nav">
-    <a href="/" class="lp-nav-brand"><div class="lp-nav-mark">EQ</div><span class="lp-nav-name">Equilytics</span></a>
-    <nav class="lp-nav-links"><a href="/markets">Markets</a><a href="/heatmap">Heatmap</a><a href="/financials">Financials</a><a href="/blog">Blog</a><a href="/" class="lp-nav-cta">Open Dashboard</a></nav>
+  <header>
+    <div class="nav">
+      <a href="/" class="brand">Equi<span class="lytics">lytics</span></a>
+      <nav class="nav-links">
+        <a href="/market-mood">Market Mood</a>
+        <a href="/ipos">IPOs</a>
+        <a href="/heatmap">Heatmap</a>
+        <a href="/markets">Markets</a>
+        <a href="/brief">Daily Brief</a>
+        <a href="/blog">Blog</a>
+        <a href="/market-mood" class="nav-cta">See today's mood</a>
+      </nav>
+    </div>
   </header>
-  <section class="lp-hero">
-    <div class="lp-kicker">Disclaimer</div>
-    <h1>Market Data Is <em>Not Advice</em></h1>
-    <p>Equilytics provides market information, visual analytics, financial data, and educational content. Nothing on this site is a recommendation to buy, sell, or hold any security.</p>
+
+  <section class="hero wrap">
+    <div class="kicker">Disclaimer</div>
+    <h1>Market data is not advice</h1>
+    <p class="lead">Equilytics provides market information, visual analytics, financial data, and educational content. Nothing on this site is a recommendation to buy, sell, or hold any security.</p>
   </section>
-  <section class="lp-section">
-    <div class="lp-eyebrow">Important</div>
-    <h2>Investment Risk</h2>
-    <p class="lp-lead">Stock market investments are subject to market risk. Prices can change quickly, data can be delayed or inaccurate, and past performance does not guarantee future returns. Always verify information independently and consult a SEBI-registered investment advisor before making financial decisions.</p>
-    <div class="lp-card-grid">
-      <div class="lp-card"><h3>No Recommendations</h3><p>Heatmap colors, gainers, losers, sector movement, and financial ratios are informational signals, not buy or sell calls.</p></div>
-      <div class="lp-card"><h3>Data Limitations</h3><p>Third-party market and financial data may be delayed, incomplete, adjusted, or unavailable during technical issues.</p></div>
-      <div class="lp-card"><h3>User Responsibility</h3><p>Visitors are responsible for their own research, judgement, risk management, and investment decisions.</p></div>
+
+  <section class="block wrap">
+    <div class="eyebrow">Important</div>
+    <h2>Investment risk</h2>
+    <p>Stock market investments are subject to market risk. Prices can change quickly, data can be delayed or inaccurate, and past performance does not guarantee future returns. Always verify information independently and consult a SEBI-registered investment advisor before making financial decisions.</p>
+    <div class="card-grid">
+      <div class="card"><h3>No recommendations</h3><p>Heatmap colors, gainers, losers, sector movement, and financial ratios are informational signals, not buy or sell calls.</p></div>
+      <div class="card"><h3>Data limitations</h3><p>Third-party market and financial data may be delayed, incomplete, adjusted, or unavailable during technical issues.</p></div>
+      <div class="card"><h3>User responsibility</h3><p>Visitors are responsible for their own research, judgement, risk management, and investment decisions.</p></div>
     </div>
   </section>
-  <footer class="lp-footer">
-    <div class="lp-footer-copy">Last updated: May 20, 2026.</div>
-    <div class="lp-footer-links"><a href="/about">About</a><a href="/contact">Contact</a><a href="/data-sources">Data Sources</a><a href="/privacy-policy">Privacy</a></div>
+
+  <footer>
+    <div class="footer-inner">
+      <span>Last updated: 20 May 2026.</span>
+      <div class="footer-links">
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+        <a href="/data-sources">Data Sources</a>
+        <a href="/privacy-policy">Privacy</a>
+      </div>
+    </div>
   </footer>
 </body>
 </html>
