@@ -3,6 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "com.equilytics.app",
-    "sha256_cert_fingerprints": ["EE:98:D3:0B:F4:5A:AD:EC:4B:16:CA:7D:89:28:9C:A6:64:89:5A:C9:D1:4F:23:46:61:24:98:E3:57:B8:FB:9B"]
+    "sha256_cert_fingerprints": ["3A:4C:E9:2F:F7:54:E7:8C:5E:0B:3B:FD:D9:19:C5:E1:00:9E:10:99:0C:9E:6C:44:6D:BF:04:89:36:79:A9:73"]
   }
 }]
