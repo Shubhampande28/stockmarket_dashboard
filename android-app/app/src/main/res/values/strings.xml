@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Equilytics</string>
+    <string name="launch_url">https://www.equilytics.in/?utm_source=android-app</string>
+
+    <!-- Digital Asset Links statement this app asserts about itself. Android
+         cross-checks it against the SAME statement served from
+         https://www.equilytics.in/.well-known/assetlinks.json (listing this
+         app's package name + signing cert fingerprint) before trusting the
+         pairing -- both sides have to agree, which is what proves "this app
+         and this website are run by the same people" without a URL bar. -->
+    <string name="asset_statements">
+        [{
+            \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+            \"target\": {
+                \"namespace\": \"web\",
+                \"site\": \"https://www.equilytics.in\"
+            }
+        }]
+    </string>
+</resources>

@@ -1,0 +1,85 @@
+name: Build Android app (TWA)
+
+on:
+  push:
+    branches: [revamp-mood]
+    paths: ["android-app/**", ".github/workflows/android-build.yml"]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      # Reuses whatever `gradle` is on the runner to generate the wrapper,
+      # so the wrapper jar (a binary) doesn't need to be committed.
+      - name: Generate Gradle wrapper
+        run: gradle wrapper --gradle-version 8.7
+
+      # Signing key: if EQUILYTICS_KEYSTORE_B64 isn't set as a repo secret
+      # yet (true on this very first run), generate one now so the build
+      # has something to sign with, and upload it as a downloadable
+      # artifact. Save that keystore somewhere safe immediately -- losing
+      # it means Play Store updates to this exact app are impossible
+      # later, since every update must be signed with the same key.
+      - name: Prepare signing key
+        run: |
+          mkdir -p keystore
+          if [ -n "${{ secrets.EQUILYTICS_KEYSTORE_B64 }}" ]; then
+            echo "${{ secrets.EQUILYTICS_KEYSTORE_B64 }}" | base64 -d > keystore/release.jks
+            echo "KEYSTORE_PASSWORD=${{ secrets.EQUILYTICS_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=${{ secrets.EQUILYTICS_KEY_ALIAS }}" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=${{ secrets.EQUILYTICS_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "Using the existing EQUILYTICS_KEYSTORE_B64 repo secret."
+          else
+            GENERATED_PASSWORD="$(openssl rand -base64 24)"
+            keytool -genkeypair -v \
+              -keystore keystore/release.jks \
+              -storepass "$GENERATED_PASSWORD" \
+              -keypass "$GENERATED_PASSWORD" \
+              -alias equilytics \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Equilytics, OU=Equilytics, O=Equilytics, L=Mumbai, ST=Maharashtra, C=IN"
+            echo "KEYSTORE_PASSWORD=$GENERATED_PASSWORD" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=equilytics" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=$GENERATED_PASSWORD" >> "$GITHUB_ENV"
+            echo "::warning::No EQUILYTICS_KEYSTORE_B64 secret found -- generated a NEW signing key for this run. Download the 'release-keystore' artifact below and store it somewhere safe right now. If you want future builds to keep using this same key (required for Play Store updates), add it as repo secrets -- see android-app/README.md."
+          fi
+
+      - name: Print signing cert fingerprint (for assetlinks.json)
+        run: |
+          keytool -list -v -keystore keystore/release.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" | grep "SHA256:"
+
+      - name: Build release APK and AAB
+        env:
+          EQUILYTICS_KEYSTORE_PATH: ${{ github.workspace }}/android-app/keystore/release.jks
+          EQUILYTICS_KEYSTORE_PASSWORD: ${{ env.KEYSTORE_PASSWORD }}
+          EQUILYTICS_KEY_ALIAS: ${{ env.KEY_ALIAS }}
+          EQUILYTICS_KEY_PASSWORD: ${{ env.KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease bundleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: equilytics-release
+          path: |
+            android-app/app/build/outputs/apk/release/*.apk
+            android-app/app/build/outputs/bundle/release/*.aab
+          retention-days: 90
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !secrets.EQUILYTICS_KEYSTORE_B64 }}
+        with:
+          name: release-keystore-SAVE-THIS-SAFELY
+          path: android-app/keystore/release.jks
+          retention-days: 90
