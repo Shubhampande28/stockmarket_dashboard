@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.equilytics.app",
+    "sha256_cert_fingerprints": ["EE:98:D3:0B:F4:5A:AD:EC:4B:16:CA:7D:89:28:9C:A6:64:89:5A:C9:D1:4F:23:46:61:24:98:E3:57:B8:FB:9B"]
+  }
+}]
