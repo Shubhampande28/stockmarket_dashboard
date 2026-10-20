@@ -1,6 +1,6 @@
 name: Build Android app (TWA)
 
-on:
+"on":
   push:
     branches: [revamp-mood]
     paths: ["android-app/**", ".github/workflows/android-build.yml"]
@@ -32,13 +32,19 @@ jobs:
       # it means Play Store updates to this exact app are impossible
       # later, since every update must be signed with the same key.
       - name: Prepare signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.EQUILYTICS_KEYSTORE_B64 }}
+          EXISTING_KEYSTORE_PASSWORD: ${{ secrets.EQUILYTICS_KEYSTORE_PASSWORD }}
+          EXISTING_KEY_ALIAS: ${{ secrets.EQUILYTICS_KEY_ALIAS }}
+          EXISTING_KEY_PASSWORD: ${{ secrets.EQUILYTICS_KEY_PASSWORD }}
         run: |
           mkdir -p keystore
-          if [ -n "${{ secrets.EQUILYTICS_KEYSTORE_B64 }}" ]; then
-            echo "${{ secrets.EQUILYTICS_KEYSTORE_B64 }}" | base64 -d > keystore/release.jks
-            echo "KEYSTORE_PASSWORD=${{ secrets.EQUILYTICS_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
-            echo "KEY_ALIAS=${{ secrets.EQUILYTICS_KEY_ALIAS }}" >> "$GITHUB_ENV"
-            echo "KEY_PASSWORD=${{ secrets.EQUILYTICS_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > keystore/release.jks
+            echo "KEYSTORE_PASSWORD=$EXISTING_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=$EXISTING_KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=$EXISTING_KEY_PASSWORD" >> "$GITHUB_ENV"
+            echo "GENERATED_NEW_KEY=false" >> "$GITHUB_ENV"
             echo "Using the existing EQUILYTICS_KEYSTORE_B64 repo secret."
           else
             GENERATED_PASSWORD="$(openssl rand -base64 24)"
@@ -52,6 +58,7 @@ jobs:
             echo "KEYSTORE_PASSWORD=$GENERATED_PASSWORD" >> "$GITHUB_ENV"
             echo "KEY_ALIAS=equilytics" >> "$GITHUB_ENV"
             echo "KEY_PASSWORD=$GENERATED_PASSWORD" >> "$GITHUB_ENV"
+            echo "GENERATED_NEW_KEY=true" >> "$GITHUB_ENV"
             echo "::warning::No EQUILYTICS_KEYSTORE_B64 secret found -- generated a NEW signing key for this run. Download the 'release-keystore' artifact below and store it somewhere safe right now. If you want future builds to keep using this same key (required for Play Store updates), add it as repo secrets -- see android-app/README.md."
           fi
 
@@ -78,7 +85,7 @@ jobs:
           retention-days: 90
 
       - uses: actions/upload-artifact@v4
-        if: ${{ !secrets.EQUILYTICS_KEYSTORE_B64 }}
+        if: ${{ env.GENERATED_NEW_KEY == 'true' }}
         with:
           name: release-keystore-SAVE-THIS-SAFELY
           path: android-app/keystore/release.jks
