@@ -9,324 +9,127 @@
   <meta name="description" content="Stock market insights, guides and analysis from Equilytics. Learn how to read NSE and BSE heatmaps, track top gainers and losers, and invest smarter in India." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.equilytics.in/blog" />
-  <link rel="stylesheet" href="./style.css?v=20260514-fin-v1">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0a0a0f;
-      --surface: #111118;
-      --border: #1e1e2e;
-      --green: #4ade80;
-      --blue: #60a5fa;
-      --text: #e2e8f0;
-      --muted: #64748b;
-      --card-bg: #13131c;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-    }
-
-    /* NAV */
-    .blog-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 48px;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      z-index: 100;
-    }
-    .blog-nav .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-    }
-    .blog-nav .brand-icon {
-      width: 36px; height: 36px;
-      background: #0f172a;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 900; color: #fff;
-      letter-spacing: -1px;
-      position: relative;
-    }
-    .blog-nav .brand-icon::after {
-      content: '';
-      position: absolute;
-      bottom: 7px; left: 6px; right: 6px;
-      height: 2px;
-      background: var(--green);
-      border-radius: 2px;
-    }
-    .blog-nav .brand-name { font-size: 16px; font-weight: 700; color: var(--text); }
-    .blog-nav nav a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 14px;
-      margin-left: 28px;
-      transition: color 0.2s;
-    }
-    .blog-nav nav a:hover, .blog-nav nav a.active { color: var(--text); }
-    .blog-nav nav a.active { color: var(--green); }
-
-    /* HERO */
-    .blog-hero {
-      padding: 80px 48px 60px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .blog-hero .kicker {
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--green);
-      margin-bottom: 16px;
-    }
-    .blog-hero h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(52px, 8vw, 88px);
-      line-height: 0.95;
-      color: var(--text);
-      margin-bottom: 20px;
-      letter-spacing: 0.01em;
-    }
-    .blog-hero h1 span { color: var(--green); }
-    .blog-hero p {
-      font-size: 16px;
-      color: var(--muted);
-      max-width: 500px;
-      line-height: 1.7;
-    }
-
-    /* GRID */
-    .blog-grid {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 48px 80px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 24px;
-    }
-
-    .blog-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      transition: border-color 0.2s, transform 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-    .blog-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--green), var(--blue));
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .blog-card:hover { border-color: #2e2e3e; transform: translateY(-3px); }
-    .blog-card:hover::before { opacity: 1; }
-
-    .card-tag {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--green);
-    }
-    .card-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1.3;
-    }
-    .card-excerpt {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.7;
-      flex: 1;
-    }
-    .card-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--muted);
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-    .card-read {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--green);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .card-read::after { content: '→'; }
-
-    /* FOOTER */
-    .blog-footer {
-      border-top: 1px solid var(--border);
-      padding: 32px 48px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .blog-footer a { color: var(--green); text-decoration: none; }
-
-    @media (max-width: 600px) {
-      .blog-nav, .blog-hero, .blog-grid { padding-left: 20px; padding-right: 20px; }
-      .blog-nav nav { display: none; }
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/blog-styles.css">
 </head>
 <body>
 
-  <nav class="blog-nav">
-    <a href="/" class="brand">
-      <div class="brand-icon">EQ</div>
-      <span class="brand-name">Equilytics</span>
-    </a>
-    <nav>
-      <a href="/markets" >Markets</a>
-      <a href="/heatmap">Heatmap</a>
-      <a href="/financials">Financials</a>
-      <a href="/insights">Insights</a>
-      <a href="/blog" class="active">Blog</a>
-    </nav>
-  </nav>
+  <header>
+    <div class="nav">
+      <a href="/" class="brand">Equi<span class="lytics">lytics</span></a>
+      <nav class="nav-links">
+        <a href="/market-mood">Market Mood</a>
+        <a href="/ipos">IPOs</a>
+        <a href="/heatmap">Heatmap</a>
+        <a href="/markets">Markets</a>
+        <a href="/brief">Daily Brief</a>
+        <a href="/blog" class="active">Blog</a>
+        <a href="/market-mood" class="nav-cta">See today's mood</a>
+      </nav>
+    </div>
+  </header>
 
-  <section class="blog-hero">
+  <section class="hero index">
     <p class="kicker">Market Intelligence Blog</p>
-    <h1>Insights for <span>Smarter</span><br>Investing</h1>
-    <p>Guides, analysis and explainers to help every Indian investor understand the markets better.</p>
+    <h1>Insights for smarter investing</h1>
+    <p class="lead">Guides, analysis and explainers to help every Indian investor understand the markets better.</p>
   </section>
 
-  <section class="blog-grid">
+  <section class="post-grid">
 
-    <a href="/blog-equilytics-mood-index-explained" class="blog-card">
-      <span class="card-tag">Mood Index</span>
-      <h2 class="card-title">What Is the Equilytics Mood Index and How to Read It</h2>
-      <p class="card-excerpt">The six signals behind the 0-100 score, the five zones from Extreme Fear to Extreme Greed, and how to actually use it without over-reading it.</p>
-      <div class="card-meta">
-        <span>Oct 7, 2026 &middot; 6 min read</span>
-        <span class="card-read">Read article</span>
-      </div>
+    <a href="/blog-equilytics-mood-index-explained" class="post-card">
+      <span class="post-tag">Mood Index</span>
+      <h2 class="post-title">What Is the Equilytics Mood Index and How to Read It</h2>
+      <p class="post-excerpt">The six signals behind the 0-100 score, the five zones from Extreme Fear to Extreme Greed, and how to actually use it without over-reading it.</p>
+      <div class="post-meta"><span>Oct 7, 2026 &middot; 6 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-fii-vs-dii" class="blog-card">
-      <span class="card-tag">Market Basics</span>
-      <h2 class="card-title">FII vs DII: Who Moves the Indian Stock Market?</h2>
-      <p class="card-excerpt">What FIIs and DIIs are, why they often move in opposite directions, and how to read the daily flow numbers.</p>
-      <div class="card-meta">
-        <span>Oct 7, 2026 &middot; 5 min read</span>
-        <span class="card-read">Read article</span>
-      </div>
+    <a href="/blog-fii-vs-dii" class="post-card">
+      <span class="post-tag">Market Basics</span>
+      <h2 class="post-title">FII vs DII: Who Moves the Indian Stock Market?</h2>
+      <p class="post-excerpt">What FIIs and DIIs are, why they often move in opposite directions, and how to read the daily flow numbers.</p>
+      <div class="post-meta"><span>Oct 7, 2026 &middot; 5 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-india-vix-explained" class="blog-card">
-      <span class="card-tag">Market Basics</span>
-      <h2 class="card-title">India VIX Explained in Plain English</h2>
-      <p class="card-excerpt">What India VIX actually measures, typical ranges, and how it's used as one of the six Mood Index signals.</p>
-      <div class="card-meta">
-        <span>Oct 7, 2026 &middot; 5 min read</span>
-        <span class="card-read">Read article</span>
-      </div>
+    <a href="/blog-india-vix-explained" class="post-card">
+      <span class="post-tag">Market Basics</span>
+      <h2 class="post-title">India VIX Explained in Plain English</h2>
+      <p class="post-excerpt">What India VIX actually measures, typical ranges, and how it's used as one of the six Mood Index signals.</p>
+      <div class="post-meta"><span>Oct 7, 2026 &middot; 5 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-sip-investors-market-fear" class="blog-card">
-      <span class="card-tag">Educational</span>
-      <h2 class="card-title">Should SIP Investors Worry When the Market Is in Fear?</h2>
-      <p class="card-excerpt">An educational look at what a Fear reading has historically meant for SIP investors, and why it changes a long-term plan less than it feels like it should.</p>
-      <div class="card-meta">
-        <span>Oct 7, 2026 &middot; 5 min read</span>
-        <span class="card-read">Read article</span>
-      </div>
+    <a href="/blog-sip-investors-market-fear" class="post-card">
+      <span class="post-tag">Educational</span>
+      <h2 class="post-title">Should SIP Investors Worry When the Market Is in Fear?</h2>
+      <p class="post-excerpt">An educational look at what a Fear reading has historically meant for SIP investors, and why it changes a long-term plan less than it feels like it should.</p>
+      <div class="post-meta"><span>Oct 7, 2026 &middot; 5 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-what-is-heatmap" class="blog-card">
-      <span class="card-tag">Beginner Guide</span>
-      <h2 class="card-title">What Is a Stock Market Heatmap? A Beginner's Guide for Indian Investors</h2>
-      <p class="card-excerpt">If you've ever felt overwhelmed by stock market data, you're not alone. A heatmap transforms endless numbers into a single visual — green for gainers, red for losers. Here's how to read it.</p>
-      <div class="card-meta">
-        <span>May 14, 2026 · 5 min read</span>
-        <span class="card-read">Read article</span>
-      </div>
+    <a href="/blog-what-is-heatmap" class="post-card">
+      <span class="post-tag">Beginner Guide</span>
+      <h2 class="post-title">What Is a Stock Market Heatmap? A Beginner's Guide for Indian Investors</h2>
+      <p class="post-excerpt">If you've ever felt overwhelmed by stock market data, you're not alone. A heatmap transforms endless numbers into a single visual — green for gainers, red for losers. Here's how to read it.</p>
+      <div class="post-meta"><span>May 14, 2026 &middot; 5 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-nse-gainers-losers" class="blog-card">
-      <span class="card-tag">Market Tools</span>
-      <h2 class="card-title">NSE Top Gainers & Losers Today — How to Track Them Instantly</h2>
-      <p class="card-excerpt">Tracking NSE top gainers and losers is one of the most common tasks for Indian investors. But most platforms make it harder than it needs to be. Here's the fastest, most visual way to stay on top.</p>
-      <div class="card-meta">
-        <span>May 14, 2026 · 4 min read</span>
-        <span class="card-read">Read article</span>
-      </div>
+    <a href="/blog-nse-gainers-losers" class="post-card">
+      <span class="post-tag">Market Tools</span>
+      <h2 class="post-title">NSE Top Gainers &amp; Losers Today — How to Track Them Instantly</h2>
+      <p class="post-excerpt">Tracking NSE top gainers and losers is one of the most common tasks for Indian investors. But most platforms make it harder than it needs to be. Here's the fastest, most visual way to stay on top.</p>
+      <div class="post-meta"><span>May 14, 2026 &middot; 4 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-market-breadth" class="blog-card">
-      <span class="card-tag">Market Basics</span>
-      <h2 class="card-title">What Is Market Breadth? NSE Advance Decline Explained</h2>
-      <p class="card-excerpt">Learn how advancing and declining stocks reveal whether an index move is broad, narrow, or potentially misleading.</p>
-      <div class="card-meta"><span>May 20, 2026 · 4 min read</span><span class="card-read">Read article</span></div>
+    <a href="/blog-market-breadth" class="post-card">
+      <span class="post-tag">Market Basics</span>
+      <h2 class="post-title">What Is Market Breadth? NSE Advance Decline Explained</h2>
+      <p class="post-excerpt">Learn how advancing and declining stocks reveal whether an index move is broad, narrow, or potentially misleading.</p>
+      <div class="post-meta"><span>May 20, 2026 &middot; 4 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-how-to-read-nifty-50-heatmap" class="blog-card">
-      <span class="card-tag">Heatmap Guide</span>
-      <h2 class="card-title">How to Read NIFTY 50 Heatmap</h2>
-      <p class="card-excerpt">Understand tile colors, heavyweight impact, and sector clusters in a NIFTY 50 heatmap.</p>
-      <div class="card-meta"><span>May 20, 2026 · 4 min read</span><span class="card-read">Read article</span></div>
+    <a href="/blog-how-to-read-nifty-50-heatmap" class="post-card">
+      <span class="post-tag">Heatmap Guide</span>
+      <h2 class="post-title">How to Read NIFTY 50 Heatmap</h2>
+      <p class="post-excerpt">Understand tile colors, heavyweight impact, and sector clusters in a NIFTY 50 heatmap.</p>
+      <div class="post-meta"><span>May 20, 2026 &middot; 4 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-nse-sector-rotation" class="blog-card">
-      <span class="card-tag">Sector Analysis</span>
-      <h2 class="card-title">NSE Sector Rotation Explained</h2>
-      <p class="card-excerpt">See how leadership shifts between banking, IT, pharma, energy, FMCG, metals, auto, and realty stocks.</p>
-      <div class="card-meta"><span>May 20, 2026 · 5 min read</span><span class="card-read">Read article</span></div>
+    <a href="/blog-nse-sector-rotation" class="post-card">
+      <span class="post-tag">Sector Analysis</span>
+      <h2 class="post-title">NSE Sector Rotation Explained</h2>
+      <p class="post-excerpt">See how leadership shifts between banking, IT, pharma, energy, FMCG, metals, auto, and realty stocks.</p>
+      <div class="post-meta"><span>May 20, 2026 &middot; 5 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-nse-top-gainers-meaning" class="blog-card">
-      <span class="card-tag">Market Tools</span>
-      <h2 class="card-title">NSE Top Gainers Today Meaning</h2>
-      <p class="card-excerpt">What top gainers mean, how percentage gain is calculated, and why volume and sector context matter.</p>
-      <div class="card-meta"><span>May 20, 2026 · 4 min read</span><span class="card-read">Read article</span></div>
+    <a href="/blog-nse-top-gainers-meaning" class="post-card">
+      <span class="post-tag">Market Tools</span>
+      <h2 class="post-title">NSE Top Gainers Today Meaning</h2>
+      <p class="post-excerpt">What top gainers mean, how percentage gain is calculated, and why volume and sector context matter.</p>
+      <div class="post-meta"><span>May 20, 2026 &middot; 4 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-track-stock-market-momentum" class="blog-card">
-      <span class="card-tag">Momentum</span>
-      <h2 class="card-title">How to Track Indian Stock Market Momentum</h2>
-      <p class="card-excerpt">A practical workflow using heatmaps, movers, sector breadth, volume, and financial context.</p>
-      <div class="card-meta"><span>May 20, 2026 · 4 min read</span><span class="card-read">Read article</span></div>
+    <a href="/blog-track-stock-market-momentum" class="post-card">
+      <span class="post-tag">Momentum</span>
+      <h2 class="post-title">How to Track Indian Stock Market Momentum</h2>
+      <p class="post-excerpt">A practical workflow using heatmaps, movers, sector breadth, volume, and financial context.</p>
+      <div class="post-meta"><span>May 20, 2026 &middot; 4 min read</span><span class="post-read">Read article</span></div>
     </a>
 
-    <a href="/blog-best-free-indian-stock-market-dashboard" class="blog-card">
-      <span class="card-tag">Tool Guide</span>
-      <h2 class="card-title">Best Free Indian Stock Market Dashboard Features to Look For</h2>
-      <p class="card-excerpt">The key features a useful Indian market dashboard should include for fast scanning and deeper research.</p>
-      <div class="card-meta"><span>May 20, 2026 · 4 min read</span><span class="card-read">Read article</span></div>
+    <a href="/blog-best-free-indian-stock-market-dashboard" class="post-card">
+      <span class="post-tag">Tool Guide</span>
+      <h2 class="post-title">Best Free Indian Stock Market Dashboard Features to Look For</h2>
+      <p class="post-excerpt">The key features a useful Indian market dashboard should include for fast scanning and deeper research.</p>
+      <div class="post-meta"><span>May 20, 2026 &middot; 4 min read</span><span class="post-read">Read article</span></div>
     </a>
 
   </section>
 
-  <footer class="blog-footer">
-    <p>© 2026 <a href="/">Equilytics</a> · India's intelligent stock market platform · <a href="/">equilytics.in</a></p>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>&copy; 2026 Equilytics. Informational and educational use only.</span>
+      <div class="footer-links"><a href="/about">About</a><a href="/disclaimer">Disclaimer</a></div>
+    </div>
   </footer>
 
 </body>
