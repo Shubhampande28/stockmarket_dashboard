@@ -107,10 +107,7 @@ export default function MarketMoodClient({
         {/* Gauge card */}
         <div className="rounded-[18px] border border-line p-5" style={{ flex: "1 1 400px" }}>
           <Gauge score={mood.score} zone={mood.zone} />
-          <div className="mt-2 text-center">
-            <p className="font-tabular text-[3.5rem] font-bold leading-none" style={{ color: colorForScore(mood.score) }}>
-              {mood.score}
-            </p>
+          <div className="mt-1 text-center">
             <p className="text-xl font-bold" style={{ color: labelColorForScore(mood.score) }}>
               {mood.zone}
             </p>
