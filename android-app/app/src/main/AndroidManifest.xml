@@ -26,7 +26,7 @@
             <!-- No SPLASH_IMAGE_DRAWABLE here on purpose: androidbrowserhelper's
                  splash screen feature needs a FileProvider (authority
                  ${applicationId}.fileprovider) declared to actually render it,
-                 and crashes on launch without one -- this was the cause of
+                 and crashes on launch without one - this was the cause of
                  the first real-device crash. Can add it back later with the
                  full provider setup if a splash screen is worth it; a blank
                  instant launch is better than a crash. -->
