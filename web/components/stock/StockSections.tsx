@@ -92,8 +92,8 @@ export function KeyNumbers({ info }: { info: FinancialsData["info"] | null }) {
       <dl className="space-y-2.5">
         {rows.map(([key, label]) => (
           <div key={key} className="flex items-center justify-between gap-3 text-sm">
-            <dt className="text-ink-3">{label}</dt>
-            <dd className="font-tabular font-semibold">{info[key]}</dd>
+            <dt className="whitespace-nowrap text-ink-3">{label}</dt>
+            <dd className="font-tabular text-right font-semibold">{info[key]}</dd>
           </div>
         ))}
       </dl>
@@ -191,7 +191,7 @@ export function FinancialsPanel({
           <table className="w-full min-w-[600px] text-sm">
             <thead>
               <tr className="border-b border-line text-left text-xs uppercase text-ink-4">
-                <th className="p-3">Line item</th>
+                <th className="p-3">Line item (₹ Crore)</th>
                 {statement.periods.slice(-5).map((p) => (
                   <th key={p} className="p-3 text-right font-tabular">{p}</th>
                 ))}

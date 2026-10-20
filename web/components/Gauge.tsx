@@ -47,7 +47,7 @@ export default function Gauge({ score, zone }: { score: number; zone?: string })
     : `Mood gauge reading ${Math.round(score)} out of 100`;
 
   return (
-    <svg viewBox="-40 0 480 310" role="img" aria-label={ariaLabel} className="w-full">
+    <svg viewBox="-40 -14 480 324" role="img" aria-label={ariaLabel} className="w-full">
       {arcs.map((arc, i) => (
         <path key={i} d={arc.d} stroke={arc.color} strokeWidth={w} fill="none" />
       ))}
@@ -64,7 +64,7 @@ export default function Gauge({ score, zone }: { score: number; zone?: string })
       <text x={cx - R + 10} y={cy + 20} textAnchor="start" fontSize={11} fill="var(--ink-4)">
         Extreme fear
       </text>
-      <text x={cx} y={cy - R - 14} textAnchor="middle" fontSize={11} fill="var(--ink-4)">
+      <text x={cx} y={cy - R - 24} textAnchor="middle" fontSize={11} fill="var(--ink-4)">
         Neutral
       </text>
       <text x={cx + R - 10} y={cy + 20} textAnchor="end" fontSize={11} fill="var(--ink-4)">

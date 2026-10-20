@@ -91,7 +91,7 @@ NEWS_CACHE_TTL = 60 * 60 * 24 * 30
 AI_CACHE_TTL = 60 * 60 * 24 * 365
 FINANCIALS_CACHE_TTL = 60 * 60 * 24 * 30
 MARKET_STATS_CACHE_TTL = 60 * 60 * 6
-FINANCIALS_CACHE_VERSION = "nse-inr-v6-top-ratios"
+FINANCIALS_CACHE_VERSION = "nse-inr-v7-dedup-top-ratios"
 NEWS_LIMIT = 8
 AUTH_STATE_PATH = BASE_DIR / "auth_state.json"
 UPSTOX_AUTH_URL = "https://api.upstox.com/v2/login/authorization/dialog"
@@ -2669,6 +2669,26 @@ def parse_screener_table(section):
 def normalize_info_label(label):
     return re.sub(r"[^a-z0-9]+", "", str(label or "").lower())
 
+def dedupe_trailing_numbers(value):
+    """Screener's top-ratios markup sometimes repeats the bare numbers right
+    after the formatted value (e.g. "₹ 668 668", "0.51 % 0.51", "₹ 1,612 / 1,161
+    1,612 1,161") -- a second, visually-hidden span with the raw figure that
+    the old half-splitting dedup below didn't catch, since the two halves
+    aren't textually identical (one has the currency/percent symbol, the
+    other doesn't). Strip that trailing duplicate by finding the sequence of
+    numbers and checking whether the back half exactly repeats the front
+    half, then removing only that repeated suffix."""
+    numbers = re.findall(r"[\d,]+(?:\.\d+)?", value)
+    if len(numbers) < 2 or len(numbers) % 2 != 0:
+        return value
+    mid = len(numbers) // 2
+    first_half, second_half = numbers[:mid], numbers[mid:]
+    if first_half != second_half:
+        return value
+    suffix_pattern = r"\s+" + r"\s+".join(re.escape(n) for n in second_half) + r"\s*$"
+    return re.sub(suffix_pattern, "", value).strip()
+
+
 def parse_screener_top_ratios(soup):
     ratios = {}
     key_map = {
@@ -2702,7 +2722,8 @@ def parse_screener_top_ratios(soup):
         value = " ".join(value_parts)
         key = key_map.get(normalize_info_label(label))
         if key and value:
-            ratios[key] = re.sub(r"\s+", " ", value).strip()
+            value = re.sub(r"\s+", " ", value).strip()
+            ratios[key] = dedupe_trailing_numbers(value)
 
     return ratios
 

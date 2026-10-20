@@ -62,6 +62,13 @@ export default function MarketsClient({ initialSnapshot }: { initialSnapshot: Sn
   const total = advances + declines || 1;
   const indexQuotes = Object.entries(snapshot.indexQuotes ?? {}).filter(([, q]) => typeof q.price === "number");
 
+  // Gainers/losers restricted to Nifty 50 -- the full-universe snapshot.gainers
+  // and .losers are dominated by illiquid small/micro caps at their daily
+  // circuit limits, which isn't what "today's movers" means to most readers.
+  const nifty50 = (snapshot.nifty50 as StockRow[] | undefined) ?? [];
+  const niftyGainers = [...nifty50].filter((s) => s.change > 0).sort((a, b) => b.change - a.change).slice(0, 10);
+  const niftyLosers = [...nifty50].filter((s) => s.change < 0).sort((a, b) => a.change - b.change).slice(0, 10);
+
   return (
     <div>
       {snapshot._meta?.stale && <StaleWarning lastUpdated={relativeTime(new Date(snapshot._meta.computedAt * 1000).toISOString())} />}
@@ -98,8 +105,8 @@ export default function MarketsClient({ initialSnapshot }: { initialSnapshot: Sn
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <MoversRow title="Top gainers" stocks={snapshot.gainers ?? []} />
-        <MoversRow title="Top losers" stocks={snapshot.losers ?? []} />
+        <MoversRow title="Top gainers (Nifty 50)" stocks={niftyGainers} />
+        <MoversRow title="Top losers (Nifty 50)" stocks={niftyLosers} />
       </div>
     </div>
   );

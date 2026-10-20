@@ -113,7 +113,7 @@ export default function SearchBox({
         Search for a stock by company name or symbol
       </label>
       <div
-        className={`flex items-center gap-2 rounded-full border bg-surface shadow-[0_6px_24px_rgba(17,17,20,0.08)] ${
+        className={`flex items-center gap-2 rounded-full border bg-surface shadow-[0_6px_24px_rgba(17,17,20,0.08)] transition-shadow focus-within:shadow-[0_0_0_3px_rgba(17,17,20,0.1)] ${
           isHero ? "h-[54px] px-5 sm:h-[60px]" : "h-11 px-4"
         }`}
         style={{ borderColor: "#DCDCE1" }}
@@ -137,7 +137,13 @@ export default function SearchBox({
           onKeyDown={onKeyDown}
           onFocus={() => query.trim() && setOpen(true)}
           placeholder={isHero ? "Company name or symbol, e.g. Reliance" : "Search stocks"}
-          className={`flex-1 bg-transparent outline-none placeholder:text-ink-4 ${isHero ? "text-[17px]" : "text-sm"}`}
+          // Inline style, not a class: the global :focus-visible rule
+          // (globals.css, for keyboard-nav accessibility elsewhere) has
+          // equal specificity to a Tailwind class and can win the cascade
+          // order, drawing a visible rectangle around just the input. The
+          // pill's own focus-within ring above is the intended focus cue.
+          style={{ outline: "none" }}
+          className={`flex-1 bg-transparent placeholder:text-ink-4 ${isHero ? "text-[17px]" : "text-sm"}`}
         />
         {query && (
           <button

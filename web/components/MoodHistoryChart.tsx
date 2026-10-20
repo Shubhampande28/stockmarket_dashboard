@@ -67,7 +67,17 @@ export default function MoodHistoryChart({
         </span>
       </div>
       <svg viewBox={`0 0 ${path.W} ${path.H}`} role="img" aria-label="Mood index vs Nifty 50, last sessions" className="w-full">
-        <rect x={path.L} y={path.T} width={path.iw} height={path.redBandY - path.T} fill="#F4C4C1" opacity={0.35} />
+        {/* Band covers scores BELOW 25 -- that's the bottom of the chart
+            (high y pixel values), not the top. redBandY is the y-pixel for
+            score=25, so the band runs from there down to the chart floor. */}
+        <rect
+          x={path.L}
+          y={path.redBandY}
+          width={path.iw}
+          height={path.T + path.ih - path.redBandY}
+          fill="#F4C4C1"
+          opacity={0.35}
+        />
         {[0, 25, 50, 75, 100].map((v) => (
           <line
             key={v}
@@ -84,6 +94,9 @@ export default function MoodHistoryChart({
         )}
         <path d={path.moodPath} fill="none" stroke="var(--brand-ink)" strokeWidth={2.5} strokeLinejoin="round" />
       </svg>
+      {!path.niftyPath && (
+        <p className="mt-1 text-xs text-ink-4">Nifty 50 data isn&apos;t available for this period yet.</p>
+      )}
     </div>
   );
 }
