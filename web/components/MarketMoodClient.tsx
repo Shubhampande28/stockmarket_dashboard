@@ -68,10 +68,14 @@ export default function MarketMoodClient({
     ? `Live · updated ${relativeTime(mood.computed_at)}`
     : "Closed · showing last close";
 
+  // `compare` can be entirely absent -- a legacy stored mood record (e.g.
+  // a "close" kind saved before this field existed) can omit it, confirmed
+  // live in production -- so every access here is optional-chained rather
+  // than assumed present.
   const compareTiles: { label: string; score: number | null }[] = [
-    { label: "Yesterday", score: mood.compare.yesterday },
-    { label: "1 week ago", score: mood.compare.week_ago },
-    { label: "1 month ago", score: mood.compare.month_ago },
+    { label: "Yesterday", score: mood.compare?.yesterday ?? null },
+    { label: "1 week ago", score: mood.compare?.week_ago ?? null },
+    { label: "1 month ago", score: mood.compare?.month_ago ?? null },
   ].filter((t) => t.score != null);
 
   const windowedHistory = initialHistory.slice(-period);

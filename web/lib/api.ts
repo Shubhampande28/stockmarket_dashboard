@@ -44,8 +44,10 @@ export interface MoodResult {
   kind: "live" | "close" | "backfill";
   score: number;
   zone: string;
-  change: { d1: number | null; w1: number | null; m1: number | null };
-  compare: { yesterday: number | null; week_ago: number | null; month_ago: number | null };
+  // Both optional: a legacy stored mood record (saved before these fields
+  // existed) can omit them entirely -- confirmed live in production.
+  change?: { d1: number | null; w1: number | null; m1: number | null };
+  compare?: { yesterday: number | null; week_ago: number | null; month_ago: number | null };
   components: MoodComponent[];
   headline: string;
   verdict: string;
