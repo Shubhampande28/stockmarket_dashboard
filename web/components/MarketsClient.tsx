@@ -5,7 +5,7 @@ import MoversRow from "./MoversRow";
 import { Skeleton, ErrorPanel, StaleWarning } from "./states/DataStates";
 import { getSnapshot, type Snapshot, type StockRow } from "@/lib/api";
 import { BACKEND_SECTOR_KEYS, displaySectorFor, DISPLAY_SECTORS } from "@/lib/market/sectors";
-import { formatSignedPct } from "@/lib/heatmap/scale";
+import { formatSignedPct, toneFor } from "@/lib/heatmap/scale";
 import { marketStatus, relativeTime } from "@/lib/market/session";
 
 function sectorAverages(snapshot: Snapshot) {
@@ -94,26 +94,11 @@ export default function MarketsClient({ initialSnapshot }: { initialSnapshot: Sn
       <h2 className="mb-2 text-lg font-bold">Sector performance</h2>
       <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {sectorAverages(snapshot).map((s) => {
-          // Bar fill is proportional to magnitude (3% = full bar, matching
-          // the heatmap's own extreme band) rather than a flat tint, so the
-          // rectangle itself shows "how much", not just "which direction".
-          const widthPct = s.avg != null ? Math.min(Math.abs(s.avg) / 3, 1) * 100 : 0;
-          const barColor = (s.avg ?? 0) >= 0 ? "var(--up-text)" : "var(--down-text)";
+          const tone = s.avg != null ? toneFor(s.avg) : { bg: "var(--surface-2)", fg: "var(--ink-4)" };
           return (
-            <div key={s.label} className="rounded-[10px] border border-line p-3">
-              <p className="text-xs font-semibold text-ink-2">{s.label}</p>
-              <p
-                className={`font-tabular text-sm font-semibold ${
-                  s.avg == null ? "text-ink-4" : Math.abs(s.avg) <= 0.2 ? "text-ink-3" : s.avg >= 0 ? "up" : "down"
-                }`}
-              >
-                {s.avg != null ? formatSignedPct(s.avg) : "—"}
-              </p>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
-                {s.avg != null && (
-                  <div className="h-full rounded-full" style={{ width: `${widthPct}%`, background: barColor }} />
-                )}
-              </div>
+            <div key={s.label} className="rounded-[10px] p-3" style={{ backgroundColor: tone.bg, color: tone.fg }}>
+              <p className="text-xs font-semibold">{s.label}</p>
+              <p className="font-tabular text-sm">{s.avg != null ? formatSignedPct(s.avg) : "—"}</p>
             </div>
           );
         })}
